@@ -134,7 +134,7 @@ Feature branches can develop consumers using contracts before the producer is fi
 
 ## Review before implementation
 
-Carry accepted RD01–RD07 into feature criteria rather than reopening them. Confirm minimum field types, remaining invitation/member-role policies, the decision-to-participation projection, currency, buffer/accessibility semantics, transaction race handling and the shared foundation coordinator. Then record detailed feature approval before implementation. The MP3 brief, Git checkout setup, identity/deployment and provider decisions remain open where recorded in [project.md](project.md).
+Carry accepted RD01–RD07 into feature criteria rather than reopening them. Confirm minimum field types, remaining invitation/member-role policies, the decision-to-participation projection, currency, buffer/accessibility semantics, transaction race handling and the shared foundation coordinator. Then record detailed feature approval before implementation. The MP3 brief, team size, repository and checkout are confirmed; identity, deployment, provider and final MVP decisions remain open where recorded in [project.md](project.md).
 
 Checks performed on this design: local links and consistency with feature scope and shared security rules. Database behavior, API compatibility and migration safety remain unverified until implementation and real integration checks run.
 

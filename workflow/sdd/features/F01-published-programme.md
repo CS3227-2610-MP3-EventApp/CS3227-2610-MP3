@@ -2,7 +2,7 @@
 
 Status: Draft
 Feature ID: F01
-Specification revision: 2
+Specification revision: 3
 Coordinator: Dylan (proposed)
 Delivery participants: Dylan and Yik Bing (proposed)
 Participant task responsibilities: Agree before implementation; both contribute to delivery
@@ -13,11 +13,11 @@ Approval record: Pending
 
 ## Purpose and scope
 
-An authorised organiser creates and publishes a programme item for their event. An attendee can browse and read its published details. This is the proposed first complete journey through identity, server permissions, storage, UI and deployment.
+An authorised organiser creates venues, rooms, and draft programme items for their event and explicitly publishes valid items. An attendee can browse, filter, search, and read the published details. This is the proposed first complete journey through identity, server permissions, storage, UI and deployment.
 
-Includes event-scoped organiser access, draft and published states, basic programme browsing and title search, and factual fields needed by later itinerary planning. Excludes AI, submissions, personal itineraries, notifications, ordering and external research.
+Includes event-scoped organiser access, venue and room creation, draft and published item states, programme browsing, title search, type/date filters, and factual fields needed by later itinerary planning. Excludes complex venue booking, AI, submissions, personal itineraries, notifications, ordering and external research.
 
-Assignment requirement mapping: Pending MP3 brief. The criteria below are proposed, not approved course requirements.
+Assignment requirement mapping: F01 provides separate organiser and attendee workflows, shared persistence, role-based access control, and the authoritative programme data used by later role-specific AI features. The criteria below remain a draft project specification rather than course-mandated feature details.
 
 Accepted cross-feature decisions RD03/RD04 require stable programme revisions and a read contract that later supports change indicators and cancellation visibility. F01 does not implement itineraries or notifications; [RD01–RD07](../project.md#accepted-review-decisions) constrain dependent features without granting blanket F01 approval.
 
@@ -27,11 +27,11 @@ Applicable rules: [SEC01, SEC02, SEC11 and SEC12](../security.md).
 
 | ID | Observable acceptance criterion | Planned evidence |
 | --- | --- | --- |
-| F01-AC01 | An organiser authorised for event A can create a draft item for A, containing title, start and end, room, capacity, price and currency, and accessibility details. | Valid creation through UI and server; retrieve stored values |
+| F01-AC01 | An organiser authorised for event A can create a venue and room for A, then create a draft item containing title, start and end, that room, capacity, price and currency, and accessibility details. | Valid venue, room, and item creation through UI and server; retrieve stored values |
 | F01-AC02 | An unauthenticated user, attendee, or organiser assigned only to event B cannot create, edit or publish an item in A. Denied requests leave stored data unchanged. | Direct server calls for each role and cross-event case; compare data before and after |
 | F01-AC03 | The server rejects end at or before start, missing required fields, negative price, non-integer or non-positive capacity, and rooms outside the event or capacity above the room limit. | Field boundary checks and cross-event room reference |
 | F01-AC04 | An authorised organiser can publish a valid draft; a read through the attendee interface shows the exact stored title, times, room, price, currency, capacity and accessibility details. | Publish and inspect UI plus server response |
-| F01-AC05 | The attendee catalogue and title search return only published items in the requested event. Drafts remain inaccessible through list, search and direct detail requests. | Mixed draft and published data, wrong-event filters and direct draft ID requests |
+| F01-AC05 | The attendee catalogue, title search, and type/date filters return only matching published items in the requested event. Drafts remain inaccessible through list, search, filters, and direct detail requests. | Mixed draft and published data, title/type/date and wrong-event filters, and direct draft ID requests |
 | F01-AC06 | Newly created synthetic programme data remains retrievable with its publication state after restarting the application and its relevant storage lifecycle. | Write fresh record, restart, retrieve through intended interface |
 | F01-AC07 | Invalid updates and storage failures return a useful error without partially changing or publishing the item. | Invalid update and controlled storage failure; verify retained record |
 | F01-AC08 | Publication records who published which item and revision, when, and the outcome. Attendees cannot read private audit records. | Audit inspection and denied attendee audit request |
@@ -45,7 +45,7 @@ The server resolves event ownership through stored relationships, not a client-s
 
 ## Blocking decisions
 
-- D01 and D02: Confirm assignment constraints, Git checkout setup, identity and deployment. MP3 folder/repository URL, Python/FastAPI, TypeScript/React and PostgreSQL planning baseline are recorded.
+- D02: Choose identity and deployment providers. The assignment constraints, shared repository and checkout, Python/FastAPI, TypeScript/React, and PostgreSQL planning baseline are confirmed.
 - D04 and D05: Assign reviewers and choose organiser provisioning and event membership.
 - Decide whether published browsing requires attendee login or permits guests; draft privacy applies in both cases.
 - Define minimum accessibility fields, supported currency, maximum field lengths and accessible UI checks.
@@ -56,9 +56,9 @@ The server resolves event ownership through stored relationships, not a client-s
 
 - [ ] Resolve blockers, map the rubric and record approval.
 - [ ] Inspect repository and agree on identity, entity, timestamp and error contracts.
-- [ ] Implement organiser draft creation and server validation with permission checks.
+- [ ] Implement organiser venue, room, and draft-item creation with server validation and permission checks.
 - [ ] Implement publication and its audit record atomically.
-- [ ] Implement published catalogue, title search and detail view.
+- [ ] Implement published catalogue, title search, type/date filters, and detail view.
 - [ ] Verify success, rejection, boundaries, failures, restart and delivery.
 - [ ] Obtain independent permission and persistence review; investigate findings.
 - [ ] Update evidence, inspect the diff and prepare the team's agreed delivery artifact.
@@ -67,7 +67,7 @@ The server resolves event ownership through stored relationships, not a client-s
 
 Implementation revision: None
 Specification revision tested: None
-Reviews actually performed: Independent attendee, organiser and business documentation review plus coordinating review, 2026-10-15, of the pre-update pack. Revision 2 has document consistency/link checks only; no implementation review or new independent review of these edits.
+Reviews actually performed: Independent attendee, organiser and business documentation review plus coordinating review, 2026-10-15, of the pre-update pack. Revision 3 has document consistency/link checks only; no implementation review or new independent review of these edits.
 
 All F01-AC01 through F01-AC09 remain not verified. The planned checks above are not test results. Replace this statement with criterion-specific evidence when implementation begins.
 
@@ -77,3 +77,4 @@ All F01-AC01 through F01-AC09 remain not verified. The planned checks above are 
 | --- | --- | --- |
 | 1 | 2026-10-14 | First journey drafted from the product idea; approval pending |
 | 2 | 2026-10-15 | Aligned dependencies and review record with accepted RD01–RD07; detailed F01 approval and implementation still pending |
+| 3 | 2026-10-15 | Aligned the draft criteria with the canonical venue/room creation and type/date filtering stories; approval remains pending |

@@ -33,7 +33,7 @@ All 23 delivery-context stories below are copied verbatim from [project.md](../p
 
 **Rules and verification:** SEC01/02/11/12; RD04 informs revisions without adding F05 implementation. Use [F01-AC01–09](../features/F01-published-programme.md#required-behavior) for wrong-role/event requests, invalid fields, list/search/detail draft protection, atomic publication/audit, restart persistence and deployed cross-session journey.
 
-**Before implementing:** resolve F01's D01/D02/D04/D05 blockers, guest browsing, field/accessibility/currency bounds, publication edits/concurrency and conflict policy. The draft spec covers item publication/title search; venue/room management and additional filters need criteria rather than silently extending that slice. Programme/identity fixtures and contract design can proceed pending these decisions.
+**Before implementing:** resolve F01's D02/D04/D05 blockers, guest browsing, field/accessibility/currency bounds, publication edits/concurrency and conflict policy. The draft specification covers venue/room creation, item publication, title search, and type/date filters. Programme/identity fixtures and contract design can proceed pending the remaining decisions.
 
 ## F03 — AI event concierge
 
@@ -151,6 +151,6 @@ Delivery partners contribute meaningful bounded tasks, not necessarily simultane
 
 This handoff was derived from [WORKFLOW.md](../../WORKFLOW.md), [SDD process](../README.md), [project](../project.md), [schema/parallel plan](../schema-and-parallel-plan.md), [security](../security.md), [F01 draft](../features/F01-published-programme.md), [feature template](../templates/feature.md) and [team index](README.md). It does not replace these authoritative sources.
 
-Before Ready: resolve feature-local blockers, agree numbered criteria and contract examples, assign bounded tasks/approver/contract reviewer/independent reviewer, and record approval. D01 rubric/deadline and D03 final scope commitment remain unresolved. Proposed provider/numerical defaults are not measured or automatically accepted. Carry accepted RD01–RD07 into criteria; do not reopen accepted policy just because schema fields remain draft.
+Before Ready: resolve feature-local blockers, agree numbered criteria and contract examples, assign bounded tasks/approver/contract reviewer/independent reviewer, and record approval. D03 final scope commitment remains unresolved; D01 is resolved. Proposed provider/numerical defaults are not measured or automatically accepted. Carry accepted RD01–RD07 into criteria; do not reopen accepted policy just because schema fields remain draft.
 
 All checks above are planned, not executed implementation tests. No application, database migration, persistence, deployment, live provider or rubric correctness is established. Completion requires revision-specific criterion evidence, actual independent review, real integration and intended delivery checks. No implementation, commit or push is authorised by this guide.

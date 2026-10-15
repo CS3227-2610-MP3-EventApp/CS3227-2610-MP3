@@ -197,7 +197,7 @@ For a new project or chat, supply this document and explicitly ask the agent to 
 
 Suggested startup instruction:
 
-> Read WORKFLOW.md and use it to guide this task. Before implementation, identify the relevant project requirements, acceptance criteria, architecture or contracts, and known failures. Explain the scope and verification approach. Adapt the effort to the change, reuse settled decisions and existing documents, and report the checks and reviews actually performed and anything still unverified.
+> From the repository root, read workflow/WORKFLOW.md and use it to guide this task. Before implementation, identify the relevant project requirements, acceptance criteria, architecture or contracts, and known failures. Explain the scope and verification approach. Adapt the effort to the change, reuse settled decisions and existing documents, and report the checks and reviews actually performed and anything still unverified.
 
 ## Decisions to make per project
 

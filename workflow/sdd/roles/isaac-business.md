@@ -157,7 +157,7 @@ All three deliver; coordinator to assign; independent reviewer per bounded chang
 
 **Rules and focused verification:** SEC01–SEC12 as applicable; SEC13 for applications; RD01–RD07 remain binding. See shared controls below. Direct server checks, not UI restrictions, establish permissions.
 
-**Blockers and independent progress:** D01 rubric/deadline; D02 identity/deployment/checkout; D04 coordinator/approvers; D05 invitation/member roles; D06 retention/provider/minimal fields; D08 actual quotas/timeouts. Proposed numerical defaults are not approved or measured guarantees. Permission matrices and fixtures can be prepared before provider choice.
+**Blockers and independent progress:** D02 identity/deployment; D04 coordinator/approvers; D05 invitation/member roles; D06 retention/provider/minimal fields; D08 actual quotas/timeouts. D01 is resolved. Proposed numerical defaults are not approved or measured guarantees. Permission matrices and fixtures can be prepared before provider choice.
 
 ## Shared AI and approval controls — apply once across features
 
@@ -169,7 +169,7 @@ SEC06/07 approval binds actor, destination, exact payload, amount/currency where
 
 ## Independent review only
 
-**F01-US01–03:** read [canonical programme stories](../project.md#f01-publish-and-browse-programmes) and [draft F01-AC01–AC09](../features/F01-published-programme.md). Review server/event permissions, draft privacy, same-event capacity validation, publication/revision/audit atomicity, new-data restart and deployed journey. Event/room management and additional filters exceed current draft criteria and need specification. No F01 implementation tasks are assigned here.
+**F01-US01–03:** read [canonical programme stories](../project.md#f01-publish-and-browse-programmes) and [draft F01-AC01–AC09](../features/F01-published-programme.md). Review server/event permissions, draft privacy, venue/room and same-event capacity validation, title/type/date filtering, publication/revision/audit atomicity, new-data restart and deployed journey. No F01 implementation tasks are assigned here.
 
 **F03-US01–04:** read [canonical concierge stories](../project.md#f03-ai-event-concierge). US01–03 MVP, recap US04 stretch. Review permitted published retrieval, validated feasible drafts/unknown answers, explicit revision-aware acceptance/replanning, preserved accepted records and F10 privacy/failure controls. Recaps distinguish planned from explicitly attended activities. No F03 implementation tasks are assigned here.
 

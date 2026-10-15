@@ -1,10 +1,10 @@
 # Converge project context
 
-Converge helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and three role owners. The review decisions below were accepted on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. Application implementation remains deferred pending feature criteria and remaining blockers.
+Converge helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team comprising Dylan, Yik Bing, and Isaac as the three role owners. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. Application implementation remains deferred pending feature criteria and remaining blockers.
 
 ## Accepted review decisions
 
-These decisions supersede conflicting earlier recommendations. They approve the specified behavior, not every feature or physical schema detail. The requesting user accepted them on 2026-10-15; team-specific feature approval records remain to be assigned.
+These decisions supersede conflicting earlier recommendations. They approve the specified behavior, not every feature or physical schema detail. Dylan, Yik Bing, and Isaac approved them on 2026-10-15; feature-specific approval records remain to be assigned.
 
 | ID | Accepted behavior | Applies to |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ Confirmed team convention: each feature involves two or all three teammates. The
 | F09 Promotion and procurement | Isaac and Yik Bing | Isaac | Dylan |
 | F10 Identity and action foundation | All three | To assign | Assign per change |
 
-Participants jointly refine stories, agree on contracts, take bounded implementation or verification tasks and run integration checks. One person can lead implementation while their partner contributes at agreed checkpoints and leads another feature in parallel. Feature participation spans delivery and does not require two people coding together throughout. Review-only involvement does not satisfy the two-person delivery convention. Rotate tasks across API, UI, domain logic and verification; record actual contributions in each feature specification.
+Features are high-level delivery groupings and may contain stories for more than one end-user role. Each story keeps its original user role, and that role's steward is accountable for delivering the complete role-specific outcome required by the assignment. Other participants may contribute bounded shared contracts, integration, verification, or review tasks without transferring that primary accountability. Participants jointly refine stories and agree on contracts; one person can lead a story while a partner contributes at agreed checkpoints and leads another story in parallel. Review-only involvement does not satisfy the two-person delivery convention. Record the primary story owner and every actual contribution in the feature specification.
 
 Accepted direction: one PostgreSQL database with module-owned tables, a small shared foundation, stable producer/consumer contracts, synthetic fixtures and coordinated migrations. See [shared schema and parallel development plan](schema-and-parallel-plan.md) for the proposed entities, ownership, relationship rules and work rounds. These design details require review before migrations or application implementation.
 
@@ -88,7 +88,7 @@ Attendee and organiser core workflows must remain usable without the other role 
 | F01 | Organiser publishes a programme item; attendee reads it securely | Repository, identity approach, persistence, delivery target |
 | F02 | Personal bookmarks and itinerary with deterministic overlap checks | F01 and preference ownership |
 | F03 | Grounded AI itinerary recommendations with verified references and failure fallback | F02 and approved model data boundary |
-| F04 | Submission analysis against an explicit rubric with organiser decisions | F01 and submission privacy rules |
+| F04 | Submission analysis against an explicit rubric with organiser decisions, plus programme conflict analysis | F06-US01 submitted applications and submission privacy rules for F04-US01–02; F01 programme records for F04-US03 |
 | F05 | Schedule changes, affected itinerary handling, and verified notifications | F02 and notification delivery contract |
 | F06 | Business participation and preparation workspace | Event and business membership rules |
 | F07 | Group dining and travel planning | F03 and external places and route sources |
@@ -96,7 +96,7 @@ Attendee and organiser core workflows must remain usable without the other role 
 | F09 | Business promotional assets and procurement preparation | F06 and source and approval rules |
 | F10 | Shared identity, permissions and action execution foundation | All roles; build the minimum with F01 |
 
-Recommended MVP covers all three user roles: F01, F02, F03, F04, F05 and F06, plus the required parts of F10. Keep each narrow. Build minimal F10 with F01, then develop the planning and business/submission slices using the feature collaboration assignments after agreeing on shared contracts. F07, F08 and F09 are stretch features. Final commitment depends on the MP3 brief and deadline.
+Recommended MVP covers all three user roles: F01, F02, F03, F04, F05 and F06, plus the required parts of F10. Keep each narrow. Build minimal F10 with F01, then develop the planning and business/submission slices using the feature collaboration assignments after agreeing on shared contracts. F07, F08 and F09 are stretch features. The team has not yet made the final MVP commitment and will update D03 after its scope discussion.
 
 ## User stories and implementation scope
 
@@ -110,7 +110,7 @@ Delivery participants: Dylan and Yik Bing. Coordinator: Dylan. Suggested indepen
 - F01-US02: As an organiser, I want to publish valid programme items so that attendees see authoritative details. MVP scope: permission checks, validation, revision and audit record. Publication is an explicit organiser action.
 - F01-US03: As an attendee, I want to browse and search published events and programme items so that I can choose activities. MVP scope: event list, item list, title search, type/date filters and detail pages. Excludes recommendations and ticket sales.
 
-The existing F01 specification covers item publication and title search. Event/room management and extra filters above require acceptance criteria before implementation; they are not silently added to the approved scope.
+The draft F01 specification covers venue and room creation, item publication, title search, and type/date filters. Its remaining blockers and approval status are recorded in that specification.
 
 ### F02 Personal planning workspace
 
@@ -221,10 +221,10 @@ Use the confirmed FastAPI backend and React frontend. Recommended first architec
 
 | ID | Decision | Impact | Status |
 | --- | --- | --- | --- |
-| D01 | MP3 brief, rubric, deadline, team size | Required capabilities and realistic scope | Three owners identified; brief and deadline open |
-| D02 | Repository, stack, identity provider, database, deployment | F01 implementation and delivery checks | Stack and PostgreSQL planning baseline confirmed; MP3 folder and GitHub URL supplied; checkout setup, identity and deployment open |
+| D01 | MP3 brief, rubric, deadline, team size | Required capabilities and realistic scope | Resolved: three-person team; MP3 brief reviewed; deadline 23 Oct 2026, 2pm SGT |
+| D02 | Repository, stack, identity provider, database, deployment | F01 implementation and delivery checks | Partially resolved: shared GitHub repository, checkout, stack and PostgreSQL planning baseline confirmed; identity and deployment providers remain open |
 | D03 | MVP role and feature coverage, including business participants | Delivery commitment | Three role workspaces confirmed as direction; detailed stories proposed |
-| D04 | Product approver, feature participants, coordinator, contract reviewer | Approval and coordination | Domain stewards and two-or-three-person feature participation confirmed; allocations and review policy proposed |
+| D04 | Product approver, feature participants, coordinator, contract reviewer | Approval and coordination | Partially resolved: role stewards and cross-role participation model confirmed; feature allocations, shared coordinator, approvers and contract reviewers remain proposed or unassigned |
 | D05 | Membership model and organiser provisioning | Prevent self-assigned organiser access | Business-wide membership accepted (RD01); organiser provisioning, guest browsing and other role policies remain open |
 | D06 | Model provider, retention, consent, data minimisation | AI privacy and integration | Open before F03 |
 | D07 | Maps, search, email and commerce providers and budget | External integration scope | Open before relevant extension |
@@ -236,7 +236,7 @@ When a decision is made, record the choice, approver, date, reasoning, and affec
 
 ### D01 Assignment and delivery planning
 
-Use the three named owners as the working team. Map every mandatory rubric item to a feature and acceptance criterion before committing to dates. Deliver one complete journey per role and one bounded AI workflow per role before stretching scope. Allocate the final part of the schedule to integration, deployment, adversarial checks and demo preparation. The actual deadline and rubric must come from the assignment; estimates cannot resolve them.
+Use Dylan, Yik Bing, and Isaac as the three-person working team. Map every mandatory rubric item to a feature and acceptance criterion before finalising the MVP. Deliver one complete journey per role and one bounded AI workflow per role before stretching scope. Plan backwards from the confirmed deadline of 23 Oct 2026, 2pm SGT, reserving the final part of the schedule for integration, deployment, adversarial checks and demo preparation.
 
 ### D02 Repository and infrastructure
 
@@ -290,3 +290,4 @@ FastAPI provides [OAuth2 scope integration](https://fastapi.tiangolo.com/advance
 | 2026-10-14 | Confirmed two-or-three-person feature delivery; distinguished domain stewardship from implementation and proposed collaboration assignments |
 | 2026-10-14 | Accepted modular database and contract-first parallel development direction; documented shared schema draft and staggered participant involvement; implementation remains deferred |
 | 2026-10-15 | Applied accepted independent-review recommendations RD01–RD07 across stories, permission policy and verification scenarios; application implementation remains deferred |
+| 2026-10-15 | Recorded the confirmed three-person team and deadline, unanimous RD01–RD07 approval, story-level role accountability, corrected F04 dependencies, and aligned F01 scope |

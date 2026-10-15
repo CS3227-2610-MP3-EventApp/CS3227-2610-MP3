@@ -51,9 +51,9 @@ Canonical stories (feature context):
 
 Proposed split: you lead catalogue/detail UI and consumer checks; Dylan leads organiser creation/publication. Agree PublishedProgramme v1 together. Programme owns events/venues/rooms/items; F01 introduces no attendee planning tables.
 
-[The F01 spec](../features/F01-published-programme.md) covers publication/title search only. Event/room management and extra filters need additional criteria. Apply SEC01/02/11/12, retaining RD04-compatible revisions. Capacity is a limit, not available inventory.
+[The F01 spec](../features/F01-published-programme.md) covers venue/room creation, item publication, title search, and type/date filters. Apply SEC01/02/11/12, retaining RD04-compatible revisions. Capacity is a limit, not available inventory.
 
-Check factual published display/draft privacy (AC04/05), direct unauthorised calls and invalid references (AC02/03), fresh-data restart (AC06) and real deployment (AC09) jointly. Blockers: D01/02/04/05, guest browsing, accessibility/currency fields, edits/concurrency and room-conflict publication policy. Design against draft/published fixtures first; final integration requires Dylan's real producer.
+Check factual published display/draft privacy (AC04/05), direct unauthorised calls and invalid references (AC02/03), fresh-data restart (AC06) and real deployment (AC09) jointly. Blockers: D02/D04/D05, guest browsing, accessibility/currency fields, edits/concurrency and room-conflict publication policy. D01 is resolved. Design against draft/published fixtures first; final integration requires Dylan's real producer.
 
 ### F02 Personal planning workspace
 
@@ -169,7 +169,7 @@ Follow [shared work rounds](../schema-and-parallel-plan.md#parallel-development-
 
 ## Readiness and evidence limits
 
-D01 rubric/deadline, D03 MVP commitment and D04 approvals/allocations remain to confirm. Resolve each feature's blockers without waiting for optional external integrations to specify manual planning. Numerical defaults in project.md are recommendations, not measured or approved limits.
+D03 MVP commitment and D04 approvals/allocations remain to confirm; D01 is resolved. Resolve each feature's blockers without waiting for optional external integrations to specify manual planning. Numerical defaults in project.md are recommendations, not measured or approved limits.
 
 Use the template to derive numbered criteria from stories/RD scenarios, agree contracts and bounded tasks, and record approval before implementation. Include accessible forms, keyboard/focus behavior and understandable errors.
 

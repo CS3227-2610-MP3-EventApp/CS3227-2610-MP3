@@ -6,9 +6,9 @@ Y = [Yik Bing](yik-bing-attendee.md), D = [Dylan](dylan-organiser.md), I = [Isaa
 
 | Story ID | User outcome | Proposed priority | Delivery context in guides | Suggested independent review |
 | --- | --- | --- | --- | --- |
-| F01-US01 | Create venues, rooms and programme drafts | MVP; criteria expansion pending | Y, D | I |
+| F01-US01 | Create venues, rooms and programme drafts | MVP; draft criteria present | Y, D | I |
 | F01-US02 | Publish valid programme items | MVP | Y, D | I |
-| F01-US03 | Browse and search published programmes | MVP; filters criteria pending | Y, D | I |
+| F01-US03 | Browse and search published programmes | MVP; draft criteria present | Y, D | I |
 | F02-US01 | Bookmarks and personal itinerary | MVP | Y, I | D |
 | F02-US02 | Personal constraints and preferences | MVP | Y, I | D |
 | F02-US03 | Merchandise wishlist | Stretch | Y, I | D |

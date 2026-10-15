@@ -1,6 +1,6 @@
 # Converge SDD workflow
 
-Converge is a proposed secure AI event intelligence platform for attendees, organisers, and booth personnel. This folder establishes the shared specification process for MP3, using [WORKFLOW.md](../WORKFLOW.md) as the process baseline.
+Converge is a proposed secure AI event intelligence platform for attendees, organisers, and business participants. This folder establishes the shared specification process for MP3, using [WORKFLOW.md](../WORKFLOW.md) as the process baseline.
 
 Status: Working design pack with accepted decisions RD01–RD07; detailed feature approval remains pending. Created 2026-10-14; updated 2026-10-15. No application implementation is implied by these documents.
 
@@ -19,12 +19,12 @@ This is a team-designed Markdown SDD workflow built and maintained from scratch 
 
 The following defaults are proposed for team adoption:
 
-- Keep specifications, contracts, implementation, and evidence in the same code repository. The planning pack is in C:\Users\yikbi\NUS\CS3227\MP3; the supplied repository is https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3.git. Git checkout setup is pending. Do not push until the user explicitly requests it.
-- Involve two or all three teammates in each feature's delivery. Give each feature a coordinator, record meaningful participant tasks, and use the collaboration table in project.md. Domain stewards clarify role behavior; they do not exclusively implement that role's features. Record the product approver and shared-contract reviewer before implementation; an AI agent cannot approve its own product assumptions.
+- Keep specifications, contracts, implementation, and evidence in the shared repository at https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3.git. Do not push until the user explicitly requests it.
+- Involve two or all three teammates where a high-level feature spans multiple roles. Each user story retains one end-user role, and that role's steward is accountable for the complete role-specific outcome; other participants contribute bounded shared contracts, integration, verification, or review tasks. Give each feature a coordinator, record meaningful participant tasks, and use the collaboration table in project.md. Record the product approver and shared-contract reviewer before implementation; an AI agent cannot approve its own product assumptions.
 - Use stable feature and acceptance IDs, such as F01-AC01. Retain IDs when wording changes; retire rather than reuse removed IDs.
 - Use feature states: Draft, Ready, In progress, In review, Verified, Completed. A feature is Ready only after blocking decisions are resolved and approval is recorded.
 - Use one feature change per branch or focused commit where practical. Include spec updates and verification evidence with code changes.
-- Review changes to permissions, stored data, external actions, and shared interfaces independently of their implementation. For paired delivery, use the third teammate by default. For all-team features, assign a reviewer who did not implement the particular change, even if they contribute elsewhere in that feature. Record when an independent reviewer is unavailable; co-author review cannot satisfy a required independent review. Specialist agents are optional.
+- Review changes to permissions, stored data, external actions, and shared interfaces independently of their implementation. For paired delivery, use the third teammate by default. For all-team features, assign a reviewer who did not implement the particular change, even if they contribute elsewhere in that feature. Record when an independent reviewer is unavailable; co-author review cannot satisfy a required independent review. This project will use specialised development agents as part of its Basic Multi-Agent SE process; their concrete roles, handoffs, limits, and evaluation checks remain to be defined before that process begins.
 - Keep small changes proportional: a brief statement of behavior and focused evidence may suffice.
 - Stagger participant tasks so each teammate can lead useful work in parallel. Develop against agreed contracts and fixtures; require real integration before completion. Coordinate shared-table changes and migration history through the schema plan.
 
@@ -58,14 +58,14 @@ Every completion report identifies the specification revision, implementation re
 
 ## Agent startup instruction
 
-> Read WORKFLOW.md, sdd/README.md, sdd/project.md, and the relevant feature and security rules. Inspect affected code and known failures. Identify approved acceptance criteria, contracts, and unresolved decisions. Explain scope and verification before implementation. Preserve existing work, use synthetic data, and report actual checks and reviews with evidence.
+> From the repository root, read workflow/WORKFLOW.md, workflow/sdd/README.md, workflow/sdd/project.md, and the relevant feature and security rules. Inspect affected code and known failures. Identify approved acceptance criteria, contracts, and unresolved decisions. Explain scope and verification before implementation. Preserve existing work, use synthetic data, and report actual checks and reviews with evidence.
 
 ## First review agenda
 
-Confirm the MP3 rubric/deadline, complete repository checkout planning, settle remaining feature blockers and assign approval/contract owners. The backend/frontend stack and database direction are already recorded. Review detailed F01 criteria and the next parallel slices; do not treat this documentation update as permission to implement or push. No rubric compliance claims should be made before assignment mapping.
+Map the confirmed MP3 requirements and deadline to the final MVP after the team selects it, settle remaining feature blockers, and assign approval/contract owners. The team size, repository, backend/frontend stack, and database direction are already recorded. Review detailed F01 criteria and the next parallel slices; do not treat this documentation update as permission to implement or push. No rubric compliance claims should be made before assignment mapping.
 
 ## Review and revision record
 
-On 2026-10-15, three independent role subagents reviewed the documentation and a coordinating review checked shared boundaries. The user accepted seven recommended corrections; these were applied across the pack. The updated pack received a document consistency/link check, not a new independent engineering review. Application behavior, migrations, deployment and rubric compliance remain unverified.
+On 2026-10-15, three independent role subagents reviewed the documentation and a coordinating review checked shared boundaries. Dylan, Yik Bing, and Isaac accepted seven recommended corrections; these were applied across the pack. The updated pack received a document consistency/link check, not a new independent engineering review. Application behavior, migrations, deployment and rubric compliance remain unverified.
 
 Later on 2026-10-15, role summaries were rebuilt as person-specific development guides using three drafting subagents and a coordinating story/contract check. Every delivery feature's full user stories are included, even when its end-user role differs from the person's stewardship. Review-only assignments remain separate. Detailed task divisions are proposals; feature criteria and remaining decisions still gate implementation.
