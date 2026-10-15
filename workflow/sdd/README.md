@@ -13,7 +13,7 @@ Status: Working design pack with accepted decisions RD01–RD07; detailed featur
 5. Use [the feature template](templates/feature.md) for each subsequent meaningful change.
 6. Use [the person-specific development guides](roles/README.md) for all stories in each person's delivery features, proposed tasks, handoffs and review-only assignments. Check the [story coverage map](roles/story-coverage.md) for complete assignment coverage.
 
-This is a custom Markdown SDD setup. OpenSpec is not installed. The team can adopt it later to manage the same feature lifecycle; avoid maintaining duplicate authoritative specifications.
+This is a team-designed Markdown SDD workflow built and maintained from scratch without an external SDD toolkit. The documents in this repository are the authoritative specifications.
 
 ## Shared working agreement
 
@@ -42,7 +42,7 @@ Use [RD01–RD07 in project context](project.md#accepted-review-decisions) as th
 6. Exercise real integration and the intended deployment path, inspect the diff, and finish the feature.
 7. Update current behavior and capture reusable verified failures.
 
-Completed feature documents remain the current specification. Record their completion revision and a short change history; future changes update them through review. Introduce an archive convention only if OpenSpec or project needs justify it.
+Completed feature documents remain the current specification. Record their completion revision and a short change history; future changes update them through review. Introduce an archive convention only if project needs justify it.
 
 ## Definition of done
 
