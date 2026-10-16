@@ -1,6 +1,6 @@
-# Converge SDD workflow
+# EventApp SDD workflow
 
-Converge is a proposed secure AI event intelligence platform for attendees, organisers, and business participants. This folder establishes the shared specification process for MP3, using [WORKFLOW.md](../WORKFLOW.md) as the process baseline.
+EventApp is a proposed secure AI event intelligence platform for attendees, organisers, and business participants. This folder establishes the shared specification process for MP3, using [WORKFLOW.md](../WORKFLOW.md) as the process baseline.
 
 Status: Working design pack with accepted decisions RD01–RD07; detailed feature approval remains pending. Created 2026-10-14; updated 2026-10-15. No application implementation is implied by these documents.
 
@@ -24,7 +24,7 @@ The following defaults are proposed for team adoption:
 - Use stable feature and acceptance IDs, such as F01-AC01. Retain IDs when wording changes; retire rather than reuse removed IDs.
 - Use feature states: Draft, Ready, In progress, In review, Verified, Completed. A feature is Ready only after blocking decisions are resolved and approval is recorded.
 - Use one feature change per branch or focused commit where practical. Include spec updates and verification evidence with code changes.
-- Review changes to permissions, stored data, external actions, and shared interfaces independently of their implementation. For paired delivery, use the third teammate by default. For all-team features, assign a reviewer who did not implement the particular change, even if they contribute elsewhere in that feature. Record when an independent reviewer is unavailable; co-author review cannot satisfy a required independent review. This project will use specialised development agents as part of its Basic Multi-Agent SE process; their concrete roles, handoffs, limits, and evaluation checks remain to be defined before that process begins.
+- Review changes to permissions, stored data, external actions, and shared interfaces independently of their implementation. For paired delivery, use the third teammate by default. For all-team features, assign a reviewer who did not implement the particular change, even if they contribute elsewhere in that feature. Record when an independent reviewer is unavailable; co-author review cannot satisfy a required independent review. This project will use specialised development agents as part of its Basic Multi-Agent SE process; the six roles, handoffs, protected-test process, limits, and evaluation checks are defined in [the agent workflow](../agents/README.md).
 - Keep small changes proportional: a brief statement of behavior and focused evidence may suffice.
 - Stagger participant tasks so each teammate can lead useful work in parallel. Develop against agreed contracts and fixtures; require real integration before completion. Coordinate shared-table changes and migration history through the schema plan.
 
@@ -69,3 +69,7 @@ Map the confirmed MP3 requirements and deadline to the final MVP after the team 
 On 2026-10-15, three independent role subagents reviewed the documentation and a coordinating review checked shared boundaries. Dylan, Yik Bing, and Isaac accepted seven recommended corrections; these were applied across the pack. The updated pack received a document consistency/link check, not a new independent engineering review. Application behavior, migrations, deployment and rubric compliance remain unverified.
 
 Later on 2026-10-15, role summaries were rebuilt as person-specific development guides using three drafting subagents and a coordinating story/contract check. Every delivery feature's full user stories are included, even when its end-user role differs from the person's stewardship. Review-only assignments remain separate. Detailed task divisions are proposals; feature criteria and remaining decisions still gate implementation.
+
+## Shared agent workflow and interaction logs
+
+Use [the agent workflow](../agents/README.md) and root AGENTS.md for actual delegation. Design and independently review tests before dependent implementation; developers preserve the approved baseline and use recorded change requests for disputed tests. Feature completion includes criterion-specific evidence, actual review identities, and a session summary under [logs](../../logs/README.md). AI-generated summaries require human correctness verification; mark pending reviews honestly. The 2026-10-16 setup does not approve unfinished feature specifications or establish a completed application cycle.

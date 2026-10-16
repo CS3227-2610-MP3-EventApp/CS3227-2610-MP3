@@ -1,4 +1,4 @@
-# Converge story coverage by developer
+# EventApp story coverage by developer
 
 This map checks that each developer guide includes the full stories for its delivery features, including supporting assignments outside the person's primary user role. Story wording and allocation authority remain in [project.md](../project.md). Priorities are proposed delivery scope, not approved course requirements.
 
