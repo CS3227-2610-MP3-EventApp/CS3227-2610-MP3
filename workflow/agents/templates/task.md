@@ -1,0 +1,12 @@
+# Agent task
+- Run/task ID and assigned role/agent identity:
+- Objective and human-assigned scope:
+- Approved specification path/revision and acceptance IDs:
+- Contracts/accepted RD/SEC rules:
+- Relevant files/evidence and dependencies:
+- Permitted edit paths; protected/read-only paths:
+- Approved test baseline commit and full protected path list:
+- Required commands/checks and expected output:
+- Completion checks and known limitations:
+- Authority: no product approval, baseline modification, push, or external action unless explicitly assigned and authorized.
+- Return: changed files or findings, commands/results, assumptions, blockers, next action.

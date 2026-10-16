@@ -63,3 +63,17 @@ Record actual commands or observations, reviewer and scope, unverified behavior,
 | Revision | Date | Change and approval |
 | --- | --- | --- |
 | 1 | YYYY-MM-DD | Initial draft; approval pending |
+
+## Agent coordination and protected-test baseline
+
+- Human-assigned story/role scope and approval evidence:
+- Run record (use [template](../../agents/templates/run-record.md)):
+- Pre-implementation test plan and independent adequacy review:
+- Approved specification/contract revisions and immutable test baseline commit:
+- All protected paths, fixtures/configuration, and full-suite commands:
+- Test change requests and superseded baseline history:
+- Actual agent identities, ownership/handoffs, and reviewer independence:
+- Acceptance evidence, baseline integrity, real integration, and limitations:
+- Prompt/interaction summary under logs/ and human correctness verification status:
+
+Use [the shared agent workflow](../../agents/README.md). Do not mark Completed while required evidence, reviews, or summary verification remain unresolved.

@@ -1,4 +1,4 @@
-# Converge shared security rules
+# EventApp shared security rules
 
 Status: Shared security baseline; accepted RD01–RD07 refinements applied on 2026-10-15. Other baseline policies remain proposed where not explicitly adopted. These rules apply to features handling identity, private data, AI output or external actions. Link to rule IDs from feature specifications rather than copying the policy.
 

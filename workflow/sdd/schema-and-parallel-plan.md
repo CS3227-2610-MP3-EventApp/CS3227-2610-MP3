@@ -1,4 +1,4 @@
-# Converge shared schema and parallel development plan
+# EventApp shared schema and parallel development plan
 
 Status: Design draft for review. No models, migrations or application code implemented.
 Updated: 2026-10-15. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Physical schema details remain a design draft.

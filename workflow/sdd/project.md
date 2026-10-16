@@ -1,6 +1,6 @@
-# Converge project context
+# EventApp project context
 
-Converge helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team comprising Dylan, Yik Bing, and Isaac as the three role owners. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. Application implementation remains deferred pending feature criteria and remaining blockers.
+EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team comprising Dylan, Yik Bing, and Isaac as the three role owners. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. Application implementation remains deferred pending feature criteria and remaining blockers.
 
 ## Accepted review decisions
 

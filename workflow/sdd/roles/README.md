@@ -1,4 +1,4 @@
-# Converge developer guides
+# EventApp developer guides
 
 Each guide now follows a person's development assignments, including stories for user roles other than the one they steward. Start with your guide and the [story coverage map](story-coverage.md), then use the linked shared specifications for authoritative behavior and approval.
 
