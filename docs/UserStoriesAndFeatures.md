@@ -1,10 +1,45 @@
 # EventApp user stories and role features
 
-**Status:** Canonical story and scope catalogue for team review. These 31 stable story IDs and their role-feature tables are the source of truth for story wording and scope. [Project context](project.md) owns the phase-priority roadmap and accepted RD01-RD07; detailed acceptance criteria currently exist for [F01](../specs/F01-published-programme.md). Use the [spec standard and index](../specs/README.md) to extract capabilities and track their specifications. A catalogue row is not implementation approval.
+**Status:** Canonical story and scope catalogue for team review. These 31 stable story IDs and their role-feature tables are the source of truth for story wording and scope. [Project context](project.md) owns the phase-priority roadmap and accepted RD01-RD07; detailed acceptance criteria are proposed in the linked Drafts, with legacy criteria retained in the [programme Draft](../specs/programme/create-and-publish-programme.md). Use the [spec standard and index](../specs/README.md) to track their specifications. A catalogue row is not implementation approval.
 
 EventApp has three product workspaces. Role columns show who supplies or consumes a capability, never which teammate implements it. A dash means no direct user-facing feature for that role. Delivery order is maintained once, in the project roadmap; this catalogue groups stories for review.
 
-Each story is intended to become a scoped capability specification. Retain its ID and link it to detailed observable behaviour, exclusions, contracts, numbered acceptance criteria, applicable security rules, test scenarios and revision-specific evidence. Existing F01 acceptance IDs remain stable; shared contracts and cross-story integration checks must remain linked when specifications become smaller. Draft stories and schema fields do not approve implementation.
+Each story must be covered by one or more bounded capability specifications; a cohesive contract may cover several stories. Retain story IDs for traceability and link them to observable behaviour, exclusions, external contracts, numbered acceptance criteria, applicable security rules, test scenarios and revision-specific evidence. Name specifications for the capability, not the story ID. Existing F01 acceptance IDs remain stable; shared contracts and cross-story integration checks must remain linked if a specification is split. Draft stories and schema fields do not approve implementation.
+
+Across the 31 stories, the attendee, organiser and business interfaces share a [UI navigation and feedback Draft](../specs/shared/navigate-eventapp-workspaces.md). It covers the presentation of each role's authorised journeys, responsive layout, clear status and error feedback, and a consistent professional visual character. It does not replace any story's domain, permission or AI acceptance criteria. The [project UI direction](project.md#shared-ui-direction) records the user request and priority.
+
+## Story-to-spec links
+
+These links identify the proposed authoritative capability contract for each of the 31 stories. All linked contracts are Drafts; a link does not approve their behaviour or implementation. The [spec index](../specs/README.md#story-to-spec-index) records revision-specific criterion mappings.
+
+| Story IDs | Related capability spec |
+| --- | --- |
+| F01-US01–03, F04-US03 | [create and publish programme](../specs/programme/create-and-publish-programme.md) |
+| F02-US01–02 | [manage preferences and itineraries](../specs/attendee-planning/manage-preferences-and-itineraries.md) |
+| F02-US03 | [track merchandise spending](../specs/attendee-planning/track-merchandise-spending.md) |
+| F03-US01 | [generate feasible itineraries](../specs/attendee-planning/generate-feasible-itineraries.md) |
+| F03-US02 | [answer event questions](../specs/attendee-planning/answer-event-questions.md) |
+| F03-US03 | [replan after cancellations](../specs/attendee-planning/replan-after-cancellations.md) |
+| F03-US04 | [create personal event recaps](../specs/attendee-planning/create-personal-event-recaps.md) |
+| F04-US01, F06-US02 | [decide applications and show outcomes](../specs/applications/decide-applications-and-show-outcomes.md) |
+| F04-US02 | [analyse applications with ai](../specs/applications/analyse-applications-with-ai.md) |
+| F04-US04 | [review programme coverage](../specs/programme/review-programme-coverage.md) |
+| F05-US01 | [change published activities](../specs/programme/change-published-activities.md); [draft and publish disruption announcements](../specs/programme/draft-and-publish-disruption-announcements.md) |
+| F05-US02 | [notify affected attendees](../specs/programme/notify-affected-attendees.md) |
+| F05-US03 | [draft and publish disruption announcements](../specs/programme/draft-and-publish-disruption-announcements.md) |
+| F06-US01 | [submit business applications](../specs/applications/submit-business-applications.md) |
+| F06-US03 | [manage preparation tasks and budgets](../specs/business-preparation/manage-preparation-tasks-and-budgets.md) |
+| F06-US04 | [generate preparation drafts](../specs/business-preparation/generate-preparation-drafts.md) |
+| F07-US01 | [plan group meals](../specs/attendee-planning/plan-group-meals.md) |
+| F07-US02 | [estimate travel between activities](../specs/attendee-planning/estimate-travel-between-activities.md) |
+| F08-US01 | [compare venues](../specs/venue-research/compare-venues.md) |
+| F08-US02 | [request venue quotations](../specs/venue-research/request-venue-quotations.md) |
+| F09-US01 | [draft promotional concepts](../specs/business-preparation/draft-promotional-concepts.md) |
+| F09-US02 | [compare suppliers](../specs/business-preparation/compare-suppliers.md) |
+| F09-US03 | [review procurement proposals](../specs/business-preparation/review-procurement-proposals.md) |
+| F10-US01 | [access authorised workspaces](../specs/shared/access-authorised-workspaces.md) |
+| F10-US02 | [monitor and recover ai tasks](../specs/shared/monitor-and-recover-ai-tasks.md) |
+| F10-US03 | [approve external actions](../specs/shared/approve-external-actions.md) |
 
 ### Shared foundation
 

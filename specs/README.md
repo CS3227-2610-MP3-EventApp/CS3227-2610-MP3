@@ -1,6 +1,6 @@
 # EventApp specification standard
 
-A **spec** is a versioned, agreed and testable contract for a scoped capability derived from a user-story outcome. A Draft proposes that contract; recorded human approval makes it agreed. It describes observable behavior across the components needed to deliver the outcome. An Fxx feature umbrella, a developer assignment or a UI-only implementation task is not itself the default spec boundary.
+A **spec** is a versioned, agreed and testable contract for one bounded system capability. A Draft proposes that contract; recorded human approval makes it agreed. It states the user intent, accepted inputs, produced outputs, observable behaviour, data and interface shapes, constraints, security boundaries and failure outcomes. It describes the system from outside its implementation boundary. Internal classes, function names, algorithms, execution loops and task plans belong in architecture or implementation records unless an accepted architectural constraint makes them part of the external contract. An Fxx feature umbrella, individual story, developer assignment or UI-only task is not automatically a spec boundary. Keep each contract readable and proportionate to its risk; revise it when approved behaviour or implementation feedback changes the contract.
 
 ## Sources and boundaries
 
@@ -17,10 +17,10 @@ Link shared rules instead of copying them. A spec cannot silently override an ac
 
 ## Files, identifiers and revisions
 
-- Start from [TEMPLATE.md](TEMPLATE.md). Default to `specs/Fxx-USxx-short-slug.md` for one cohesive capability, using its existing `Fxx-USxx` story ID as the capability ID. Fxx remains a grouping, not a priority or person assignment.
-- Split a capability only when independently specified boundaries help delivery; retain its story/capability ID and use distinct descriptive file slugs. Merge closely related stories only with an explicit primary story ID and a mapping of every covered story to its authoritative criteria. Record splits/merges and successor paths here and in the affected specs; do not create duplicate authoritative criteria.
-- New acceptance IDs are `Fxx-USxx-AC01`, `Fxx-USxx-AC02`, and so on, scoped to the primary story ID. Allocate the next number above the highest ever allocated in that namespace, including retired IDs and every split file. Never renumber or reuse IDs. Record retired IDs and replacements in the spec history; moving a criterion retains its ID. In a merged spec, existing criteria retain their original namespaces; genuinely shared new criteria use the declared primary story namespace and map all covered stories.
-- The existing [F01 aggregate](F01-published-programme.md) is a legacy multi-story draft. Preserve its revision 4 and `F01-AC01` through `F01-AC09` identifiers. Do not convert them to story IDs or allocate new Fxx-only acceptance IDs. Any new F01 criterion uses the applicable primary `F01-USxx-ACnn` namespace. A later split must map the legacy criteria without copying or renumbering them.
+- Start from [TEMPLATE.md](TEMPLATE.md). Use a descriptive capability filename, such as `programme-publication.md`, inside a domain folder once that folder structure is approved. The filename and stable capability ID name the contract, not a story or phase. Story IDs remain traceability references in the index and spec, never the default filename or capability ID.
+- Choose a boundary around one coherent set of inputs, outputs, state changes, failure outcomes and constraints. A contract may cover several stories; a story may require several contracts. Map every covered story to its authoritative criteria. Split or combine contracts when this makes the externally observable boundaries clearer, and record successor paths without duplicating authoritative criteria.
+- New acceptance IDs use the stable capability ID, for example `programme-publication-AC01`. Allocate the next number above the highest ever allocated for that capability, including retired IDs and legacy IDs retained in the same contract. Never renumber or reuse IDs; moving a criterion retains its ID. Record retired IDs, replacements and split/merge mappings in the history and index. Story IDs continue to appear in traceability columns.
+- The [programme Draft](programme/create-and-publish-programme.md) supersedes the former root `F01-published-programme.md` Draft at revision 5. Its revision 4 history and `F01-AC01` through `F01-AC09` identifiers remain intact; new validation criterion `create-and-publish-programme-AC10` covers F04-US03 without duplicating legacy criteria. Neither revision has product approval.
 - Increase the integer specification revision for substantive contract, scope, criterion or approval changes; describe the change and affected approvals/evidence. Approval binds the exact spec revision and agreed contract versions. Formatting/link repairs need a history note only when they affect traceability. An approval of an earlier revision does not approve changed behavior; record whether reapproval is required and keep it pending until resolved.
 
 ## Lifecycle and implementation gates
@@ -33,24 +33,39 @@ In progress means authorized implementation has begun after the prerequisite gat
 
 Every spec marks how it contributes to these project requirements, or gives a justified N/A: LLM capability for each product role; SDD and actual Basic Multi-Agent SE handoffs; implemented/tested AI and development-process security; online delivery with separate development/production credentials, data and configuration. Release coverage is assessed across capabilities: each role needs an actual LLM feature, not only shared job infrastructure. Provider/privacy/limit decisions must be resolved before the affected AI capability depends on them. Production deployment and merge still require the applicable human authorization.
 
-## Initial story-to-spec index
+## Story-to-spec index
 
-This index accounts for all **31** catalogue stories. Only the existing F01 aggregate has been drafted; its three mapped stories are not thereby Ready. Pending rows are coverage reservations, not created specifications or approved scope. Replace a pending row with explicit file/criterion links when drafting; retain every story ID through split/merge changes. Priority remains solely in the project roadmap.
+This index maps all **31** catalogue stories to 26 domain capability Drafts and one cross-cutting UI Draft. Rows follow the [phase-priority roadmap](../docs/project.md#phase-priority-roadmap), not filename order. All 27 documents are Drafts, not approved product contracts or implementation permission. Exact criteria are in the linked files; compact ranges below identify their current IDs. A future split or merge must preserve allocated IDs and update both this index and the [catalogue](../docs/UserStoriesAndFeatures.md#story-to-spec-links).
 
-| Story IDs | Authoritative specification and criterion mapping | Current state |
-| --- | --- | --- |
-| F01-US01 | [F01 aggregate](F01-published-programme.md): F01-AC01, F01-AC03; shared F01-AC02/06-09 | Draft revision 4; approval pending |
-| F01-US02 | [F01 aggregate](F01-published-programme.md): F01-AC04, F01-AC07-08; shared F01-AC02-03/06/09 | Draft revision 4; approval pending |
-| F01-US03 | [F01 aggregate](F01-published-programme.md): F01-AC04-05; shared F01-AC06/09 | Draft revision 4; approval pending |
-| F02-US01, F02-US02, F02-US03 | Specification and criteria pending | Not drafted |
-| F03-US01, F03-US02, F03-US03, F03-US04 | Specification and criteria pending | Not drafted |
-| F04-US01, F04-US02, F04-US03, F04-US04 | Specification and criteria pending | Not drafted |
-| F05-US01, F05-US02, F05-US03 | Specification and criteria pending | Not drafted |
-| F06-US01, F06-US02, F06-US03, F06-US04 | Specification and criteria pending | Not drafted |
-| F07-US01, F07-US02 | Specification and criteria pending | Not drafted |
-| F08-US01, F08-US02 | Specification and criteria pending | Not drafted |
-| F09-US01, F09-US02, F09-US03 | Specification and criteria pending | Not drafted |
-| F10-US01, F10-US02, F10-US03 | Specification and criteria pending | Not drafted |
+| Roadmap order | Story IDs | Authoritative Draft and criterion IDs | Status |
+| --- | --- | --- | --- |
+| 1a | Cross-cutting presentation of all 31 stories | [navigate-eventapp-workspaces](shared/navigate-eventapp-workspaces.md): navigate-eventapp-workspaces-AC01–10; domain criteria remain authoritative | Draft; approval and verification pending |
+| 2 | F10-US01 | [access-authorised-workspaces](shared/access-authorised-workspaces.md): access-authorised-workspaces-AC01–06 | Draft; approval and verification pending |
+| 3 | F01-US01–03; F04-US03 | [create-and-publish-programme](programme/create-and-publish-programme.md): F01-AC01–09; create-and-publish-programme-AC10 | Draft; approval and verification pending |
+| 4 | F02-US01–02 | [manage-preferences-and-itineraries](attendee-planning/manage-preferences-and-itineraries.md): manage-preferences-and-itineraries-AC01–07 | Draft; approval and verification pending |
+| 5 | F06-US01 | [submit-business-applications](applications/submit-business-applications.md): submit-business-applications-AC01–05 | Draft; approval and verification pending |
+| 5 | F06-US03 | [manage-preparation-tasks-and-budgets](business-preparation/manage-preparation-tasks-and-budgets.md): manage-preparation-tasks-and-budgets-AC01–06 | Draft; approval and verification pending |
+| 6 | F04-US01; F06-US02 | [decide-applications-and-show-outcomes](applications/decide-applications-and-show-outcomes.md): decide-applications-and-show-outcomes-AC01–06 | Draft; approval and verification pending |
+| 7 | F10-US02 | [monitor-and-recover-ai-tasks](shared/monitor-and-recover-ai-tasks.md): monitor-and-recover-ai-tasks-AC01–07 | Draft; approval and verification pending |
+| 8 | F03-US01 | [generate-feasible-itineraries](attendee-planning/generate-feasible-itineraries.md): generate-feasible-itineraries-AC01–06 | Draft; approval and verification pending |
+| 8 | F03-US02 | [answer-event-questions](attendee-planning/answer-event-questions.md): answer-event-questions-AC01–06 | Draft; approval and verification pending |
+| 9 | F04-US02 | [analyse-applications-with-ai](applications/analyse-applications-with-ai.md): analyse-applications-with-ai-AC01–06 | Draft; approval and verification pending |
+| 10 | F06-US04 | [generate-preparation-drafts](business-preparation/generate-preparation-drafts.md): generate-preparation-drafts-AC01–06 | Draft; approval and verification pending |
+| 11 | F05-US01 | [change-published-activities](programme/change-published-activities.md): change-published-activities-AC01–06; [draft-and-publish-disruption-announcements](programme/draft-and-publish-disruption-announcements.md): draft-and-publish-disruption-announcements-AC03 | Draft; approval and verification pending |
+| 11 | F05-US02 | [notify-affected-attendees](programme/notify-affected-attendees.md): notify-affected-attendees-AC01–06 | Draft; approval and verification pending |
+| 11 | F05-US03 | [draft-and-publish-disruption-announcements](programme/draft-and-publish-disruption-announcements.md): draft-and-publish-disruption-announcements-AC01–06 | Draft; approval and verification pending |
+| 12 | F03-US03 | [replan-after-cancellations](attendee-planning/replan-after-cancellations.md): replan-after-cancellations-AC01–06 | Draft; approval and verification pending |
+| 13 | F02-US03 | [track-merchandise-spending](attendee-planning/track-merchandise-spending.md): track-merchandise-spending-AC01–05 | Draft; approval and verification pending |
+| 14 | F03-US04 | [create-personal-event-recaps](attendee-planning/create-personal-event-recaps.md): create-personal-event-recaps-AC01–05 | Draft; approval and verification pending |
+| 15 | F04-US04 | [review-programme-coverage](programme/review-programme-coverage.md): review-programme-coverage-AC01–05 | Draft; approval and verification pending |
+| 16 | F07-US01 | [plan-group-meals](attendee-planning/plan-group-meals.md): plan-group-meals-AC01–05 | Draft; approval and verification pending |
+| 16 | F07-US02 | [estimate-travel-between-activities](attendee-planning/estimate-travel-between-activities.md): estimate-travel-between-activities-AC01–06 | Draft; approval and verification pending |
+| 17 | F08-US01 | [compare-venues](venue-research/compare-venues.md): compare-venues-AC01–05 | Draft; approval and verification pending |
+| 18 | F09-US01 | [draft-promotional-concepts](business-preparation/draft-promotional-concepts.md): draft-promotional-concepts-AC01–05 | Draft; approval and verification pending |
+| 18 | F09-US02 | [compare-suppliers](business-preparation/compare-suppliers.md): compare-suppliers-AC01–05 | Draft; approval and verification pending |
+| 19 | F10-US03 | [approve-external-actions](shared/approve-external-actions.md): approve-external-actions-AC01–06 | Draft; approval and verification pending |
+| 20 | F08-US02 | [request-venue-quotations](venue-research/request-venue-quotations.md): request-venue-quotations-AC01–07 | Draft; approval and verification pending |
+| 20 | F09-US03 | [review-procurement-proposals](business-preparation/review-procurement-proposals.md): review-procurement-proposals-AC01–06 | Draft; approval and verification pending |
 
 ## Drafting assistance
 

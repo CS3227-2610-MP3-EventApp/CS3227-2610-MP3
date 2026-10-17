@@ -2,6 +2,14 @@
 
 EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. Application implementation remains deferred pending feature criteria and remaining blockers.
 
+## Shared UI direction
+
+The requesting teammate specified on 2026-10-18 that EventApp should have a professional, clean business visual character; navigation should feel smooth; and users should receive responsive feedback when work takes longer than usual. This is a cross-role product outcome for attendee, organiser and business workspaces. It does not approve a particular colour palette, component library, animation, layout implementation or latency budget.
+
+The proposed [shared UI capability Draft](../specs/shared/navigate-eventapp-workspaces.md) will define the observable experience: consistent orientation and navigation, a clear hierarchy for key actions and evidence, responsive layouts, accessible interaction, visible pending/progress/success/failure states, and preservation of user work during delayed or failed operations. Domain specs retain authority over permissions, validation, AI jobs, approvals and data changes; the UI contract must display those outcomes accurately without inventing success. Visual tokens, breakpoints, motion timing and performance targets remain decisions for human product/design approval in that Draft.
+
+Accessibility and performance references for the Draft are [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [W3C navigation guidance](https://www.w3.org/WAI/tutorials/menus/structure/) and [web.dev Core Web Vitals](https://web.dev/articles/vitals). These references guide proposed, testable requirements; no conformance or measured performance is claimed.
+
 ## Accepted review decisions
 
 These decisions supersede conflicting earlier recommendations. They approve the specified behavior, not every feature or physical schema detail. Dylan, Yik Bing, and Isaac approved them on 2026-10-15; feature-specific approval records remain to be assigned.
@@ -53,6 +61,7 @@ The [canonical catalogue](UserStoriesAndFeatures.md) owns all 31 stories, role-f
 | Order | Phase | Capability / story IDs | Dependencies and focus |
 | --- | --- | --- | --- |
 | 1 | 0 - Foundations | Process, security and delivery setup | SDD and actual multi-agent handoffs; reviewed tests before development; resolve infrastructure and separate development/production; establish early online deployment. |
+| 1a | 0/1 - Shared UI foundation | Cross-role navigation and feedback Draft | Establish the shared visual and interaction contract before building role journeys; verify its observable states with each delivered journey. This is cross-cutting presentation scope, not an extra catalogue story or application approval. |
 | 2 | 1 - Published programme | F10-US01 | Minimum identity/event permissions; extend business permissions before F06. |
 | 3 | 1 - Published programme | F01-US01, F01-US02, F01-US03, F04-US03 | Create/publish/browse with per-item capacity/field validation; concurrent same-room activities are permitted. |
 | 4 | 2 - Manual journeys | F02-US02, F02-US01 | Published facts, private preferences, overlap warnings and accepted-plan validation. |

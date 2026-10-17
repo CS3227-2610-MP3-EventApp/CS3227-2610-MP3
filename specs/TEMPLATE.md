@@ -1,38 +1,46 @@
-# Capability title
+# Capability title (describe the system outcome, not a story ID)
 
 | Field | Value |
 | --- | --- |
-| Capability / primary story ID | Fxx-USxx |
-| Covered stories | Link canonical catalogue IDs; map each to authoritative AC IDs below |
+| Stable capability ID | Descriptive ID matching the contract name, independent of story IDs |
+| Covered stories | Link catalogue IDs and map each to authoritative acceptance criteria below |
 | Specification revision / status | 1 / Draft |
 | Product roles / roadmap reference | Actors and linked project phase |
 | Product and contract approval | Pending: human authority, exact revision/contract versions, date and record |
-| Task / run record | Pending: bounded file ownership, actual agent identities and independent review assignments |
+| Review / run record | Pending: link actual independent review and handoff evidence when available |
 
-Use the [specification standard](README.md). The [catalogue](../docs/UserStoriesAndFeatures.md) owns story wording; [project context](../docs/project.md) owns phases and RD decisions. Replace placeholders; use justified N/A where irrelevant. Do not invent policy or claim review/approval that did not occur.
+Use the [specification standard](README.md). The [catalogue](../docs/UserStoriesAndFeatures.md) owns story wording; [project context](../docs/project.md) owns phases and RD decisions. When copying this root-level template into a domain folder, adjust every relative link for the destination depth. Replace placeholders; use justified N/A where irrelevant. Do not invent policy or claim review/approval that did not occur. Specify the boundary visible to users and dependent systems: intent, inputs, outputs, data shapes, constraints and failure outcomes. Do not prescribe internal classes, functions, algorithms, execution loops, file ownership or a build plan unless an approved architectural constraint makes a detail externally binding.
 
-## Outcome and scope
+## Product outcome, users and scope
 
-State the complete user-visible capability and why it matters. Define actors, permitted resources, entry conditions, included behavior and explicit exclusions. Link the story rather than copying the catalogue. Map assignment requirements to this capability (LLM role coverage, SDD/multi-agent evidence, AI/process security, online/environment delivery), or explain N/A. A cross-component journey can remain one capability; bounded implementation tasks follow later.
+Describe the product, the complete user-visible capability and why it matters. Define users/roles, permitted resources, entry conditions, included behaviour and explicit exclusions. Link stories rather than copying the catalogue. Map assignment requirements to this capability (LLM role coverage, SDD/multi-agent evidence, AI/process security, online/environment delivery), or explain N/A.
 
-## Rules and acceptance criteria
+## Use cases and user interface
 
-Reference applicable [SEC rules](../docs/security.md) and accepted RD01-RD07. State authorization/visibility, domain invariants, failure behavior and agreed measurable bounds. Distinguish accepted requirements from proposed decisions.
+Describe the main user journeys and relevant alternatives. State what users can enter, review, confirm and observe, including errors, empty states, stale information and accessibility expectations. Specify required UI behaviour without prescribing component trees or frontend implementation.
+
+## Inputs, outputs and functional contract
+
+List accepted inputs and their meaning, required/optional fields, units, bounds and trust level. Describe observable outputs, state transitions, side effects and any data that must persist. Give data shapes and API/integration semantics where consumers depend on them; record version, ownership and visibility. Specify externally meaningful ordering, freshness and consistency rules. Link shared contracts rather than copying proposed physical schemas. Mark unresolved shapes or policies as decisions instead of silently inventing them.
+
+## Constraints, security and non-functional requirements
+
+Reference applicable [SEC rules](../docs/security.md) and accepted RD01-RD07. State authorisation, privacy, data minimisation, grounding, accessibility, performance or resource bounds, availability, auditability and deployment requirements only where relevant and measurable. Distinguish accepted constraints from proposals. Give edge cases, non-happy paths, failure outcomes, recovery and preservation of accepted state. Avoid internal algorithms or execution plans.
+
+## Acceptance criteria and story traceability
 
 | ID | Observable criterion: initial state, action and expected result | Story / RD / SEC references | Verification scenario |
 | --- | --- | --- | --- |
-| Fxx-USxx-AC01 | Given [initial state], when [actor action], then [observable result] | Fxx-USxx; applicable rules | Positive outcome and observable assertion |
-| Fxx-USxx-AC02 | Given [unauthorized, invalid, stale or failed request], when [request reaches the enforcement boundary], then [observable rejection or failure result] | Applicable rules | Rejection/boundary/failure assertion |
+| capability-id-AC01 | Given [initial state], when [actor action], then [observable result] | Catalogue story ID; applicable rules | Positive outcome and observable assertion |
+| capability-id-AC02 | Given [unauthorised, invalid, stale or failed request], when [request reaches the enforcement boundary], then [observable rejection or failure result] | Catalogue story ID; applicable rules | Rejection/boundary/failure assertion |
 
-Add only applicable criteria, covering positive, rejection, boundary and failure cases. Define direct server-boundary permission checks, data persistence and stale/concurrent behavior when relevant. For denied, invalid or failed operations, assert before/after that relevant persisted domain state is unchanged and prohibited side effects did not occur. Where partial work is possible, specify and verify atomicity or the agreed recovery behavior; permitted failure/audit records remain explicit. Every covered story maps to criteria; define shared integration criteria once. Follow README ID rules, including retained legacy IDs and split-file allocation.
+Add only applicable criteria, covering positive, rejection, boundary and failure cases. Define direct server-boundary permission checks, data persistence and stale/concurrent behaviour when relevant. For denied, invalid or failed operations, assert before/after that relevant persisted domain state is unchanged and prohibited side effects did not occur. Where partial work is possible, specify and verify atomicity or the agreed recovery behaviour; permitted failure/audit records remain explicit. Every covered story maps to criteria; define shared integration criteria once. Follow README ID rules, including retained legacy IDs and split-file allocation.
 
 For AI, make criteria cover permitted inputs/sources and outbound fields, untrusted-content injection, validated schema/facts before display, domain validation before acceptance, human approval boundaries, job ownership/progress/cancellation, quotas/timeouts, provider failure/manual fallback and retained accepted data. Specify exact-action approval and reconciliation if external actions exist. For development-process security, reference protected baseline integrity, bounded ownership and independent review evidence. Link shared rules instead of duplicating them; record unresolved provider/policy/limit choices below.
 
-## Interfaces, data and dependencies
+## External interfaces and dependencies
 
-Link versioned producer/consumer contracts and [module ownership/migration rules](../docs/architecture.md). State required inputs/outputs, authoritative records, visibility, states/revisions, side effects and validation boundaries sufficient to design meaningful tests. Describe necessary schema/API changes; distinguish required behavior from recommended implementation design.
-
-Record prerequisites, task/file boundaries and shared-file coordination. Identify what can proceed using approved synthetic fixtures, what needs a real producer/provider, and the final integration/deployment checks. Include relevant atomicity, migration/upgrade/recovery and retention decisions. Do not write another module's tables directly.
+Link versioned producer/consumer contracts and [shared architecture rules](../docs/architecture.md). State externally required data and API shapes, errors, revisions, side effects and validation boundaries sufficient to design meaningful tests. State dependencies and compatibility, migration/upgrade, recovery or retention outcomes where they affect users or consumers. Keep physical schema choices, task/file boundaries and implementation sequencing in architecture and run records unless they are part of an approved external contract.
 
 ## Decisions and approval
 
@@ -51,8 +59,8 @@ Resolve blockers and record human approval of the exact spec/contract revisions 
 
 | Criterion | Test/observation, command or artifact and result | Revision / reviewer | Status / limitation |
 | --- | --- | --- | --- |
-| Fxx-USxx-AC01 | Pending | Pending | Not verified |
-| Fxx-USxx-AC02 | Pending | Pending | Not verified |
+| capability-id-AC01 | Pending | Pending | Not verified |
+| capability-id-AC02 | Pending | Pending | Not verified |
 
 Record criterion-specific evidence and applicable integration, security and delivery results required by the [development workflow](../workflow/README.md). Include environment-separation evidence where relevant. Link task/run records and [session logs](../logs/README.md), with human summary-verification status. State remaining gaps and next action. Completed requires required human teammate review and completed human correctness verification of the session summary; recording a pending status is insufficient. Refresh affected approvals/reviews/evidence after changes; preserve historical records.
 
