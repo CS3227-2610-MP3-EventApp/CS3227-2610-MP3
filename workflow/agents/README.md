@@ -14,7 +14,7 @@ Custom agents are discovered from `.codex/agents/*.toml` by supported Codex vers
 
 ## Source of truth and responsibilities
 
-- Feature specifications and accepted decisions define required behaviour. The analyst drafts/refines them; humans approve product rules and resolve blockers.
+- Approved capability specifications under root `specs/` and accepted decisions define required behaviour. Follow the [spec standard and index](../../specs/README.md) and [canonical template](../../specs/TEMPLATE.md) when extracting capabilities from user stories. The analyst drafts/refines them; humans approve product rules and resolve blockers.
 - `.codex/agents/` defines reusable agent responsibilities. The orchestrator delegates and reconciles results; the analyst also investigates code and contracts.
 - The test designer owns scenarios, executable acceptance tests, fixtures, integration checks, and approved test corrections. Developers may add explicitly assigned non-baseline unit tests.
 - Behaviour and security reviewers assess independently; neither edits the reviewed implementation. Required human teammate review still applies.
@@ -22,7 +22,7 @@ Custom agents are discovered from `.codex/agents/*.toml` by supported Codex vers
 
 ## Feature flow
 
-1. **Specify and inspect.** Orchestrator records assigned story/role ownership and delegates analysis. Read current contracts and code. Resolve blockers with humans, and record the exact approved specification/contract revisions. An agent cannot approve a missing product policy.
+1. **Specify and inspect.** Orchestrator records capability/task scope and bounded file ownership, then delegates analysis. Product roles do not assign features to developers. Read current contracts and code. Resolve blockers with humans, and record the exact approved specification/contract revisions. An agent cannot approve a missing product policy.
 2. **Design tests first.** A separate test designer drafts scenarios and writes executable acceptance tests wherever interfaces and tooling permit. Identify deferred UI/integration/deployment checks explicitly. All required behaviour scenarios are designed before dependent implementation; later discoveries can add reviewed coverage.
 3. **Review test adequacy.** Independent behaviour and security reviewers assess coverage, observable assertions, adverse cases, fixture validity, and harness behaviour. Missing-code/import failures alone do not prove a test meaningfully detects the defect it targets. Resolve findings, record reviewer identities/scope, and record human approval of any newly introduced product expectation.
 4. **Freeze the baseline.** Record an immutable commit containing the approved tests/test plan, the spec revision, reviewers, all protected paths (including fixtures, snapshots, runner/configuration/CI and test selection), and exact full-suite commands. A baseline commit is not product approval. Capture scenario-only checks honestly; application test infrastructure does not yet exist in this repository.

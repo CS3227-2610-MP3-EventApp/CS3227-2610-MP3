@@ -1,0 +1,71 @@
+# Capability title (describe the system outcome, not a story ID)
+
+| Field | Value |
+| --- | --- |
+| Stable capability ID | Descriptive ID matching the contract name, independent of story IDs |
+| Covered stories | Link catalogue IDs and map each to authoritative acceptance criteria below |
+| Specification revision / status | 1 / Draft |
+| Product roles / roadmap reference | Actors and linked project phase |
+| Product and contract approval | Pending: human authority, exact revision/contract versions, date and record |
+| Review / run record | Pending: link actual independent review and handoff evidence when available |
+
+Use the [specification standard](README.md). The [catalogue](../docs/UserStoriesAndFeatures.md) owns story wording; [project context](../docs/project.md) owns phases and RD decisions. When copying this root-level template into a domain folder, adjust every relative link for the destination depth. Replace placeholders; use justified N/A where irrelevant. Do not invent policy or claim review/approval that did not occur. Specify the boundary visible to users and dependent systems: intent, inputs, outputs, data shapes, constraints and failure outcomes. Do not prescribe internal classes, functions, algorithms, execution loops, file ownership or a build plan unless an approved architectural constraint makes a detail externally binding.
+
+## Product outcome, users and scope
+
+Describe the product, the complete user-visible capability and why it matters. Define users/roles, permitted resources, entry conditions, included behaviour and explicit exclusions. Link stories rather than copying the catalogue. Map assignment requirements to this capability (LLM role coverage, SDD/multi-agent evidence, AI/process security, online/environment delivery), or explain N/A.
+
+## Use cases and user interface
+
+Describe the main user journeys and relevant alternatives. State what users can enter, review, confirm and observe, including errors, empty states, stale information and accessibility expectations. Specify required UI behaviour without prescribing component trees or frontend implementation.
+
+## Inputs, outputs and functional contract
+
+List accepted inputs and their meaning, required/optional fields, units, bounds and trust level. Describe observable outputs, state transitions, side effects and any data that must persist. Give data shapes and API/integration semantics where consumers depend on them; record version, ownership and visibility. Specify externally meaningful ordering, freshness and consistency rules. Link shared contracts rather than copying proposed physical schemas. Mark unresolved shapes or policies as decisions instead of silently inventing them.
+
+## Constraints, security and non-functional requirements
+
+Reference applicable [SEC rules](../docs/security.md) and accepted RD01-RD07. State authorisation, privacy, data minimisation, grounding, accessibility, performance or resource bounds, availability, auditability and deployment requirements only where relevant and measurable. Distinguish accepted constraints from proposals. Give edge cases, non-happy paths, failure outcomes, recovery and preservation of accepted state. Avoid internal algorithms or execution plans.
+
+## Acceptance criteria and story traceability
+
+| ID | Observable criterion: initial state, action and expected result | Story / RD / SEC references | Verification scenario |
+| --- | --- | --- | --- |
+| capability-id-AC01 | Given [initial state], when [actor action], then [observable result] | Catalogue story ID; applicable rules | Positive outcome and observable assertion |
+| capability-id-AC02 | Given [unauthorised, invalid, stale or failed request], when [request reaches the enforcement boundary], then [observable rejection or failure result] | Catalogue story ID; applicable rules | Rejection/boundary/failure assertion |
+
+Add only applicable criteria, covering positive, rejection, boundary and failure cases. Define direct server-boundary permission checks, data persistence and stale/concurrent behaviour when relevant. For denied, invalid or failed operations, assert before/after that relevant persisted domain state is unchanged and prohibited side effects did not occur. Where partial work is possible, specify and verify atomicity or the agreed recovery behaviour; permitted failure/audit records remain explicit. Every covered story maps to criteria; define shared integration criteria once. Follow README ID rules, including retained legacy IDs and split-file allocation.
+
+For AI, make criteria cover permitted inputs/sources and outbound fields, untrusted-content injection, validated schema/facts before display, domain validation before acceptance, human approval boundaries, job ownership/progress/cancellation, quotas/timeouts, provider failure/manual fallback and retained accepted data. Specify exact-action approval and reconciliation if external actions exist. For development-process security, reference protected baseline integrity, bounded ownership and independent review evidence. Link shared rules instead of duplicating them; record unresolved provider/policy/limit choices below.
+
+## External interfaces and dependencies
+
+Link versioned producer/consumer contracts and [shared architecture rules](../docs/architecture.md). State externally required data and API shapes, errors, revisions, side effects and validation boundaries sufficient to design meaningful tests. State dependencies and compatibility, migration/upgrade, recovery or retention outcomes where they affect users or consumers. Keep physical schema choices, task/file boundaries and implementation sequencing in architecture and run records unless they are part of an approved external contract.
+
+## Decisions and approval
+
+| Decision | Options / proposed direction | Decision owner | Blocks what? | Resolution and approval evidence |
+| --- | --- | --- | --- | --- |
+| D-local-01 | Pending | Human authority to assign | Ready / affected implementation | Pending |
+
+Resolve blockers and record human approval of the exact spec/contract revisions before Ready. Ready does not authorize implementation; follow the prerequisite gates in the [agent workflow](../workflow/agents/README.md).
+
+## Verification and evidence
+
+- Test plan, protected baseline and task/run record: pending; link the authoritative records required by the [agent workflow](../workflow/agents/README.md), including separate test ownership, actual reviews and revisions. Do not duplicate its execution protocol here.
+- Deferred/manual scenarios: identify each criterion, reason, responsible task and required completion evidence; do not count unexecuted checks as passing.
+- Implementation snapshot / spec and contract revisions tested: pending.
+- Actual independent implementation reviews: none yet; record reviewers, scope, snapshot and results. Required human teammate review remains separate.
+
+| Criterion | Test/observation, command or artifact and result | Revision / reviewer | Status / limitation |
+| --- | --- | --- | --- |
+| capability-id-AC01 | Pending | Pending | Not verified |
+| capability-id-AC02 | Pending | Pending | Not verified |
+
+Record criterion-specific evidence and applicable integration, security and delivery results required by the [development workflow](../workflow/README.md). Include environment-separation evidence where relevant. Link task/run records and [session logs](../logs/README.md), with human summary-verification status. State remaining gaps and next action. Completed requires required human teammate review and completed human correctness verification of the session summary; recording a pending status is insufficient. Refresh affected approvals/reviews/evidence after changes; preserve historical records.
+
+## Revision history
+
+| Revision / date | Change, retired or moved criterion IDs and successor mapping | Approval / evidence impact |
+| --- | --- | --- |
+| 1 / YYYY-MM-DD | Initial draft | Approval and verification pending |
