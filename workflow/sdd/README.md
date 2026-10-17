@@ -1,75 +1,55 @@
 # EventApp SDD workflow
 
-EventApp is a proposed secure AI event intelligence platform for attendees, organisers, and business participants. This folder establishes the shared specification process for MP3, using [WORKFLOW.md](../WORKFLOW.md) as the process baseline.
-
-Status: Working design pack with accepted decisions RD01–RD07; detailed feature approval remains pending. Created 2026-10-14; updated 2026-10-15. No application implementation is implied by these documents.
+Status: Task-based working design pack, updated 2026-10-17. Accepted RD01–RD07 remain authoritative; detailed specifications still require approval. These documents do not establish application implementation or deployment.
 
 ## Start here
 
-1. Read [project context](project.md) for scope, role boundaries, and open decisions.
-2. Review [shared security rules](security.md) before specifying AI features or external actions.
-3. Review the [shared schema and parallel development plan](schema-and-parallel-plan.md) to agree on foundation fields, module ownership and contracts.
-4. Review the [first feature](features/F01-published-programme.md) and resolve its blocking decisions.
-5. Use [the feature template](templates/feature.md) for each subsequent meaningful change.
-6. Use [the person-specific development guides](roles/README.md) for all stories in each person's delivery features, proposed tasks, handoffs and review-only assignments. Check the [story coverage map](roles/story-coverage.md) for complete assignment coverage.
+1. Read the [canonical user-story and role-feature catalogue](../../docs/UserStoriesAndFeatures.md).
+2. Follow the single ordered roadmap in [project context](project.md), including accepted decisions, delivery gates and unresolved product choices.
+3. Review [shared security rules](security.md) and the [schema and parallel development plan](schema-and-parallel-plan.md).
+4. Read the relevant scoped specification; [F01](features/F01-published-programme.md) is the existing draft journey covering three stories.
+5. Use the [specification template](templates/feature.md) and [multi-agent workflow](../agents/README.md) to refine, test, implement and verify the selected task.
 
-This is a team-designed Markdown SDD workflow built and maintained from scratch without an external SDD toolkit. The documents in this repository are the authoritative specifications.
+This is a repository-maintained Markdown SDD workflow. The catalogue owns story wording and scope; project.md owns priority and shared decisions; approved specifications own detailed behaviour and acceptance criteria. Schema/security documents own shared contracts and rules. Link these sources rather than copying stories into development guides.
 
-## Shared working agreement
+## Story to scoped specification
 
-The following defaults are proposed for team adoption:
+Each story is a candidate scoped capability identified by its existing Fxx-USxx ID. Refine it into a specification with numbered observable criteria, dependencies, SEC/RD references, approval and evidence. A catalogue row alone is not a Ready specification. Fxx groups related capabilities; a group is not an implementation assignment.
 
-- Keep specifications, contracts, implementation, and evidence in the shared repository at https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3.git. Do not push until the user explicitly requests it.
-- Involve two or all three teammates where a high-level feature spans multiple roles. Each user story retains one end-user role, and that role's steward is accountable for the complete role-specific outcome; other participants contribute bounded shared contracts, integration, verification, or review tasks. Give each feature a coordinator, record meaningful participant tasks, and use the collaboration table in project.md. Record the product approver and shared-contract reviewer before implementation; an AI agent cannot approve its own product assumptions.
-- Use stable feature and acceptance IDs, such as F01-AC01. Retain IDs when wording changes; retire rather than reuse removed IDs.
-- Use feature states: Draft, Ready, In progress, In review, Verified, Completed. A feature is Ready only after blocking decisions are resolved and approval is recorded.
-- Use one feature change per branch or focused commit where practical. Include spec updates and verification evidence with code changes.
-- Review changes to permissions, stored data, external actions, and shared interfaces independently of their implementation. For paired delivery, use the third teammate by default. For all-team features, assign a reviewer who did not implement the particular change, even if they contribute elsewhere in that feature. Record when an independent reviewer is unavailable; co-author review cannot satisfy a required independent review. This project will use specialised development agents as part of its Basic Multi-Agent SE process; the six roles, handoffs, protected-test process, limits, and evaluation checks are defined in [the agent workflow](../agents/README.md).
-- Keep small changes proportional: a brief statement of behavior and focused evidence may suffice.
-- Stagger participant tasks so each teammate can lead useful work in parallel. Develop against agreed contracts and fixtures; require real integration before completion. Coordinate shared-table changes and migration history through the schema plan.
+Preserve existing criterion identifiers, including F01-AC01–09. An existing shared journey may cover several stories; map each story to its applicable criteria without copying or renumbering them. New specifications may be story-sized, and shared integration criteria should have one authoritative definition. Story boundaries do not require separate services, tables or duplicated AI/security infrastructure.
 
-## Accepted review decisions
+Maintain traceability from every catalogue story to its specification and criteria, dependency contracts, test cases and completion evidence. Until refined, mark specification/evidence pending. All 31 existing story IDs must remain represented, including later-phase work.
 
-Use [RD01–RD07 in project context](project.md#accepted-review-decisions) as the authoritative behavior decisions. They establish business-wide membership, frozen submission content and review provenance, conflicting manual drafts with validated acceptance, immutable programme-change facts, accepted-plan notification targeting, private duplicate evidence and shared AI-job controls. Carry their verification scenarios into the affected feature criteria. Other open decisions remain scoped to the feature that needs them.
+## Task-based working agreement
 
-## Feature cycle
+- Work in the shared repository; do not push, merge or deploy to production without the applicable human authorization.
+- Choose tasks by capability priority and dependencies. There are no standing feature-to-person assignments or required human participant counts per feature.
+- Record bounded task/file ownership, contract coordination, product approval and independent reviews when work is assigned. Product roles describe users, not developers. An agent cannot approve missing product policy.
+- Use states Draft, Ready, In progress, In review, Verified and Completed. Ready requires resolved blockers and recorded approval. Retain stable story/criterion IDs; retire rather than reuse them.
+- Develop independent tasks in parallel after agreeing producer/consumer contracts and fixtures. Coordinate shared files and migration history; real integration is required before completion.
+- Reviewers must not implement the changes they independently review. Required human teammate review remains separate from agent review.
+- Keep small changes proportional; documentation-only edits use reviewed criteria, diff/link checks and appropriate independent review rather than inventing an application-test baseline.
 
-1. Specify observable behavior, exclusions, rejection cases, and dependencies.
-2. Inspect existing code and relevant verified failures. Agree on affected contracts.
-3. Plan tasks and checks against the approved specification revision.
-4. Implement and verify together. Resolve missing requirements before depending on them.
-5. Investigate review findings and refresh evidence after relevant changes.
-6. Exercise real integration and the intended deployment path, inspect the diff, and finish the feature.
-7. Update current behavior and capture reusable verified failures.
+## Capability cycle
 
-Completed feature documents remain the current specification. Record their completion revision and a short change history; future changes update them through review. Introduce an archive convention only if project needs justify it.
+1. Specify outcome, exclusions, permissions, dependencies, success and adverse cases against the current accepted decisions.
+2. Inspect code/contracts and resolve blocking human product decisions. Record approved specification and contract revisions.
+3. Delegate independent test design before application implementation. Independently review test adequacy, including security, and freeze the approved protected baseline and commands using [the agent workflow](../agents/README.md).
+4. Delegate bounded implementation; developers preserve protected tests, fixtures, runner/configuration and baseline identity. Route disputed tests through the recorded change-request process.
+5. Independently verify behaviour and security against the same implementation snapshot. Investigate findings, fix through the responsible task, and refresh affected checks/reviews.
+6. Exercise actual producer/consumer integration, fresh-data persistence/restart, relevant migration paths and online delivery. Fixtures or mocked models do not establish real integration.
+7. Update specification/evidence, user/developer guidance and [interaction logs](../../logs/README.md). Keep human correctness verification of AI-generated summaries explicit.
 
-## Definition of done
+## Completion gates
 
-- Applicable acceptance criteria have passing evidence for the delivered revision.
-- Required independent reviews actually ran and valid findings were resolved.
-- Relevant regression and real integration checks pass.
-- Persistence checks write synthetic data, cross the relevant restart boundary, and retrieve it through the intended interface.
-- The delivery check exercises the deployed or packaged application outside the development setup.
-- Specifications and user guidance reflect delivered behavior.
-- Remaining limitations and agreed scope changes are recorded explicitly.
+- Applicable criteria have revision-specific passing evidence, actual independent reviews and resolved findings.
+- Each product role has at least one implemented LLM-based capability; shared AI-job controls alone do not meet role coverage.
+- AI and development-process security controls have implementation and test evidence. Preserve SEC/RD rules, independent test ownership, baseline-integrity checks and actual bounded agent handoffs.
+- The application is online with separate development/production data, credentials and configuration. Verify server-only secrets and deployed synthetic journeys for all three product roles.
+- Required human review/authorization and summary verification are recorded; remaining uncertainty stays explicit.
 
-Every completion report identifies the specification revision, implementation revision, checks and results, actual reviewers and scope, unresolved limitations, and next action. Checkboxes alone do not establish completion.
+Use the requirement-to-evidence gates in [project context](project.md) for release assessment. Passing workflow validators or editing specifications does not establish assignment compliance.
 
-## Agent startup instruction
+## Review context
 
-> From the repository root, read workflow/WORKFLOW.md, workflow/sdd/README.md, workflow/sdd/project.md, and the relevant feature and security rules. Inspect affected code and known failures. Identify approved acceptance criteria, contracts, and unresolved decisions. Explain scope and verification before implementation. Preserve existing work, use synthetic data, and report actual checks and reviews with evidence.
-
-## First review agenda
-
-Map the confirmed MP3 requirements and deadline to the final MVP after the team selects it, settle remaining feature blockers, and assign approval/contract owners. The team size, repository, backend/frontend stack, and database direction are already recorded. Review detailed F01 criteria and the next parallel slices; do not treat this documentation update as permission to implement or push. No rubric compliance claims should be made before assignment mapping.
-
-## Review and revision record
-
-On 2026-10-15, three independent role subagents reviewed the documentation and a coordinating review checked shared boundaries. Dylan, Yik Bing, and Isaac accepted seven recommended corrections; these were applied across the pack. The updated pack received a document consistency/link check, not a new independent engineering review. Application behavior, migrations, deployment and rubric compliance remain unverified.
-
-Later on 2026-10-15, role summaries were rebuilt as person-specific development guides using three drafting subagents and a coordinating story/contract check. Every delivery feature's full user stories are included, even when its end-user role differs from the person's stewardship. Review-only assignments remain separate. Detailed task divisions are proposals; feature criteria and remaining decisions still gate implementation.
-
-## Shared agent workflow and interaction logs
-
-Use [the agent workflow](../agents/README.md) and root AGENTS.md for actual delegation. Design and independently review tests before dependent implementation; developers preserve the approved baseline and use recorded change requests for disputed tests. Feature completion includes criterion-specific evidence, actual review identities, and a session summary under [logs](../../logs/README.md). AI-generated summaries require human correctness verification; mark pending reviews honestly. The 2026-10-16 setup does not approve unfinished feature specifications or establish a completed application cycle.
+RD01–RD07 were accepted by the team on 2026-10-15. The 2026-10-16 agent setup establishes reusable roles and protected-test procedures, not an application-development result. This task-based organization retains those controls and the accepted behaviour. Remaining provider, membership, constraint and integration decisions are resolved before the affected capability depends on them.
