@@ -1,4 +1,4 @@
-# EventApp shared schema and parallel development plan
+# EventApp architecture and shared contracts
 
 Status: Design draft for review. No models, migrations or application code implemented.
 Updated: 2026-10-17. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Physical schema details remain a design draft.
@@ -41,7 +41,7 @@ Accepted access scope: business membership is business-wide, with event-specific
 
 ## Feature schemas
 
-These fields define logical scope. Nullability, database types, indexes, API names and detailed state transitions are finalised in the owning scoped capability specification. Story IDs and end-user feature mapping live in [the canonical catalogue](../../docs/UserStoriesAndFeatures.md); delivery order lives in [the project roadmap](project.md).
+These fields define logical scope. Nullability, database types, indexes, API names and detailed state transitions are finalised in the owning scoped capability specification. Story IDs and end-user feature mapping live in [the canonical catalogue](UserStoriesAndFeatures.md); delivery order lives in [the project roadmap](project.md).
 
 | Entity | Proposed fields and references | Feature |
 | --- | --- | --- |
@@ -123,7 +123,7 @@ The [project roadmap](project.md) owns phase priority. These groups describe dep
 | Programme changes and recovery | F05 change producer, notification consumer and announcement drafts against ProgrammeChanged examples | Real accepted-plan/change transaction and fixed recipient integration; F03-US03 replanning depends on F05 |
 | Later capabilities | Dining/routes, recap, wishlist, checklists, venue and supplier research, promotional concepts | Follow roadmap order and explicit scope approval; typed itinerary extension before meals/routes; F10-US03 approval controls before external actions |
 
-Run the shared [multi-agent process](../agents/README.md) within each task: independent test design and adequacy review precede implementation, and independent behavior/security review follows it. Record actual contributions and handoffs instead of assuming planned participation occurred. Fixtures permit parallel progress, but completion requires the delivered producer revision and real integration. Security tests and online delivery with separate development/production environments apply throughout.
+Run the shared [multi-agent process](../workflow/agents/README.md) within each task: independent test design and adequacy review precede implementation, and independent behavior/security review follows it. Record actual contributions and handoffs instead of assuming planned participation occurred. Fixtures permit parallel progress, but completion requires the delivered producer revision and real integration. Security tests and online delivery with separate development/production environments apply throughout.
 
 ## Migration and merge convention
 

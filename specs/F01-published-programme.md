@@ -2,7 +2,7 @@
 
 Status: Draft
 Feature ID: F01
-Story IDs: F01-US01, F01-US02, F01-US03 (see the [canonical catalogue](../../../docs/UserStoriesAndFeatures.md))
+Story IDs: F01-US01, F01-US02, F01-US03 (see the [canonical catalogue](../docs/UserStoriesAndFeatures.md))
 Specification revision: 4
 Task/run record: Pending; assign bounded tasks and file ownership when work starts
 Independent review and human product/contract approval: Pending; record actual identities and scope in the run record
@@ -18,11 +18,11 @@ Multiple activities, including different booths, may run concurrently in the sam
 
 Assignment requirement mapping: F01 provides separate organiser and attendee workflows, shared persistence, role-based access control, and the authoritative programme data used by later role-specific AI features. The criteria below remain a draft project specification rather than course-mandated feature details.
 
-Accepted cross-feature decisions RD03/RD04 require stable programme revisions and a read contract that later supports change indicators and cancellation visibility. F01 does not implement itineraries or notifications; [RD01–RD07](../project.md#accepted-review-decisions) constrain dependent features without granting blanket F01 approval.
+Accepted cross-feature decisions RD03/RD04 require stable programme revisions and a read contract that later supports change indicators and cancellation visibility. F01 does not implement itineraries or notifications; [RD01–RD07](../docs/project.md#accepted-review-decisions) constrain dependent features without granting blanket F01 approval.
 
 ## Required behavior
 
-Applicable rules: [SEC01, SEC02, SEC11 and SEC12](../security.md).
+Applicable rules: [SEC01, SEC02, SEC11 and SEC12](../docs/security.md).
 
 | ID | Observable acceptance criterion | Planned evidence |
 | --- | --- | --- |

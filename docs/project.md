@@ -44,11 +44,11 @@ The confirmed stack is Python/FastAPI, TypeScript/React and the PostgreSQL plann
 
 Assign bounded tasks/files, product approval, contract coordination and independent review when selecting a capability. There are no fixed workspace stewards, feature-to-person allocations or minimum number of human implementers per feature. Reviewers must not implement the change they independently review. Record actual contributions and handoffs.
 
-Use module-owned tables, shared foundations, stable producer/consumer contracts, synthetic fixtures and coordinated migrations under the [schema plan](schema-and-parallel-plan.md). Module ownership is a technical write boundary, not ownership by a person. Independent tasks can proceed against reviewed contracts; fixtures do not prove real integration.
+Use module-owned tables, shared foundations, stable producer/consumer contracts, synthetic fixtures and coordinated migrations under the [schema plan](architecture.md). Module ownership is a technical write boundary, not ownership by a person. Independent tasks can proceed against reviewed contracts; fixtures do not prove real integration.
 
 ## Phase-priority roadmap
 
-The [canonical catalogue](../../docs/UserStoriesAndFeatures.md) owns all 31 stories, role-feature tables, scope and exclusions. Work down this single ordered list. Phases express delivery priority and dependency, not MVP/stretch categories or implementation approval. Independent tasks may run in parallel after prerequisites and contracts are ready. Remaining specification blockers still gate implementation.
+The [canonical catalogue](UserStoriesAndFeatures.md) owns all 31 stories, role-feature tables, scope and exclusions. Work down this single ordered list. Phases express delivery priority and dependency, not MVP/stretch categories or implementation approval. Independent tasks may run in parallel after prerequisites and contracts are ready. Remaining specification blockers still gate implementation.
 
 | Order | Phase | Capability / story IDs | Dependencies and focus |
 | --- | --- | --- | --- |

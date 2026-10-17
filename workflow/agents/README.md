@@ -14,7 +14,7 @@ Custom agents are discovered from `.codex/agents/*.toml` by supported Codex vers
 
 ## Source of truth and responsibilities
 
-- Feature specifications and accepted decisions define required behaviour. The analyst drafts/refines them; humans approve product rules and resolve blockers.
+- Approved capability specifications under root `specs/` and accepted decisions define required behaviour. Follow the [spec standard and index](../../specs/README.md) and [canonical template](../../specs/TEMPLATE.md) when extracting capabilities from user stories. The analyst drafts/refines them; humans approve product rules and resolve blockers.
 - `.codex/agents/` defines reusable agent responsibilities. The orchestrator delegates and reconciles results; the analyst also investigates code and contracts.
 - The test designer owns scenarios, executable acceptance tests, fixtures, integration checks, and approved test corrections. Developers may add explicitly assigned non-baseline unit tests.
 - Behaviour and security reviewers assess independently; neither edits the reviewed implementation. Required human teammate review still applies.

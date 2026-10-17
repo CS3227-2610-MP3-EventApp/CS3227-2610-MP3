@@ -3,12 +3,14 @@
 Use EventApp as the product name. Historical commits may use Converge.
 
 ## Start here
-- Read `workflow/WORKFLOW.md`, `workflow/sdd/README.md`, the relevant feature specification, and applicable rules in `workflow/sdd/security.md`.
+- Read `workflow/README.md`, `specs/README.md`, the relevant capability specification under root `specs/`, and applicable rules in `docs/security.md`.
 - Follow `workflow/agents/README.md` for the team's multi-agent development process. The main agent is the orchestrator; use actual subagent tools, not simulated role dialogue.
 - Use the shared roles in `.codex/agents/`. Read the relevant role definition when assigning it. Role names are orchestrator, specification_analyst, test_case_designer, developer, behaviour_verifier, and security_reviewer.
 - Delegate bounded tasks with the specification revision, expected output, permitted files, and dependencies. Record actual agent identities, assignments, handoffs, findings, and results. If delegation is unavailable, report that limitation; do not claim a multi-agent run.
 
 ## Specifications and protected tests
+- Derive scoped capabilities from `docs/UserStoriesAndFeatures.md`, following `specs/README.md` and the canonical `specs/TEMPLATE.md`. Store draft and approved capability specs together under root `specs/`; status and recorded human approval distinguish them. The phase roadmap and accepted decisions remain in `docs/project.md`; shared contracts remain in `docs/architecture.md`. Do not create competing templates or duplicate specs under workflow/.
+- Use the repository skill `.agents/skills/draft-spec/SKILL.md` for new specifications or refining existing Drafts. It does not cover finalized-spec audits, implementation verification or code/spec synchronization; non-Draft specs remain read-only within that skill.
 - Accepted RD01–RD07 remain authoritative. Draft stories and proposed schema fields are not blanket implementation approval. Humans resolve blocking product decisions.
 - Design and independently review required test scenarios before feature implementation. Create executable acceptance tests before implementation where contracts and tooling permit; record deferred/manual checks explicitly.
 - The developer cannot modify the approved test baseline: cases, assertions, fixtures, snapshots, expected outputs, test discovery/configuration, runner, baseline reference, or this protection policy. Never weaken, skip, or bypass tests to fit an implementation.
