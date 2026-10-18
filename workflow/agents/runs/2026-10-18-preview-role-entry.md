@@ -11,7 +11,7 @@
 ## Actual delegation and handoffs
 
 - Orchestrator `/root`: coordinated specification readiness and assigned independent roles.
-- Specification analyst: revised the bounded prototype contract; exact identity to be reconciled by orchestrator.
+- Specification analyst `/root/auth_spec_analysis`: revised and checked the bounded prototype contract and its revision-2 evidence boundary.
 - Test designer `/root/auth_test_design`: owns frontend test tooling, fixtures, acceptance tests and these draft records; no application behavior permitted.
 - Behaviour verifier `/root/auth_behaviour_review`: approved the corrected candidate after rechecking all AC01–AC10 behavior.
 - Security reviewer `/root/auth_security_review`: approved the corrected candidate after rechecking the storage boundary and both registration warnings.
@@ -21,10 +21,10 @@
 
 - Dylan explicitly approved revision-2 approximately 150% typography, responsive headings and persisted light/dark preference behavior on 2026-10-18.
 - Revision 2 changes AC07/09 and adds AC11/12. Revision-1 tests, reviews, baseline and implementation evidence remain historical and do not verify these changes.
-- Revision-2 test owner added a separate appearance acceptance group for revised AC07/09 and AC11/12 while preserving the 37 revision-1 regression cases. `/root/auth_behaviour_review` and `/root/auth_security_review` approved the final corrected revision-2 candidate; recording its replacement immutable baseline commit remains pending, and revision-2 implementation must not begin before that baseline gate.
+- Revision-2 test owner added a separate appearance acceptance group for revised AC07/09 and AC11/12 while preserving the 37 revision-1 regression cases. `/root/auth_behaviour_review` and `/root/auth_security_review` approved the final corrected revision-2 candidate, which was frozen at `64cfa0f16935f237d450494e18572980ac45d816` before revision-2 implementation began.
 - Initial revision-2 candidate RED: `TMPDIR=/private/tmp npm test -- --reporter=dot` collected 4 files and executed 55 tests. All 37 revision-1 tests remained GREEN; all 18 initial revision-2 cases failed because the revision-1 app had no appearance control/preference and retained prior typography. Later reviewer-driven additions superseded this count with the final 68-test evidence below.
 - After reviewer-requested strengthening, the corrected revision-2 command collected 4 files and executed 65 tests: all 37 revision-1 regressions remained GREEN and all 28 revision-2 cases were meaningfully RED. Added evidence covers the public active-mode marker and computed palette, >=24px base and representative category-specific 1.5x scale, every registration field, existing-home session preservation, valid-session invalid-preference fallback, and local-storage read/write/remove failures. Physical removal cannot be guaranteed when the browser itself rejects `removeItem`; the test requires safe fallback, unchanged authority/session and treats the retained invalid value as inactive.
-- Final adequacy corrections add representative typography checks across login, both registrations and all three homes; isolated cross-render computed-palette comparisons for OS-selected and saved light/dark modes; exact form/session preservation; invalid-preference fallback; storage read/write/remove failure handling; and a failed-write case on an existing organiser home that preserves the exact session bytes/structure, route and home, permits immediate in-memory mode only, leaves local storage empty and forbids a false persistence-success message. The final command collected 4 files and executed 68 tests: all 37 revision-1 regressions remained GREEN and all 31 revision-2 cases were meaningfully RED. Behaviour reviewer `/root/auth_behaviour_review` and security reviewer `/root/auth_security_review` approved this final adequacy set; replacement baseline commit remains pending.
+- Final adequacy corrections add representative typography checks across login, both registrations and all three homes; isolated cross-render computed-palette comparisons for OS-selected and saved light/dark modes; exact form/session preservation; invalid-preference fallback; storage read/write/remove failure handling; and a failed-write case on an existing organiser home that preserves the exact session bytes/structure, route and home, permits immediate in-memory mode only, leaves local storage empty and forbids a false persistence-success message. The final command collected 4 files and executed 68 tests: all 37 revision-1 regressions remained GREEN and all 31 revision-2 cases were meaningfully RED. Behaviour reviewer `/root/auth_behaviour_review` and security reviewer `/root/auth_security_review` approved this final adequacy set before baseline `64cfa0f16935f237d450494e18572980ac45d816` was recorded.
 
 - Provisional criterion scenarios were derived before implementation and reviewed against the final Draft wording.
 - Revision 1 was marked Ready after Dylan's recorded approval.
@@ -35,7 +35,7 @@
 - Independent implementation review: security approved with no actionable finding. Behaviour review found missing route-change focus and immediate validation-error orientation; the orchestrator added stable heading focus and first-invalid-field focus, reran 37/37, and both reviewers approved focused rechecks.
 - No real authentication, authorisation, persistence, integration, accessibility conformance or deployment evidence is claimed.
 
-## Protected baseline candidate
+## Revision-1 protected baseline
 
 - `frontend/package.json`, lockfile and TypeScript/Vite test discovery configuration
 - `frontend/tests/` including setup, helpers, fixtures and acceptance cases
@@ -56,7 +56,7 @@ Full protected paths:
 - `workflow/agents/runs/preview-role-entry-test-plan.md`
 - `tools/check_test_baseline.py`
 
-Integrity command:
+Revision-1 integrity command:
 
 ```sh
 python3 tools/check_test_baseline.py \

@@ -1,17 +1,17 @@
 # Preview role entry and workspaces test plan
 
-Status: Revision 2 behaviour/security adequacy approved; replacement baseline commit pending
+Status: Revision 2 implemented and verified; replacement baseline commit pending for the current package/test-plan correction
 
 - Feature/story IDs: `preview-role-entry-and-workspaces`; presentation preview for F10-US01
 - Approved specification: `specs/shared/preview-role-entry-and-workspaces.md` revision 2 Ready
 - Designer: `auth_test_design` / test_case_designer
-- Independent reviewers: `/root/auth_behaviour_review` and `/root/auth_security_review`; both approved revision 1 after focused rechecks and approved the final corrected revision-2 candidate on 2026-10-18. The revision-2 replacement baseline commit is still pending.
-- Baseline commit and protected paths: revision 1 baseline `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`; revision-2 replacement pending
+- Independent reviewers: `/root/auth_behaviour_review` and `/root/auth_security_review`; both approved revision 1 after focused rechecks and approved the final corrected revision-2 candidate on 2026-10-18.
+- Baseline commits and protected paths: revision 1 `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`; revision 2 `64cfa0f` (recorded by `9ad8bd4`). A new replacement baseline is pending only because the protected package metadata, lockfile, unused fixture export and this test-plan record are being corrected.
 - Full suite: `cd frontend && npm test`
 
 ## Executable cases
 
-The original three groups remain the protected revision-1 regression baseline and must not be edited by a developer. The approved revision-2 candidate adds `appearance.test.tsx`; it requires a replacement immutable baseline commit before implementation.
+The original three groups remain the protected revision-1 regression baseline. Revision 2 added the approved `appearance.test.tsx` group, froze it in `64cfa0f`, and was subsequently implemented and verified. The current protected-file correction requires a new replacement baseline before later development relies on it.
 
 | Test group | Criteria | Observable coverage | Pre-implementation expectation |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ Fixtures use synthetic names, identifiers, businesses and credentials. Tests ass
 - Behaviour/security review corrections added exact storage shape/key assertions, pre-submit warnings, error associations, exact minimum boundaries, business-name validation, disabled/inert unfinished actions, keyboard-only complete journeys, remount and synthetic history-transition coverage.
 - RED command: `cd frontend && npm test` using Vitest 4.1.11; 3 files collected, 37 tests executed, all 37 failed on missing observable application behavior. The test-only fallback prevented an absent production module from becoming an import/harness error.
 - Harness checks: `npx tsc -b --pretty false` passed; `npm audit --json` reported zero vulnerabilities.
-- Independent behaviour and security reviewers approved the final 31-test revision-2 candidate after the corrections below. Recording the replacement immutable baseline commit remains pending.
+- Independent behaviour and security reviewers approved the final 31-test revision-2 candidate after the corrections below; it was frozen in `64cfa0f` before revision-2 implementation. A further replacement baseline is pending only for the current protected package/test-plan correction.
 - Revision-2 privacy expectation: flows that make no explicit appearance choice continue to require empty `localStorage`. After an explicit choice, exactly one `eventapp.colorMode` key with exact value `light` or `dark` is permitted; session, form and distinctive sensitive values remain forbidden there.
 - Revision-2 final pre-implementation command: `TMPDIR=/private/tmp npm test -- --reporter=dot`; 4 files collected, 68 tests executed, 37 revision-1 cases passed and all 31 revision-2 cases failed on missing approved behaviour. No collection/import/harness failure occurred.
 - Final revision-2 corrections approved by both reviewers cover representative typography categories across every entry/home surface; public and computed palette evidence with isolated OS/saved cross-render comparisons; exact form and active-session preservation through toggles; invalid preference fallback with a valid session; safe local-storage read/write/remove failure behavior; and a failed-write home case that preserves exact session bytes/structure and forbids false persistence claims.

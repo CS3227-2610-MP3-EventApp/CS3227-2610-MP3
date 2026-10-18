@@ -1,6 +1,6 @@
 # EventApp project context
 
-EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. Application implementation remains deferred pending feature criteria and remaining blockers.
+EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. A bounded frontend-only role-entry and workspace prototype is implemented and In review; domain features, real identity/authorisation, backend, database, AI integration and deployment remain deferred pending their feature criteria and blockers.
 
 ## Shared UI direction
 

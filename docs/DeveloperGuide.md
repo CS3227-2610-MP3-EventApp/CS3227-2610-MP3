@@ -16,8 +16,26 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains planning and coordination setup. Application startup, application tests, database migration, and deployment commands remain to be documented when implemented. Do not use workflow validation as evidence that product requirements are implemented.
+The repository contains planning and coordination setup plus a frontend-only role-entry and workspace prototype. The prototype does not implement real authentication, authorisation, backend APIs, database persistence, AI integration or deployment.
+
+Use Node.js `^20.19.0` or `>=22.12.0`, then run:
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+The local URL is printed by Vite. Verify the frontend with:
+
+```sh
+npm test
+npm run build
+npm audit
+```
+
+The current implementation evidence and manual limitations are recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). Do not use the prototype or workflow validation as evidence of real product authentication, domain behavior or deployment.
 
 ## Delivery evidence to maintain
 
-As tooling is implemented, document actual local setup/start/test commands, required environment-variable names without secret values, empty-database and existing-data migration commands, deployment/recovery steps and the online application URL. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific security and multi-agent evidence to the release gates in project context; do not invent commands or successful deployments.
+As backend and deployment tooling is implemented, document required environment-variable names without secret values, empty-database and existing-data migration commands, deployment/recovery steps and the online application URL. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific security and multi-agent evidence to the release gates in project context; do not invent commands or successful deployments.

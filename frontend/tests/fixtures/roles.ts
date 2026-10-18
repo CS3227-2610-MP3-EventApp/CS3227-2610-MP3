@@ -5,9 +5,3 @@ export const homes = {
   organiser: ["Programme Management", "Application Reviews", "AI Application Analysis"],
   business: ["Applications", "Preparation & Budget", "AI Preparation Draft"],
 } as const;
-
-export const previewNames = {
-  attendee: "Attendee Preview",
-  organiser: "Organiser Preview",
-  business: "Business Preview",
-} as const;

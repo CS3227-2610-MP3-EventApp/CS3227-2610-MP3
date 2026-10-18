@@ -1,5 +1,7 @@
 # Role Entry UI Prototype Implementation Plan
 
+> **Historical plan:** This revision-1 plan was executed and is retained as development history. Revision 2 added appearance preferences and enlarged typography and supersedes this plan. Current status and evidence are in [`specs/shared/preview-role-entry-and-workspaces.md`](../../../specs/shared/preview-role-entry-and-workspaces.md) and the [multi-agent run record](../../../workflow/agents/runs/2026-10-18-preview-role-entry.md). The unchecked boxes below describe the original sequence; they are not outstanding work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver the approved frontend-only EventApp role-entry and three-dashboard prototype without claiming real authentication or authorisation.

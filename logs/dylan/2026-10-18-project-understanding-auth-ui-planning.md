@@ -1,7 +1,7 @@
 # Project understanding and role-entry UI planning
 
 - Date/timezone and session owner: 2026-10-18, Asia/Singapore; Dylan.
-- Feature/task, branch and source revision: role-entry/dashboard prototype documentation on `docs/auth-ui-prototype-spec`, based on `148aa18`.
+- Feature/task, branch and source revision: role-entry/dashboard prototype on `feat/role-entry-ui-prototype`, based on `148aa18` (initially developed under `docs/auth-ui-prototype-spec` before the local branch was renamed).
 - Source coverage: visible conversation, repository files, Git history and actual agent messages in this session. Earlier chats are summarised only where visible in the current conversation; unavailable external chats are not reconstructed.
 - AI factual check: checked against the visible requests, current repository and specialist handoffs described below.
 - Human verification: Pending for the complete session summary. Dylan approved the exact `preview-role-entry-and-workspaces` revision 1 requirements for implementation on 2026-10-18 after requesting the final plan recheck; this is product/spec approval, not verification of the full AI-generated log.
