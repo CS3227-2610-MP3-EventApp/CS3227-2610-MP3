@@ -38,7 +38,7 @@ export function Login() {
     <Typography color="text.secondary" sx={{ mb: 3 }}>Choose your workspace to explore the preview.</Typography>
     <PrototypeNotice />
     <Tabs value={role} onChange={(_, value: Role) => { setRole(value); setSubmitted(false); }} selectionFollowsFocus variant="fullWidth" aria-label="Workspace role" sx={{ mt: 3, mb: 3, borderBottom: 1, borderColor: "divider", "& .MuiTabs-indicator": { bgcolor: "secondary.main", height: 3 } }}>
-      {roles.map((value) => <Tab key={value} value={value} label={roleNames[value]} id={`tab-${value}`} aria-controls={`panel-${value}`} />)}
+      {roles.map((value) => <Tab key={value} value={value} label={roleNames[value]} wrapped id={`tab-${value}`} aria-controls={`panel-${value}`} />)}
     </Tabs>
     <Box role="tabpanel" id={`panel-${role}`} aria-labelledby={`tab-${role}`}>
       <Box component="form" noValidate onSubmit={submit}>
@@ -94,8 +94,8 @@ export function Register({ role }: { role: "attendee" | "business" }) {
   }
 
   return <EntryLayout>
-    <Link component={RouterLink} to="/login" color="text.secondary" underline="hover" sx={{ fontSize: 14, display: "inline-block", mb: 3 }}>← Back to log in</Link>
-    <Typography component="h1" variant="h1" data-page-heading tabIndex={-1} sx={{ fontSize: { xs: "2rem", sm: "2.4rem" }, mb: 1.5 }}>Your next chapter.</Typography>
+    <Link component={RouterLink} to="/login" color="text.secondary" underline="hover" sx={{ fontSize: 21, display: "inline-block", mb: 3 }}>← Back to log in</Link>
+    <Typography component="h1" variant="h1" data-page-heading tabIndex={-1} sx={{ mb: 1.5 }}>Your next chapter.</Typography>
     <Typography color="text.secondary" sx={{ mb: 2.5 }}>Create an {role === "attendee" ? "attendee" : "initial business owner"} account preview.</Typography>
     <PrototypeNotice />
     {role === "business" && <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Preview a new business with you as its initial owner. No business or owner record will be saved.</Typography>}

@@ -4,7 +4,7 @@
 - Feature/story: `preview-role-entry-and-workspaces`; presentation preview for F10-US01
 - Human owner: Dylan
 - Branch/base: `feat/role-entry-ui-prototype`; base `148aa18`
-- Specification: `preview-role-entry-and-workspaces` revision 2 Ready
+- Specification: `preview-role-entry-and-workspaces` revision 2 In review
 - Approved test baseline: revision 2 uses `64cfa0f16935f237d450494e18572980ac45d816` (revision 1 used `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`)
 - Product approval: revision 2 approval recorded in the Ready specification and Dylan session log
 
@@ -73,7 +73,7 @@ python3 tools/check_test_baseline.py \
 - Completed automated evidence: AC01–AC08 and AC10; AC09 keyboard and synthetic narrow-viewport checks. Real-browser 360/1280 reflow, increased-text, visible-focus, native history/fresh-context and runtime-log inspection remain manual checks.
 - Human review/merge: pending.
 - Session summary: `logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md`; human correctness verification status remains as recorded there.
-- Revision-2 reopened scope: approximately 150% typography and responsive headings; light/dark controls on all entry/home screens; OS default; exact `eventapp.colorMode` `light`/`dark` persistence; invalid-value fallback/removal; palette/readability and storage-boundary checks. The final test plan, behaviour/security adequacy reviews and replacement baseline are complete; implementation and same-snapshot implementation reviews remain pending.
+- Revision-2 reopened scope: approximately 150% typography and responsive headings; light/dark controls on all entry/home screens; OS default; exact `eventapp.colorMode` `light`/`dark` persistence; invalid-value fallback/removal; palette/readability and storage-boundary checks. The final test plan, behaviour/security adequacy reviews, replacement baseline, implementation and same-snapshot reviews are complete; manual browser and human review remain pending.
 
 Revision-2 protected paths:
 
@@ -97,3 +97,11 @@ python3 tools/check_test_baseline.py \
   frontend/tests workflow/agents/runs/preview-role-entry-test-plan.md \
   tools/check_test_baseline.py
 ```
+
+## Revision 2 implementation evidence
+
+- Developer `/root/auth_ui_developer` changed only `frontend/src/`, adding the central appearance provider/control and adapting the existing theme and screens; no protected path was edited.
+- Final command `TMPDIR=/private/tmp npm test -- --reporter=dot` passed all 68 cases across four files. `npm run build`, TypeScript, the revision-2 baseline guard and `git diff --check` passed. Vite emitted a non-blocking 523.32 kB minified / 164.06 kB gzip chunk advisory.
+- Behaviour reviewer `/root/auth_behaviour_review` approved the same snapshot with no actionable finding after inspecting mode resolution, all-screen controls, state preservation, 24px/1.5x typography and responsive safeguards.
+- Security reviewer `/root/auth_security_review` approved the same snapshot with no actionable finding after inspecting exact preference persistence, invalid/storage-failure handling and isolation from session, identity, form and authority data.
+- A real-browser check was attempted, but access to the available Safari surface was not approved. Both palettes, 360/1280 reflow, increased text, visible focus, measured contrast and native navigation remain manual evidence; revision 2 stays In review.

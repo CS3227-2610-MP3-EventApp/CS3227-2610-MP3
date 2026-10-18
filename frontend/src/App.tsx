@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { CssBaseline, ThemeProvider } from "@mui/material";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Login, Register } from "./Entry";
 import { Workspace } from "./Workspace";
 import { readSession, roles, type Role } from "./session";
-import { theme } from "./theme";
+import { AppearanceProvider } from "./Appearance";
 
 function GuardedWorkspace({ role }: { role: Role }) {
   const session = readSession();
@@ -29,5 +28,5 @@ function ApplicationRoutes() {
 }
 
 export default function App() {
-  return <ThemeProvider theme={theme}><CssBaseline /><BrowserRouter><ApplicationRoutes /></BrowserRouter></ThemeProvider>;
+  return <AppearanceProvider><BrowserRouter><ApplicationRoutes /></BrowserRouter></AppearanceProvider>;
 }
