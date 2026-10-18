@@ -5,7 +5,7 @@
 - Human owner: Dylan
 - Branch/base: `docs/auth-ui-prototype-spec`; base `148aa18`
 - Specification: `preview-role-entry-and-workspaces` revision 1 Ready
-- Approved test baseline: independent reviews complete; baseline commit pending
+- Approved test baseline: `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`
 - Product approval: recorded in the Ready specification and Dylan session log
 
 ## Actual delegation and handoffs
@@ -33,7 +33,30 @@
 - `workflow/agents/runs/preview-role-entry-test-plan.md`
 - `tools/check_test_baseline.py`
 
-Exact baseline SHA, final protected paths and commands remain pending the baseline commit. The developer may add application-owned unit tests outside this protected acceptance set but cannot edit the approved baseline.
+The developer may add application-owned unit tests outside this protected acceptance set but cannot edit the approved baseline.
+
+Full protected paths:
+
+- `frontend/package.json`
+- `frontend/package-lock.json`
+- `frontend/tsconfig.json`
+- `frontend/tsconfig.app.json`
+- `frontend/tsconfig.node.json`
+- `frontend/vite.config.ts`
+- `frontend/tests`
+- `workflow/agents/runs/preview-role-entry-test-plan.md`
+- `tools/check_test_baseline.py`
+
+Integrity command:
+
+```sh
+python3 tools/check_test_baseline.py \
+  --baseline 3039cd4e2baec0b87a77e68c7d9f95f2390553e2 \
+  --paths frontend/package.json frontend/package-lock.json frontend/tsconfig.json \
+  frontend/tsconfig.app.json frontend/tsconfig.node.json frontend/vite.config.ts \
+  frontend/tests workflow/agents/runs/preview-role-entry-test-plan.md \
+  tools/check_test_baseline.py
+```
 
 ## Fixes, completion and reflection
 
