@@ -1,7 +1,7 @@
 # EventApp architecture and shared contracts
 
 Status: Design draft for review. No models, migrations or application code implemented.
-Updated: 2026-10-17. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Physical schema details remain a design draft.
+Updated: 2026-10-18. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Physical schema details remain a design draft.
 
 Accepted direction: establish a small shared foundation, keep feature data in modules with clear ownership, and develop against stable contracts and synthetic fixtures. The logical schema below is a proposed design; bounded implementation tasks are assigned when a scoped capability is ready. PostgreSQL is the agreed planning baseline; hosting, identity provider and exact physical schema remain to be settled before implementation.
 
@@ -37,7 +37,9 @@ Agree on these fields and semantics first. IDs are proposed UUIDs; timestamps ar
 
 Do not introduce a reverse dependency in Event or User on itineraries, budgets or AI artifacts. Domain consumers keep their own user_id, event_id and business_id references.
 
-Accepted access scope: business membership is business-wide, with event-specific participation; participation-specific staff access is deferred (RD01). Exact member roles/invitation policy, multiple event roles per user, public programme browsing, organiser invitations and business applications as the initial submission scope remain to review. Do not reopen accepted scope merely because physical fields are still draft.
+Accepted access scope: business membership is business-wide, with event-specific participation; participation-specific staff access is deferred (RD01). A future successful business-owner registration creates the new Business and its active initial-owner BusinessMembership atomically; it cannot select an existing business or organiser authority. Additional member roles/invitations, ownership transfer, multiple event roles, public programme browsing, organiser invitations and business applications as the initial submission scope remain to review.
+
+Organiser authority is never client-selected. An authorised super organiser provisions an organiser identity and explicit event-scoped membership through the future server boundary. Initial organiser fixtures are development-only. The chosen temporary credential must be single-use, expiring, stored only as a verifier and replaced before workspace access; provider, delivery, recovery and precise expiry remain unresolved. Do not add password fields to the shared schema before the identity-provider contract is selected.
 
 ## Feature schemas
 
@@ -146,3 +148,5 @@ Checks performed on this design: local links and consistency with feature scope 
 2026-10-15: Applied accepted membership, submission/report provenance, valid-plan acceptance, historical-change, recipient and AI-control decisions. No migrations or application models created.
 
 2026-10-17: Replaced fixed personal assignments with module responsibilities and dependency-based tasks linked to the project roadmap. Recorded concurrent same-room programme activities with per-item capacity validation; retained attendee acceptance rules, contract boundaries, security controls and migration safeguards.
+
+2026-10-18: Recorded the bounded direction for atomic new-business/initial-owner registration and controlled event-scoped organiser provisioning. Kept identity-provider, credential-delivery and broader membership details unresolved; no schema or implementation is claimed.

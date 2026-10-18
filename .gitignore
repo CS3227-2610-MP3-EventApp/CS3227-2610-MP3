@@ -3,3 +3,6 @@
 # Local Python validation artifacts
 __pycache__/
 *.py[cod]
+
+# Local Vite cache
+.vite/

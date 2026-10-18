@@ -20,6 +20,12 @@ Status: Shared security baseline; accepted RD01–RD07 refinements applied on 20
 
 ## Accepted data lifecycle boundaries
 
+### Frontend prototype boundary
+
+The bounded role-entry prototype stores only a synthetic role and display name in same-tab `sessionStorage` to demonstrate navigation across refresh. This user-controlled state is not identity, membership or authorisation and cannot protect real data or operations. Passwords, email addresses, business names, tokens and complete registration payloads are not persisted or logged. Presentation guards and hidden routes do not satisfy SEC01; real access requires server-verified identity and server-resolved membership.
+
+Seeded organisers are synthetic development fixtures only. Production has no default/shared organiser account or fixture credential, and development/production identities and data remain separate. Future organiser provisioning and business-owner creation must occur at the server boundary, create attributable audit records without credentials or unnecessary contact content, and use generic login failures that do not disclose whether an account exists.
+
 RD01–RD07 are recorded in [project context](project.md#accepted-review-decisions). Programme changes preserve immutable old/new facts; accepted plans display current facts with change indicators and retain cancellations until removed/replaced. Notification recipients are fixed consistently at change commit using accepted itineraries only, then deduplicated by recipient/change. Bookmark-only or draft-only users do not qualify. These are feature data rules, not new permissions granted to the model.
 
 Every AI workflow must test job access, progress/failure visibility, cancellation between steps, timeout/quota enforcement, outbound-data minimisation and validation before displaying results. Cancelling a job prevents subsequent steps, but cannot promise to undo an already executed external action. Permission must be rechecked before draft acceptance or action execution. Preserve existing accepted records and manual workflows on failure.
@@ -39,3 +45,5 @@ Define its provider allowlist and destination rules, quota values, timeouts, app
 ## Change history
 
 2026-10-15: Applied accepted review decisions to business permissions, plan validation, application provenance/privacy and shared AI-job checks. Security behavior remains unverified until implementation tests run.
+
+2026-10-18: Documented the presentation-only role-entry prototype boundary, development-only seeded identities and future provisioning/registration safeguards. This does not change RD01–RD07 or claim implemented authentication/security enforcement; exact revised capability approval and runtime verification remain pending.
