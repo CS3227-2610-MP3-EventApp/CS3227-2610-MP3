@@ -4,16 +4,16 @@
 | --- | --- |
 | Stable capability ID | navigate-eventapp-workspaces |
 | Covered stories | Cross-cutting presentation contract for all 31 [catalogue stories](../../docs/UserStoriesAndFeatures.md#story-to-spec-links); domain criteria remain in their linked specs |
-| Specification revision / status | 1 / Draft |
+| Specification revision / status | 2 / Draft |
 | Product roles / roadmap | Attendee, organiser and business participant; [shared UI foundation, order 1a](../../docs/project.md#phase-priority-roadmap) |
-| Product and contract approval | Pending human approval of revision 1 and decisions below |
-| Review / run record | Pending independent draft review and test-design handoff |
+| Product and contract approval | Visual/prototype direction approved by requesting teammate on 2026-10-18; full revision 2 and remaining decisions pending |
+| Review / run record | Original revision-1 review plus [2026-10-18 prototype planning and rechecks](../../logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md); executable baseline pending |
 
 Sources: [specification standard](../README.md), [catalogue](../../docs/UserStoriesAndFeatures.md), [project UI direction](../../docs/project.md#shared-ui-direction), [accepted RD01–RD07](../../docs/project.md#accepted-review-decisions), [security rules](../../docs/security.md), and [shared contracts](../../docs/architecture.md#contracts-for-independent-development). External guidance: [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [W3C menu structure](https://www.w3.org/WAI/tutorials/menus/structure/) and [web.dev Web Vitals](https://web.dev/articles/vitals). These references inform this Draft; no accessibility conformance or performance result is claimed.
 
 ## Product outcome, users and scope
 
-EventApp presents authorised attendee, organiser and business work as a coherent, professional, clean business experience. Users can understand where they are, move between permitted tasks, recognise the primary action and its consequences, and see truthful feedback while information or work is pending. This contract governs shared presentation and interaction across role journeys. Domain specs own permissions, available actions, accepted data, validation, AI jobs, external approvals and mutations; this Draft does not grant access or alter those outcomes. Public or signed-out entry points are included only where their domain visibility contract permits them.
+EventApp presents authorised attendee, organiser and business work as a coherent, professional, clean business experience. Users can understand where they are, move between permitted tasks, recognise the primary action and its consequences, and see truthful feedback while information or work is pending. This contract governs shared presentation and interaction across role journeys. Domain specs own permissions, available actions, accepted data, validation, AI jobs, external approvals and mutations; this Draft does not grant access or alter those outcomes. Public or signed-out entry points are included only where their domain visibility contract permits them. The bounded [role-entry prototype](preview-role-entry-and-workspaces.md) owns its three-tab entry, registration, synthetic-session and dashboard-preview criteria without claiming real authorisation.
 
 Included: workspace orientation, consistent navigation and terminology, visual hierarchy, responsive reflow, accessible interaction, loading and status feedback, error recovery and preservation of work during navigation or failures. Excluded: a particular palette, component library, page/component tree, animation technique, exact screen designs, domain-specific form fields, authentication policy and domain performance guarantees. This capability supports each role's journey but does not itself satisfy the required LLM feature for any role. Specification-driven delivery, security review and online environment checks follow the shared workflow and project gates.
 
@@ -56,13 +56,13 @@ All 31 catalogue stories receive this shared presentation contract. Their linked
 
 ## External interfaces and dependencies
 
-Consumes `CurrentActor v1` for available contexts and server denial categories; domain contracts supply resource revisions, action availability, operation outcomes and permitted recovery. In particular, [workspace access](access-authorised-workspaces.md), [AI task monitoring](monitor-and-recover-ai-tasks.md) and [external-action approval](approve-external-actions.md) determine the corresponding status and approval boundaries. Domain result categories need a consistent user-facing mapping, while exact API names and response schemas remain with each producer. A UI change must tolerate a delayed or stale domain response without treating it as a fresh commitment. Compatibility with delivered domain contracts and preservation of in-progress work must be checked across navigation and deployment; no database migration is specified here.
+Consumes `CurrentActor v1` for real available contexts and server denial categories; domain contracts supply resource revisions, action availability, operation outcomes and permitted recovery. Before that producer exists, the bounded prototype may use its documented synthetic role/display-name adapter solely for presentation. In particular, [workspace access](access-authorised-workspaces.md), [role-entry prototype](preview-role-entry-and-workspaces.md), [AI task monitoring](monitor-and-recover-ai-tasks.md) and [external-action approval](approve-external-actions.md) determine their corresponding boundaries. Domain result categories need a consistent user-facing mapping, while exact API names and response schemas remain with each producer. A UI change must tolerate a delayed or stale domain response without treating it as a fresh commitment. Compatibility with delivered domain contracts and preservation of in-progress work must be checked across navigation and deployment; no database migration is specified here.
 
 ## Decisions and approval
 
 | Decision | Options / proposed direction | Decision owner | Blocks what? | Resolution and approval evidence |
 | --- | --- | --- | --- | --- |
-| UI-01 | Approve brand character details: palette, typography, iconography and any visual reference; direction remains professional, clean and business-like. | Human product/design owner | Exact visual acceptance and Ready | Pending |
+| UI-01 | Professional clean character; first prototype uses Material UI with navy primary, teal accents and warm off-white surfaces. Exact production tokens, typography and iconography remain open. | Human product/design owner | Exact production visual acceptance | Prototype direction approved by requesting teammate 2026-10-18 |
 | UI-02 | Approve accessibility target (proposed WCAG 2.2 AA), tested journeys, assistive technology and viewport/zoom matrix (proposed checks include 320 CSS px equivalent width and 400% zoom). | Human product/accessibility owner | Ready and AC03–04 verification | Pending |
 | UI-03 | Approve performance budgets, measurement context, prolonged-wait threshold and what status is available when progress cannot be measured. | Human product/engineering owner | Ready and AC05 verification | Pending |
 | UI-04 | Approve draft-preservation expectations across route change, reload, account switch, sign-out, session expiry and revocation; if local private drafts exist, define actor/event/business scoping, purge/visibility and recovery consistent with domain retention/privacy contracts. | Human product/privacy owner | AC07/08 and affected journeys | Pending |
@@ -85,3 +85,4 @@ Human approval of this exact revision and agreed contract versions is required b
 | Revision / date | Change, retired or moved criterion IDs and successor mapping | Approval / evidence impact |
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial cross-role UI navigation and feedback Draft; AC01–10 allocated | Human approval, independent review and verification pending |
+| 2 / 2026-10-18 | Linked bounded role-entry prototype, approved its initial visual direction and clarified synthetic versus `CurrentActor v1` presentation sources | Full revision approval and verification remain pending |

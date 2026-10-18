@@ -6,7 +6,7 @@ EventApp has three product workspaces. Role columns show who supplies or consume
 
 Each story must be covered by one or more bounded capability specifications; a cohesive contract may cover several stories. Retain story IDs for traceability and link them to observable behaviour, exclusions, external contracts, numbered acceptance criteria, applicable security rules, test scenarios and revision-specific evidence. Name specifications for the capability, not the story ID. Existing F01 acceptance IDs remain stable; shared contracts and cross-story integration checks must remain linked if a specification is split. Draft stories and schema fields do not approve implementation.
 
-Across the 31 stories, the attendee, organiser and business interfaces share a [UI navigation and feedback Draft](../specs/shared/navigate-eventapp-workspaces.md). It covers the presentation of each role's authorised journeys, responsive layout, clear status and error feedback, and a consistent professional visual character. It does not replace any story's domain, permission or AI acceptance criteria. The [project UI direction](project.md#shared-ui-direction) records the user request and priority.
+Across the 31 stories, the attendee, organiser and business interfaces share a [UI navigation and feedback Draft](../specs/shared/navigate-eventapp-workspaces.md). It covers the presentation of each role's authorised journeys, responsive layout, clear status and error feedback, and a consistent professional visual character. The bounded [role-entry prototype Draft](../specs/shared/preview-role-entry-and-workspaces.md) previews the three role tabs, permitted registration links, synthetic same-tab orientation and role home pages; it does not implement identity or permission enforcement. Neither replaces any story's domain, permission or AI acceptance criteria. The [project UI direction](project.md#shared-ui-direction) records the user request and priority.
 
 ## Story-to-spec links
 
@@ -37,13 +37,13 @@ These links identify the proposed authoritative capability contract for each of 
 | F09-US01 | [draft promotional concepts](../specs/business-preparation/draft-promotional-concepts.md) |
 | F09-US02 | [compare suppliers](../specs/business-preparation/compare-suppliers.md) |
 | F09-US03 | [review procurement proposals](../specs/business-preparation/review-procurement-proposals.md) |
-| F10-US01 | [access authorised workspaces](../specs/shared/access-authorised-workspaces.md) |
+| F10-US01 | [access authorised workspaces](../specs/shared/access-authorised-workspaces.md); presentation preview in [preview role entry and workspaces](../specs/shared/preview-role-entry-and-workspaces.md) |
 | F10-US02 | [monitor and recover ai tasks](../specs/shared/monitor-and-recover-ai-tasks.md) |
 | F10-US03 | [approve external actions](../specs/shared/approve-external-actions.md) |
 
 ### Shared foundation
 
-F10 identity verifies sign-in; server permissions restrict attendees to their private records, organisers to assigned events, and business members to their business across its event workspaces. Changing screens grants no authority. Business member roles/invitations and organiser provisioning remain open decisions.
+F10 identity verifies sign-in; server permissions restrict attendees to their private records, organisers to assigned events, and business members to their business across its event workspaces. Changing screens grants no authority. Attendee self-registration, new-business/initial-owner registration and controlled super-organiser provisioning are the accepted direction; provider details, credential delivery/recovery values, additional member invitations, ownership transfer and multiple-role behaviour remain open. The frontend prototype's synthetic session is presentation state, not verified identity.
 
 F10 bounded AI jobs persist owner, progress and failure state, enforce time/usage/tool limits, cancel between steps, minimise outbound data and validate results before display. Jobs may create authorised drafts but cannot approve applications, publish announcements or execute external actions autonomously. Build identity/permissions with the first F01 slice, business checks with F06, and job controls before role AI features. Exact-action approval precedes any external send or execution.
 

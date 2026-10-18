@@ -20,5 +20,6 @@ The AI checks factual statements against the visible interaction/tool evidence a
 - [2026-10-16 workflow implementation](2026-10-16-yik-bing-agent-workflow.md): branch setup, agent definitions, protected-test procedure, log requirement, validation and review evidence.
 - [2026-10-18 spec boundary and layout](isaac/2026-10-18-spec-boundary-and-layout.md): revised contract definition and template, approved folder layout, 26 domain Drafts and independent documentation review.
 - [2026-10-18 shared UI specification](isaac/2026-10-18-shared-ui-spec.md): user-requested visual and interaction direction, prior project/catalogue updates, UI Draft, scenario handoff and log organization.
+- [2026-10-18 Dylan project/authentication UI planning](dylan/2026-10-18-project-understanding-auth-ui-planning.md): repository review, account/provisioning decisions, bounded prototype specification, independent analysis/test/security handoffs and pre-implementation gates.
 
 Each teammate must add summaries for their own earlier sessions and verify the historical coverage. Existing SDD revision records can support backfills but are not original prompt transcripts.
