@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | preview-role-entry-and-workspaces |
 | Covered stories | Presentation preview for [F10-US01](../../docs/UserStoriesAndFeatures.md); does not implement its identity or authorisation contract |
-| Specification revision / status | 1 / Ready |
+| Specification revision / status | 1 / In review |
 | Product roles / roadmap | Attendee, organiser and business participant; [shared UI foundation](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Approved by requesting teammate Dylan on 2026-10-18 after final repository/specification review |
-| Review / run record | [Specification analysis, provisional test design and security review](../../logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md); executable baseline pending |
+| Review / run record | [Multi-agent run and immutable baseline](../../workflow/agents/runs/2026-10-18-preview-role-entry.md); [Dylan session log](../../logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md) |
 
 Sources: [specification standard](../README.md), [catalogue](../../docs/UserStoriesAndFeatures.md), [project context](../../docs/project.md), [security rules](../../docs/security.md), [architecture](../../docs/architecture.md), [workspace access Draft](access-authorised-workspaces.md) and [shared navigation Draft](navigate-eventapp-workspaces.md).
 
@@ -66,21 +66,24 @@ The [workspace access Draft](access-authorised-workspaces.md) remains authoritat
 
 | Decision | Approved direction | Decision owner | Status |
 | --- | --- | --- | --- |
-| PRE-01 | Frontend-only React/TypeScript prototype using Material UI and direct code rather than external mock-ups | Requesting teammate (Dylan), 2026-10-18 | Approved direction; exact spec revision pending review |
+| PRE-01 | Frontend-only React/TypeScript prototype using Material UI and direct code rather than external mock-ups | Requesting teammate (Dylan), 2026-10-18 | Approved in revision 1 and implemented |
 | PRE-02 | Three login tabs; only Attendee and Business self-register; Business registration previews a new business plus initial owner | Requesting teammate (Dylan), 2026-10-18 | Approved direction; production enforcement remains in access Draft |
 | PRE-03 | Synthetic session persists only role/display name in `sessionStorage`; no credential or registration payload is stored | Requesting teammate (Dylan), 2026-10-18 | Approved direction |
 | PRE-04 | Navy/teal Material UI theme and dashboard-preview home pages | Requesting teammate (Dylan), 2026-10-18 | Approved direction |
 
-Revision 1 is Ready following recorded human approval. Ready does not by itself authorise implementation. The test designer must create executable tests from AC01–10; independent behaviour and security reviewers must approve their adequacy; then an immutable protected baseline SHA and paths must be recorded before a developer receives application-file ownership.
+Revision 1 became Ready following recorded human approval. Its executable tests, independent adequacy reviews and immutable protected baseline were then completed before the developer received application-file ownership. The current In review status reflects the implementation evidence and remaining manual checks below.
 
 ## Verification and evidence
 
-Provisional scenario design covers the ten criteria, including storage inspection, invalid synthetic state, cross-role routes, keyboard use and truthful prototype notices. No executable frontend test, protected baseline or application code exists yet. Real credential rejection, server role enforcement, account uniqueness, organiser provisioning, audit persistence, database persistence, restart recovery and production isolation are deferred to the access capability and cannot be marked passing here.
+The independently reviewed acceptance baseline is commit `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`; its exact protected paths and integrity command are recorded in the linked run record. Before implementation, all 37 cases failed for absent observable behaviour. On the final working-tree snapshot, all 37 pass, the production build and TypeScript checks pass, and the baseline guard reports no protected-path difference.
 
-After approval: create the test plan and executable tests; review behaviour/security adequacy; commit and record the baseline; implement without developer edits to protected paths; verify the same implementation snapshot; then update criterion evidence and the Dylan session log. Human teammate review remains required before merge.
+The same implementation was inspected independently by `/root/auth_behaviour_review` and `/root/auth_security_review`. Behaviour review found route-change focus and validation-announcement gaps; the implementation was corrected and the reviewer approved the recheck. Security review found no actionable issue and approved the focus-only correction. AC01–AC08 and AC10 have automated evidence; AC09 has automated keyboard/narrow-viewport coverage and independent source review, but real-browser 360/1280 reflow, increased-text and visible-focus inspection remains pending because no controllable browser surface was available. The specification therefore remains In review rather than Verified.
+
+Real credential rejection, server role enforcement, account uniqueness, organiser provisioning, audit persistence, database persistence, restart recovery and production isolation remain deferred to the access capability and cannot be marked passing here. Human teammate review and human correctness verification of the session log remain required before completion.
 
 ## Revision history
 
 | Revision / date | Change | Approval / evidence impact |
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial bounded presentation-only contract resolving the reviewed UI-plan boundary and refresh issues | Approved and marked Ready on 2026-10-18; protected tests and implementation evidence pending |
+| 1 evidence update / 2026-10-18 | Frontend implementation and same-snapshot independent reviews completed | Marked In review; 37 acceptance cases, build, TypeScript, baseline integrity and reviewer rechecks pass; real-browser and human review remain pending |
