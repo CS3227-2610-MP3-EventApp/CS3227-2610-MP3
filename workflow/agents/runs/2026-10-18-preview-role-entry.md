@@ -3,10 +3,10 @@
 - Date/timezone: 2026-10-18, Asia/Singapore
 - Feature/story: `preview-role-entry-and-workspaces`; presentation preview for F10-US01
 - Human owner: Dylan
-- Branch/base: `docs/auth-ui-prototype-spec`; base `148aa18`
-- Specification: `preview-role-entry-and-workspaces` revision 1 In review
-- Approved test baseline: `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`
-- Product approval: recorded in the Ready specification and Dylan session log
+- Branch/base: `feat/role-entry-ui-prototype`; base `148aa18`
+- Specification: `preview-role-entry-and-workspaces` revision 2 Ready
+- Approved test baseline: revision 1 used `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`; revision-2 replacement baseline pending
+- Product approval: revision 2 approval recorded in the Ready specification and Dylan session log
 
 ## Actual delegation and handoffs
 
@@ -18,6 +18,13 @@
 - Developer `/root/auth_ui_developer`: implemented only `frontend/index.html` and `frontend/src/` after the baseline was recorded; no protected path was edited.
 
 ## Evidence
+
+- Dylan explicitly approved revision-2 approximately 150% typography, responsive headings and persisted light/dark preference behavior on 2026-10-18.
+- Revision 2 changes AC07/09 and adds AC11/12. Revision-1 tests, reviews, baseline and implementation evidence remain historical and do not verify these changes.
+- Revision-2 test owner added a separate appearance acceptance group for revised AC07/09 and AC11/12 while preserving the 37 revision-1 regression cases. `/root/auth_behaviour_review` and `/root/auth_security_review` approved the final corrected revision-2 candidate; recording its replacement immutable baseline commit remains pending, and revision-2 implementation must not begin before that baseline gate.
+- Initial revision-2 candidate RED: `TMPDIR=/private/tmp npm test -- --reporter=dot` collected 4 files and executed 55 tests. All 37 revision-1 tests remained GREEN; all 18 initial revision-2 cases failed because the revision-1 app had no appearance control/preference and retained prior typography. Later reviewer-driven additions superseded this count with the final 68-test evidence below.
+- After reviewer-requested strengthening, the corrected revision-2 command collected 4 files and executed 65 tests: all 37 revision-1 regressions remained GREEN and all 28 revision-2 cases were meaningfully RED. Added evidence covers the public active-mode marker and computed palette, >=24px base and representative category-specific 1.5x scale, every registration field, existing-home session preservation, valid-session invalid-preference fallback, and local-storage read/write/remove failures. Physical removal cannot be guaranteed when the browser itself rejects `removeItem`; the test requires safe fallback, unchanged authority/session and treats the retained invalid value as inactive.
+- Final adequacy corrections add representative typography checks across login, both registrations and all three homes; isolated cross-render computed-palette comparisons for OS-selected and saved light/dark modes; exact form/session preservation; invalid-preference fallback; storage read/write/remove failure handling; and a failed-write case on an existing organiser home that preserves the exact session bytes/structure, route and home, permits immediate in-memory mode only, leaves local storage empty and forbids a false persistence-success message. The final command collected 4 files and executed 68 tests: all 37 revision-1 regressions remained GREEN and all 31 revision-2 cases were meaningfully RED. Behaviour reviewer `/root/auth_behaviour_review` and security reviewer `/root/auth_security_review` approved this final adequacy set; replacement baseline commit remains pending.
 
 - Provisional criterion scenarios were derived before implementation and reviewed against the final Draft wording.
 - Revision 1 was marked Ready after Dylan's recorded approval.
@@ -66,3 +73,4 @@ python3 tools/check_test_baseline.py \
 - Completed automated evidence: AC01–AC08 and AC10; AC09 keyboard and synthetic narrow-viewport checks. Real-browser 360/1280 reflow, increased-text, visible-focus, native history/fresh-context and runtime-log inspection remain manual checks.
 - Human review/merge: pending.
 - Session summary: `logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md`; human correctness verification status remains as recorded there.
+- Revision-2 reopened scope: approximately 150% typography and responsive headings; light/dark controls on all entry/home screens; OS default; exact `eventapp.colorMode` `light`/`dark` persistence; invalid-value fallback/removal; palette/readability and storage-boundary checks. The final test plan and behaviour/security adequacy reviews are complete; replacement baseline commit, implementation and same-snapshot implementation reviews remain pending.

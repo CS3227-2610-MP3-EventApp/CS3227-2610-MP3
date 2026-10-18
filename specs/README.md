@@ -35,12 +35,12 @@ Every spec marks how it contributes to these project requirements, or gives a ju
 
 ## Story-to-spec index
 
-This index maps all **31** catalogue stories to 26 domain capability Drafts, one cross-cutting UI Draft and one bounded frontend-prototype specification. Rows follow the [phase-priority roadmap](../docs/project.md#phase-priority-roadmap), not filename order. The prototype specification is Ready revision 1; the other 27 documents remain Drafts. Ready records contract approval but is not implementation permission. Exact criteria are in the linked files; compact ranges below identify their current IDs. A future split or merge must preserve allocated IDs and update both this index and the [catalogue](../docs/UserStoriesAndFeatures.md#story-to-spec-links).
+This index maps all **31** catalogue stories to 26 domain capability Drafts, one cross-cutting UI Draft and one bounded frontend-prototype specification. Rows follow the [phase-priority roadmap](../docs/project.md#phase-priority-roadmap), not filename order. The prototype specification is Ready revision 2; the other 27 documents remain Drafts. Ready records contract approval but is not implementation permission. Exact criteria are in the linked files; compact ranges below identify their current IDs. A future split or merge must preserve allocated IDs and update both this index and the [catalogue](../docs/UserStoriesAndFeatures.md#story-to-spec-links).
 
 | Roadmap order | Story IDs | Authoritative Draft and criterion IDs | Status |
 | --- | --- | --- | --- |
 | 1a | Cross-cutting presentation of all 31 stories | [navigate-eventapp-workspaces](shared/navigate-eventapp-workspaces.md): navigate-eventapp-workspaces-AC01–10; domain criteria remain authoritative | Draft; approval and verification pending |
-| 1b | Presentation preview for F10-US01; does not satisfy real identity/authorisation | [preview-role-entry-and-workspaces](shared/preview-role-entry-and-workspaces.md): preview-role-entry-and-workspaces-AC01–10 | Ready revision 1; protected baseline and implementation verification pending |
+| 1b | Presentation preview for F10-US01; does not satisfy real identity/authorisation | [preview-role-entry-and-workspaces](shared/preview-role-entry-and-workspaces.md): preview-role-entry-and-workspaces-AC01–12 | Ready revision 2; replacement protected baseline and revised implementation verification pending |
 | 2 | F10-US01 | [access-authorised-workspaces](shared/access-authorised-workspaces.md): access-authorised-workspaces-AC01–09 | Draft; approval and verification pending |
 | 3 | F01-US01–03; F04-US03 | [create-and-publish-programme](programme/create-and-publish-programme.md): F01-AC01–09; create-and-publish-programme-AC10 | Draft; approval and verification pending |
 | 4 | F02-US01–02 | [manage-preferences-and-itineraries](attendee-planning/manage-preferences-and-itineraries.md): manage-preferences-and-itineraries-AC01–07 | Draft; approval and verification pending |
