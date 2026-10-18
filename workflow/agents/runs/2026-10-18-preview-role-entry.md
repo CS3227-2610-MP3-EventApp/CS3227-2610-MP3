@@ -5,7 +5,7 @@
 - Human owner: Dylan
 - Branch/base: `feat/role-entry-ui-prototype`; base `148aa18`
 - Specification: `preview-role-entry-and-workspaces` revision 2 In review
-- Approved test baseline: revision 2 uses `64cfa0f16935f237d450494e18572980ac45d816` (revision 1 used `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`)
+- Approved test baseline: current protected tooling/tests use `297b458774b857a9402eb7926f55b7fd9f948e20`; revision-2 feature baseline used `64cfa0f16935f237d450494e18572980ac45d816` and revision 1 used `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`
 - Product approval: revision 2 approval recorded in the Ready specification and Dylan session log
 
 ## Actual delegation and handoffs
@@ -105,3 +105,21 @@ python3 tools/check_test_baseline.py \
 - Behaviour reviewer `/root/auth_behaviour_review` approved the same snapshot with no actionable finding after inspecting mode resolution, all-screen controls, state preservation, 24px/1.5x typography and responsive safeguards.
 - Security reviewer `/root/auth_security_review` approved the same snapshot with no actionable finding after inspecting exact preference persistence, invalid/storage-failure handling and isolation from session, identity, form and authority data.
 - A real-browser check was attempted, but access to the available Safari surface was not approved. Both palettes, 360/1280 reflow, increased text, visible focus, measured contrast and native navigation remain manual evidence; revision 2 stays In review.
+
+## Post-review tooling correction
+
+- A full-branch Ponytail review reproduced `npm ls` failure: Vite required optional peer `yaml ^2.4.2` while the old lockfile hoisted Cosmiconfig's `yaml 1.10.3`.
+- Test owner `/root/auth_test_design` added explicit development dependency `yaml ^2.4.2`, the standard `dev` script and supported Node engine range, regenerated the lockfile without `--legacy-peer-deps`, removed one unused fixture export and corrected the protected test-plan history.
+- `/root/auth_behaviour_review` and `/root/auth_security_review` approved the protected correction. Baseline `297b458774b857a9402eb7926f55b7fd9f948e20` supersedes `64cfa0f16935f237d450494e18572980ac45d816` for future protected-path comparisons; feature expectations and all 68 cases are unchanged.
+- `npm ls --all --depth=1` now exits successfully: Vite/root use `yaml 2.9.1`, while Cosmiconfig retains nested `yaml 1.10.3`. Tests, build, typecheck and audit pass.
+
+Current integrity command:
+
+```sh
+python3 tools/check_test_baseline.py \
+  --baseline 297b458774b857a9402eb7926f55b7fd9f948e20 \
+  --paths frontend/package.json frontend/package-lock.json frontend/tsconfig.json \
+  frontend/tsconfig.app.json frontend/tsconfig.node.json frontend/vite.config.ts \
+  frontend/tests workflow/agents/runs/preview-role-entry-test-plan.md \
+  tools/check_test_baseline.py
+```
