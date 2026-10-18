@@ -5,7 +5,7 @@
 - Human owner: Dylan
 - Branch/base: `feat/role-entry-ui-prototype`; base `148aa18`
 - Specification: `preview-role-entry-and-workspaces` revision 2 Ready
-- Approved test baseline: revision 1 used `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`; revision-2 replacement baseline pending
+- Approved test baseline: revision 2 uses `64cfa0f16935f237d450494e18572980ac45d816` (revision 1 used `3039cd4e2baec0b87a77e68c7d9f95f2390553e2`)
 - Product approval: revision 2 approval recorded in the Ready specification and Dylan session log
 
 ## Actual delegation and handoffs
@@ -73,4 +73,27 @@ python3 tools/check_test_baseline.py \
 - Completed automated evidence: AC01–AC08 and AC10; AC09 keyboard and synthetic narrow-viewport checks. Real-browser 360/1280 reflow, increased-text, visible-focus, native history/fresh-context and runtime-log inspection remain manual checks.
 - Human review/merge: pending.
 - Session summary: `logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md`; human correctness verification status remains as recorded there.
-- Revision-2 reopened scope: approximately 150% typography and responsive headings; light/dark controls on all entry/home screens; OS default; exact `eventapp.colorMode` `light`/`dark` persistence; invalid-value fallback/removal; palette/readability and storage-boundary checks. The final test plan and behaviour/security adequacy reviews are complete; replacement baseline commit, implementation and same-snapshot implementation reviews remain pending.
+- Revision-2 reopened scope: approximately 150% typography and responsive headings; light/dark controls on all entry/home screens; OS default; exact `eventapp.colorMode` `light`/`dark` persistence; invalid-value fallback/removal; palette/readability and storage-boundary checks. The final test plan, behaviour/security adequacy reviews and replacement baseline are complete; implementation and same-snapshot implementation reviews remain pending.
+
+Revision-2 protected paths:
+
+- `frontend/package.json`
+- `frontend/package-lock.json`
+- `frontend/tsconfig.json`
+- `frontend/tsconfig.app.json`
+- `frontend/tsconfig.node.json`
+- `frontend/vite.config.ts`
+- `frontend/tests`
+- `workflow/agents/runs/preview-role-entry-test-plan.md`
+- `tools/check_test_baseline.py`
+
+Revision-2 integrity command:
+
+```sh
+python3 tools/check_test_baseline.py \
+  --baseline 64cfa0f16935f237d450494e18572980ac45d816 \
+  --paths frontend/package.json frontend/package-lock.json frontend/tsconfig.json \
+  frontend/tsconfig.app.json frontend/tsconfig.node.json frontend/vite.config.ts \
+  frontend/tests workflow/agents/runs/preview-role-entry-test-plan.md \
+  tools/check_test_baseline.py
+```
