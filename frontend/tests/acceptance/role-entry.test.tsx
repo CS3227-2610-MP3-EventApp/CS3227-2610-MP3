@@ -1,10 +1,9 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { roles } from "../fixtures/roles";
 import { renderPrototype, tabTo } from "../helpers/renderPrototype";
-
-const sessionKey = "eventapp.prototype.session";
+import { actor, auth } from "../fixtures/auth";
 
 describe("AC01-AC04 role entry", () => {
   test("shows exactly three accessible role tabs with Attendee initially selected", async () => {
@@ -46,21 +45,21 @@ describe("AC01-AC04 role entry", () => {
     expect(screen.queryByRole("heading", { name: /create organiser/i })).not.toBeInTheDocument();
   });
 
-  test("requires login identifier and password without claiming authentication", async () => {
+  test("requires login identifier and password before contacting the login boundary", async () => {
     const user = userEvent.setup();
     await renderPrototype();
 
     await user.click(screen.getByRole("button", { name: /log in/i }));
     expect(screen.getByLabelText(/username or email/i)).toBeInvalid();
     expect(screen.getByLabelText(/^password$/i)).toBeInvalid();
-    expect(screen.getByText(/credentials are not authenticated/i)).toBeVisible();
+    expect(auth.requests.filter(({ path }) => path.endsWith("/login"))).toHaveLength(0);
   });
 
   test.each([
-    ["Attendee", "attendee", "/attendee", "Attendee Preview"],
-    ["Organiser", "organiser", "/organiser", "Organiser Preview"],
-    ["Business", "business", "/business", "Business Preview"],
-  ])("opens the matching %s home using one exact minimal session", async (role, storedRole, path, previewName) => {
+    ["Attendee", "attendee", "/attendee"],
+    ["Organiser", "organiser", "/organiser"],
+    ["Business", "business", "/business"],
+  ])("opens the matching %s home only after server authentication", async (role, storedRole, path) => {
     const user = userEvent.setup();
     await renderPrototype();
 
@@ -69,15 +68,11 @@ describe("AC01-AC04 role entry", () => {
     await user.type(screen.getByLabelText(/^password$/i), "NotStored-123");
     await user.click(screen.getByRole("button", { name: /log in/i }));
 
-    expect(window.location.pathname).toBe(path);
-    expect(screen.getByText(previewName)).toBeVisible();
+    await waitFor(() => expect(window.location.pathname).toBe(path));
+    expect(await screen.findByText(`Synthetic ${storedRole}`)).toBeVisible();
     expect(window.localStorage).toHaveLength(0);
-    expect(window.sessionStorage).toHaveLength(1);
-    expect(window.sessionStorage.key(0)).toBe(sessionKey);
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual({
-      role: storedRole,
-      displayName: previewName,
-    });
+    expect(window.sessionStorage).toHaveLength(0);
+    expect(auth.requests.find(({ path }) => path.endsWith("/login"))?.body).toEqual({ identifier: "private@example.test", password: "NotStored-123", role: storedRole });
   });
 
   test("supports a complete keyboard-only Attendee login and sign-out journey", async () => {
@@ -93,12 +88,39 @@ describe("AC01-AC04 role entry", () => {
     await user.type(password, "Keyboard-123");
     await tabTo(user, submit);
     await user.keyboard("{Enter}");
-    expect(window.location.pathname).toBe("/attendee");
+    await waitFor(() => expect(window.location.pathname).toBe("/attendee"));
 
-    const signOut = screen.getByRole("button", { name: /sign out/i });
+    const signOut = await screen.findByRole("button", { name: /sign out/i });
     await tabTo(user, signOut);
     await user.keyboard("{Enter}");
+    await waitFor(() => expect(window.location.pathname).toBe("/login"));
+    expect(window.sessionStorage).toHaveLength(0);
+    expect(auth.requests.some(({ path, method }) => path.endsWith("/logout") && method === "POST")).toBe(true);
+  });
+
+  test("shows a generic accessible login rejection and retains the chosen role", async () => {
+    auth.failure = { status: 401, detail: "Invalid credentials." };
+    const user = userEvent.setup();
+    await renderPrototype();
+    await user.click(screen.getByRole("tab", { name: "Business" }));
+    await user.type(screen.getByLabelText(/username or email/i), "unknown@example.test");
+    await user.type(screen.getByLabelText(/^password$/i), "Wrong-123");
+    await user.click(screen.getByRole("button", { name: /log in/i }));
+    expect(await screen.findByText("Invalid credentials.")).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Business" })).toHaveAttribute("aria-selected", "true");
     expect(window.location.pathname).toBe("/login");
     expect(window.sessionStorage).toHaveLength(0);
+  });
+
+  test("uses the server actor role rather than a selected tab to choose the home", async () => {
+    auth.loginActor = actor("attendee");
+    const user = userEvent.setup();
+    await renderPrototype();
+    await user.click(screen.getByRole("tab", { name: "Organiser" }));
+    await user.type(screen.getByLabelText(/username or email/i), "synthetic");
+    await user.type(screen.getByLabelText(/^password$/i), "Synthetic-123");
+    await user.click(screen.getByRole("button", { name: /log in/i }));
+    await waitFor(() => expect(window.location.pathname).toBe("/attendee"));
+    expect(screen.queryByText("Programme Management")).not.toBeInTheDocument();
   });
 });

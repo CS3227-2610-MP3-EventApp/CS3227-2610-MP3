@@ -16,7 +16,7 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains planning and coordination setup, a frontend-only role-entry and workspace prototype, and a minimal FastAPI/PostgreSQL development foundation. It does not implement real authentication, authorisation, product data, AI integration or deployment.
+The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. Programme, application, itinerary and AI actions remain previews or later capabilities; online deployment is separate.
 
 Use Node.js `^20.19.0` or `>=22.12.0`, then run:
 
@@ -34,7 +34,7 @@ npm run build
 npm audit
 ```
 
-The current implementation evidence and manual limitations are recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). Do not use the prototype or workflow validation as evidence of real product authentication, domain behavior or deployment.
+Historical presentation evidence is recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). The [authentication run record](../workflow/agents/runs/2026-10-19-shared-authentication.md) records the current contract, protected tests, implementation and remaining review limitations. Shared guards require integration into each future domain endpoint.
 
 ## Backend foundation
 
@@ -65,6 +65,33 @@ uv run pytest
 
 The reset flag permits the migration test to recreate only the synthetic local `eventapp_test` schema. Never point `TEST_DATABASE_URL` at development or production data.
 
+## Shared authentication development
+
+For the current workstation's existing port-5433 test database and detailed role-by-role flows, use [authentication manual testing](AuthenticationTesting.md). Its database is disposable and must not be used concurrently with the automated backend suite.
+
+On the shared-authentication branch, apply migrations using `uv run alembic upgrade head` before starting FastAPI. Start the frontend separately with `npm run dev` in `frontend/`; Vite proxies `/api` to `http://127.0.0.1:8000` so the browser uses same-origin cookies. Use the frontend on `http://localhost:5173` or `http://127.0.0.1:5173` with the default development trusted origins. The database, backend and frontend remain separate processes.
+
+Configuration adds `ENVIRONMENT` (`development`, `test`, `production`) and `TRUSTED_ORIGINS` (a JSON array of exact frontend origins). Outside development cookies require HTTPS; production requires explicit HTTPS trusted origins. Keep environment files, credentials and database URLs out of Git. Do not reuse the disposable test database for normal accounts.
+
+Create an event and its organiser from `backend/`, replacing the example identifiers and dates with your synthetic development data:
+
+```sh
+uv run python -m app.auth.bootstrap event --id 22222222-2222-4222-8222-222222222222 --title 'Development Event' --timezone Asia/Singapore --starts-at 2027-01-01T09:00:00+08:00 --ends-at 2027-01-01T18:00:00+08:00
+uv run python -m app.auth.bootstrap organiser --username dev-organiser --email organiser@example.test --display-name 'Development Organiser' --event-id 22222222-2222-4222-8222-222222222222
+```
+
+The organiser command prompts for a password rather than taking it in shell arguments. Repeating a matching seed does not reset its password or reactivate an inactive membership. Organisers must change the initial password after login. Attendees and business owners register through the frontend; business registration creates a new business and initial owner together. An email and username each identify one account across all roles.
+
+Manual flows after launching both servers:
+
+1. Register an attendee, refresh its workspace, sign out and verify a direct workspace URL requires login.
+2. Register a business owner and verify the business workspace opens; a duplicate email/username/business name is rejected.
+3. Use an account under the wrong role tab and verify the same generic rejection as an incorrect password.
+4. Log in as the seeded organiser, replace the initial password, refresh and verify access to the organiser workspace. The initial password must no longer work.
+5. Inspect browser cookies: `eventapp_session` is HttpOnly/SameSite=Lax; browser storage contains no identity or token. Appearance preference remains in local storage.
+
+Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Domain cards remain previews until their own capabilities are implemented.
+
 ## Delivery evidence to maintain
 
-As backend and deployment tooling is implemented, document required environment-variable names without secret values, empty-database and existing-data migration commands, deployment/recovery steps and the online application URL. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific security and multi-agent evidence to the release gates in project context; do not invent commands or successful deployments.
+Document deployment/recovery steps and the online application URL when hosting is implemented. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific evidence to the release gates in project context. This slice does not provide password recovery, email verification, rate limiting or a production deployment.

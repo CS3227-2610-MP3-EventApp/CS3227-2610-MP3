@@ -19,7 +19,7 @@ def _psycopg_url() -> str:
     )
 
 
-def test_empty_database_upgrade_creates_only_alembic_version() -> None:
+def test_empty_database_upgrade_creates_authentication_tables() -> None:
     require_synthetic_reset_target()
     database_url = _psycopg_url()
     with psycopg.connect(database_url, autocommit=True) as connection:
@@ -41,7 +41,7 @@ def test_empty_database_upgrade_creates_only_alembic_version() -> None:
             "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'"
         ).fetchall()
 
-    assert {row[0] for row in tables} == {"alembic_version"}
+    assert {row[0] for row in tables} == {"alembic_version", "users", "password_credentials", "sessions", "businesses", "business_memberships", "events", "event_memberships", "audit_events"}
 
 
 def test_reset_guard_rejects_unsafe_targets_before_database_import() -> None:

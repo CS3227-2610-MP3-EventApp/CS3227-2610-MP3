@@ -1,9 +1,8 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { renderPrototype, tabTo } from "../helpers/renderPrototype";
-
-const sessionKey = "eventapp.prototype.session";
+import { auth } from "../fixtures/auth";
 
 async function fillRegistration(kind: "attendee" | "business") {
   const user = userEvent.setup();
@@ -17,10 +16,9 @@ async function fillRegistration(kind: "attendee" | "business") {
 }
 
 describe("AC03-AC04 and AC07 registration", () => {
-  test.each(["attendee", "business"] as const)("warns before %s registration that no persistent account is created", async (kind) => {
+  test.each(["attendee", "business"] as const)("describes real %s registration without obsolete synthetic-account claims", async (kind) => {
     await renderPrototype(`/register/${kind}`);
-    expect(screen.getByText(/no persistent account is created/i)).toBeVisible();
-    expect(screen.getByText(/credentials are not authenticated/i)).toBeVisible();
+    expect(screen.queryByText(/no persistent account is created|credentials are not authenticated/i)).not.toBeInTheDocument();
   });
 
   test.each(["attendee", "business"] as const)("shows accessible required-field errors for %s registration", async (kind) => {
@@ -84,27 +82,42 @@ describe("AC03-AC04 and AC07 registration", () => {
     await user.type(screen.getByLabelText(/^password$/i), "12345678");
     await user.type(screen.getByLabelText(/confirm password/i), "12345678");
     await user.click(screen.getByRole("button", { name: /create account/i }));
-    expect(window.location.pathname).toBe("/attendee");
+    await waitFor(() => expect(window.location.pathname).toBe("/attendee"));
+  });
+
+  test("rejects a whitespace-only confirmation that differs from the untrimmed password", async () => {
+    const user = userEvent.setup();
+    await renderPrototype("/register/attendee");
+    await user.type(screen.getByLabelText(/display name/i), "Confirmation Person");
+    await user.type(screen.getByLabelText(/^username$/i), "confirmation-user");
+    await user.type(screen.getByLabelText(/^email$/i), "confirmation@example.test");
+    await user.type(screen.getByLabelText(/^password$/i), "Different-123");
+    await user.type(screen.getByLabelText(/confirm password/i), "        ");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+    expect(await screen.findByText(/passwords.*match/i)).toBeVisible();
+    expect(screen.getByLabelText(/confirm password/i)).toBeInvalid();
+    expect(screen.getByLabelText(/^password$/i)).toHaveValue("Different-123");
+    expect(screen.getByLabelText(/confirm password/i)).toHaveValue("        ");
+    expect(screen.getByLabelText(/^username$/i)).toHaveValue("confirmation-user");
+    expect(window.location.pathname).toBe("/register/attendee");
+    expect(auth.requests.filter(({ path }) => path.includes("/auth/register/"))).toHaveLength(0);
   });
 
   test.each([
     ["attendee", "/attendee"],
     ["business", "/business"],
-  ] as const)("creates a synthetic %s session without persisting registration secrets", async (kind, path) => {
+  ] as const)("creates a server %s account without browser-persisted registration secrets", async (kind, path) => {
     await renderPrototype(`/register/${kind}`);
     const user = await fillRegistration(kind);
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
-    expect(window.location.pathname).toBe(path);
-    expect(screen.getByText("Synthetic Person")).toBeVisible();
+    await waitFor(() => expect(window.location.pathname).toBe(path));
+    expect(await screen.findByText("Synthetic Person")).toBeVisible();
     expect(window.localStorage).toHaveLength(0);
-    expect(window.sessionStorage).toHaveLength(1);
-    expect(window.sessionStorage.key(0)).toBe(sessionKey);
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual({
-      role: kind,
-      displayName: "Synthetic Person",
-    });
-    expect(screen.getByText(/no persistent account is created/i)).toBeVisible();
+    expect(window.sessionStorage).toHaveLength(0);
+    const request = auth.requests.find(({ path }) => path === `/api/v1/auth/register/${kind}`);
+    expect(request?.method).toBe("POST");
+    expect(request?.body).toEqual({ displayName: "Synthetic Person", username: "tester", email: "synthetic@example.test", password: "Example-123", ...(kind === "business" ? { businessName: "Synthetic Studio" } : {}) });
   });
 
   test.each(["attendee", "business"] as const)("supports keyboard-only %s validation, correction and registration", async (kind) => {
@@ -140,6 +153,18 @@ describe("AC03-AC04 and AC07 registration", () => {
     await user.type(confirmation, "12345678");
     await tabTo(user, submit);
     await user.keyboard("{Enter}");
-    expect(window.location.pathname).toBe(`/${kind}`);
+    await waitFor(() => expect(window.location.pathname).toBe(`/${kind}`));
+  });
+
+  test("retains valid registration input and shows a server failure without opening a workspace", async () => {
+    auth.failure = { status: 409, detail: "Registration could not be completed." };
+    await renderPrototype("/register/business");
+    const user = await fillRegistration("business");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+    expect(await screen.findByText("Registration could not be completed.")).toBeVisible();
+    expect(screen.getByLabelText(/^username$/i)).toHaveValue("tester");
+    expect(screen.getByLabelText(/business name/i)).toHaveValue("Synthetic Studio");
+    expect(window.location.pathname).toBe("/register/business");
+    expect(window.sessionStorage).toHaveLength(0);
   });
 });
