@@ -16,7 +16,7 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains planning and coordination setup, a frontend-only role-entry and workspace prototype, and a minimal FastAPI/PostgreSQL development foundation. It does not implement real authentication, authorisation, product data, AI integration or deployment.
+The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. Programme, application, itinerary and AI actions remain previews or later capabilities; online deployment is separate.
 
 Use Node.js `^20.19.0` or `>=22.12.0`, then run:
 
@@ -34,7 +34,7 @@ npm run build
 npm audit
 ```
 
-The current implementation evidence and manual limitations are recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). Do not use the prototype or workflow validation as evidence of real product authentication, domain behavior or deployment.
+Historical presentation evidence is recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). The [authentication run record](../workflow/agents/runs/2026-10-19-shared-authentication.md) records the current contract, protected tests, implementation and remaining review limitations. Shared guards require integration into each future domain endpoint.
 
 ## Backend foundation
 
@@ -65,8 +65,6 @@ uv run pytest
 
 The reset flag permits the migration test to recreate only the synthetic local `eventapp_test` schema. Never point `TEST_DATABASE_URL` at development or production data.
 
-## Delivery evidence to maintain
-
 ## Shared authentication development
 
 On the shared-authentication branch, apply migrations using `uv run alembic upgrade head` before starting FastAPI. Start the frontend separately with `npm run dev` in `frontend/`; Vite proxies `/api` to `http://127.0.0.1:8000` so the browser uses same-origin cookies. Use the frontend on `http://localhost:5173` or `http://127.0.0.1:5173` with the default development trusted origins. The database, backend and frontend remain separate processes.
@@ -92,4 +90,6 @@ Manual flows after launching both servers:
 
 Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Domain cards remain previews until their own capabilities are implemented.
 
-As backend and deployment tooling is implemented, document required environment-variable names without secret values, empty-database and existing-data migration commands, deployment/recovery steps and the online application URL. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific security and multi-agent evidence to the release gates in project context; do not invent commands or successful deployments.
+## Delivery evidence to maintain
+
+Document deployment/recovery steps and the online application URL when hosting is implemented. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific evidence to the release gates in project context. This slice does not provide password recovery, email verification, rate limiting or a production deployment.

@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | access-authorised-workspaces |
 | Covered stories | [F10-US01](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 3 / Ready |
+| Specification revision / status | 3 / In review |
 | Product roles / roadmap | Attendee, organiser, business participant; [phase 1 foundation](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Dylan authorised the complete shared-authentication plan on 2026-10-19 and requested execution on a new branch from master. Revision 3 / CurrentActor v1 records that approved plan; routine wire details reviewed by orchestrator and independent security reviewer. Test-baseline gates remain separate. |
 | Review / run record | [Shared-authentication run](../../workflow/agents/runs/2026-10-19-shared-authentication.md); independent specification/test review pending |

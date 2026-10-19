@@ -1,4 +1,4 @@
-import { Alert, Box, Chip, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Chip, Stack, Typography, useTheme } from "@mui/material";
 import type { ReactNode } from "react";
 import { AppearanceControl } from "./Appearance";
 import { appearanceColors } from "./theme";
@@ -8,13 +8,6 @@ export function Brand({ light = false }: { light?: boolean }) {
     <Box aria-hidden="true" sx={{ width: 46, height: 46, flexShrink: 0, bgcolor: light ? "#c4e8df" : "primary.main", color: light ? "#142c40" : "background.paper", borderRadius: "10px", display: "grid", placeItems: "center", fontSize: 34.5, fontWeight: 700 }}>e</Box>
     <Typography component="span" sx={{ fontSize: 33, fontWeight: 750, letterSpacing: "-0.8px", color: light ? "white" : "primary.main" }}>EventApp<span style={{ color: light ? "#91d7ca" : "#087f79" }}>.</span></Typography>
   </Stack>;
-}
-
-export function PrototypeNotice() {
-  const colors = appearanceColors(useTheme().palette.mode);
-  return <Alert icon={false} severity="info" sx={{ bgcolor: colors.tint, color: colors.tintText, border: `1px solid ${colors.tintBorder}`, borderRadius: 2, "& .MuiAlert-message": { p: 0 } }}>
-    <Typography variant="body2"><strong>UI prototype</strong> — credentials are not authenticated and no persistent account is created. Use synthetic details only.</Typography>
-  </Alert>;
 }
 
 export function EntryLayout({ children }: { children: ReactNode }) {

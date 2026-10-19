@@ -1,8 +1,11 @@
-import { Box, Button, Chip, Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { Alert, Box, Button, Chip, Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Brand, PrototypeNotice } from "./components";
+import { Brand } from "./components";
 import { roleNames } from "./Entry";
-import { clearSession, type PreviewSession, type Role } from "./session";
+import { type CurrentActor, type Role } from "./session";
+import { api } from "./api";
+import { useAuth } from "./Auth";
 import { AppearanceControl } from "./Appearance";
 import { appearanceColors } from "./theme";
 
@@ -36,8 +39,18 @@ const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [
   },
 };
 
-export function Workspace({ session }: { session: PreviewSession }) {
+export function Workspace({ session }: { session: CurrentActor }) {
   const navigate = useNavigate();
+  const { setActor } = useAuth();
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  async function signOut() {
+    if (pending) return;
+    setPending(true); setError("");
+    try { await api.logout(); setActor(null); navigate("/login", { replace: true }); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : "Unable to sign out."); }
+    finally { setPending(false); }
+  }
   const content = workspaceContent[session.role];
   const colors = appearanceColors(useTheme().palette.mode);
   return <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "272px minmax(0, 1fr)" }, minHeight: "100dvh" }}>
@@ -50,16 +63,16 @@ export function Workspace({ session }: { session: PreviewSession }) {
       <Box sx={{ mt: "auto", display: { xs: "none", md: "block" } }}>
         <Divider sx={{ borderColor: "#3b5362", mb: 2 }} />
         <Typography variant="body2" sx={{ color: colors.asideMuted }}>{roleNames[session.role]} workspace</Typography>
-        <Typography variant="caption" sx={{ color: colors.accent }}>Presentation preview only</Typography>
+        <Typography variant="caption" sx={{ color: colors.accent }}>Your EventApp account</Typography>
       </Box>
     </Box>
     <Box sx={{ minWidth: 0 }}>
       <Stack component="header" direction="row" alignItems="center" justifyContent="space-between" sx={{ px: { xs: 2.5, lg: 5 }, py: 2, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", flexWrap: "wrap", gap: 2 }}>
         <Typography variant="body2" fontWeight={650}>{roleNames[session.role]} <Box component="span" sx={{ color: "text.secondary", mx: 1 }}>/</Box> Overview</Typography>
-        <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1.5 }}><AppearanceControl /><Button size="small" onClick={() => { clearSession(); navigate("/login", { replace: true }); }}>Sign out <Box component="span" aria-hidden="true" sx={{ ml: 1 }}>↗</Box></Button></Stack>
+        <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1.5 }}><AppearanceControl /><Button size="small" onClick={() => navigate("/change-password")}>Change password</Button><Button disabled={pending} size="small" onClick={signOut}>Sign out <Box component="span" aria-hidden="true" sx={{ ml: 1 }}>↗</Box></Button></Stack>
       </Stack>
       <Box component="main" sx={{ p: { xs: 2.5, md: 4, lg: 5 }, maxWidth: 1500, mx: "auto" }}>
-        <PrototypeNotice />
+        {error && <Alert severity="error">{error}</Alert>}
         <Box sx={{ mt: 5, mb: 4 }}>
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}><Box aria-hidden="true" sx={{ width: 7, height: 7, bgcolor: "secondary.main", borderRadius: "50%" }} /><Typography variant="overline" color="secondary.main" sx={{ fontWeight: 700, letterSpacing: 1.6 }}>A SPACE FOR WHAT’S NEXT</Typography></Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Welcome,</Typography>

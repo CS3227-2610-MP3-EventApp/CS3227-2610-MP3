@@ -4,6 +4,8 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from app.settings import Settings
+from app.database import Base
+from app.auth import models  # noqa: F401 -- register every foundation table
 
 
 config = context.config
@@ -14,7 +16,7 @@ if config.config_file_name is not None:
 def run_migrations_offline() -> None:
     context.configure(
         url=Settings().database_url,
-        target_metadata=None,
+        target_metadata=Base.metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -25,7 +27,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     engine = create_engine(Settings().database_url, poolclass=pool.NullPool)
     with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=None)
+        context.configure(connection=connection, target_metadata=Base.metadata)
         with context.begin_transaction():
             context.run_migrations()
 
