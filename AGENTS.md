@@ -5,7 +5,7 @@ Use EventApp as the product name. Historical commits may use Converge.
 ## Start here
 - Read `workflow/README.md`, `specs/README.md`, the relevant capability specification under root `specs/`, and applicable rules in `docs/security.md`.
 - Follow `workflow/agents/README.md` for the team's multi-agent development process. The main agent is the orchestrator; use actual subagent tools, not simulated role dialogue.
-- Use the shared roles in `.codex/agents/`. Read the relevant role definition when assigning it. Role names are orchestrator, specification_analyst, test_case_designer, developer, behaviour_verifier, and security_reviewer.
+- Use the six shared roles, defined for Codex in `.codex/agents/*.toml` and for Claude Code in `.claude/agents/*.md` with identical responsibilities and only tool-specific model settings. Read the relevant role definition when assigning it. Role names are orchestrator, specification_analyst, test_case_designer, developer, behaviour_verifier, and security_reviewer.
 - Delegate bounded tasks with the specification revision, expected output, permitted files, and dependencies. Record actual agent identities, assignments, handoffs, findings, and results. If delegation is unavailable, report that limitation; do not claim a multi-agent run.
 
 ## Specifications and protected tests
