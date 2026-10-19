@@ -16,7 +16,7 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains planning and coordination setup plus a frontend-only role-entry and workspace prototype. The prototype does not implement real authentication, authorisation, backend APIs, database persistence, AI integration or deployment.
+The repository contains planning and coordination setup, a frontend-only role-entry and workspace prototype, and a minimal FastAPI/PostgreSQL development foundation. It does not implement real authentication, authorisation, product data, AI integration or deployment.
 
 Use Node.js `^20.19.0` or `>=22.12.0`, then run:
 
@@ -35,6 +35,35 @@ npm audit
 ```
 
 The current implementation evidence and manual limitations are recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). Do not use the prototype or workflow validation as evidence of real product authentication, domain behavior or deployment.
+
+## Backend foundation
+
+Install Python 3.12, [uv](https://docs.astral.sh/uv/) and Docker Desktop. From the repository root, start the development database:
+
+```sh
+docker compose up -d db
+cd backend
+uv sync
+export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
+uv run alembic upgrade head
+uv run uvicorn app.main:app --reload --host 127.0.0.1
+```
+
+The API is available only on the local machine. Check liveness at `http://127.0.0.1:8000/api/v1/health/live`, database readiness at `http://127.0.0.1:8000/api/v1/health/ready`, and OpenAPI at `http://127.0.0.1:8000/api/v1/openapi.json`.
+
+Tests use a separate synthetic PostgreSQL database. From the repository root:
+
+```sh
+docker compose --profile test up -d test-db
+cd backend
+uv sync
+export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
+export TEST_DATABASE_URL='postgresql+psycopg://eventapp_test:eventapp_test@127.0.0.1:5433/eventapp_test'
+export EVENTAPP_ALLOW_TEST_DB_RESET=true
+uv run pytest
+```
+
+The reset flag permits the migration test to recreate only the synthetic local `eventapp_test` schema. Never point `TEST_DATABASE_URL` at development or production data.
 
 ## Delivery evidence to maintain
 
