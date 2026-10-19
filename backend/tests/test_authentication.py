@@ -449,3 +449,36 @@ def test_shared_dependencies_deny_unauthenticated_and_wrong_role_without_mutatio
     problem(client.get(f"/_acceptance/events/{uuid4()}"), 403, "forbidden")
     problem(client.get(f"/_acceptance/businesses/{uuid4()}"), 403, "forbidden")
     assert counts() == before
+
+
+def test_denied_duplicate_registration_has_redacted_audit_without_account_mutation(client, caplog):
+    register(client)
+    before = counts()
+    with connect() as connection:
+        credential_before = connection.execute("SELECT password_hash,must_change_password,updated_at FROM password_credentials").fetchall()
+        sessions_before = connection.execute("SELECT token_hash,expires_at,revoked_at FROM sessions ORDER BY id").fetchall()
+    response = client.post("/api/v1/auth/register/attendee", json=payload(), headers=ORIGIN)
+    problem(response, 409, "registration_conflict")
+    assert counts() == before
+    assert "set-cookie" not in response.headers
+    with connect() as connection:
+        assert connection.execute("SELECT password_hash,must_change_password,updated_at FROM password_credentials").fetchall() == credential_before
+        assert connection.execute("SELECT token_hash,expires_at,revoked_at FROM sessions ORDER BY id").fetchall() == sessions_before
+        denied = connection.execute("SELECT user_id,action,resource_id,outcome,occurred_at FROM audit_events WHERE action='registration' AND outcome='denied'").fetchall()
+    assert len(denied) == 1
+    assert denied[0][4] is not None
+    for marker in [PASSWORD, "synthetic@example.test"]:
+        assert marker not in repr(denied) + response.text + caplog.text
+
+
+def test_denied_missing_event_organiser_provision_has_redacted_audit(client):
+    before = counts()
+    result = bootstrap(["organiser", "--username", "denied-organiser", "--email", "denied@example.test", "--display-name", "Denied Organiser", "--event-id", str(uuid4())])
+    assert result.returncode != 0
+    assert counts() == before
+    with connect() as connection:
+        denied = connection.execute("SELECT user_id,action,resource_id,outcome,occurred_at FROM audit_events WHERE action='organiser_provision' AND outcome='denied'").fetchall()
+    assert len(denied) == 1
+    assert denied[0][0] is None and denied[0][4] is not None
+    for marker in [PASSWORD, "denied@example.test", "Denied Organiser"]:
+        assert marker not in repr(denied) + result.stdout + result.stderr
