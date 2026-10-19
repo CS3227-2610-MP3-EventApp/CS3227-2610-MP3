@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | run-backend-with-postgresql |
 | Covered stories | N/A: technical foundation for later capabilities; it implements no catalogue user story |
-| Specification revision / status | 2 / Ready |
+| Specification revision / status | 2 / In review |
 | Product roles / roadmap | No product role; [phase 0 foundation](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Requesting teammate approved this bounded foundation and safe local defaults in the latest scope instruction |
-| Review / run record | Independent behaviour and security specification reviews approved revision 2; protected test baseline and implementation run record pending |
+| Review / run record | [Implementation and multi-agent evidence](../../workflow/agents/runs/2026-10-18-backend-foundation.md); automated and independent reviews pass, clean development-database workflow and human review pending |
 
 This Draft follows the [specification standard](../README.md), [development workflow](../../workflow/README.md), [agent workflow](../../workflow/agents/README.md) and applicable environment-separation rules in [security](../../docs/security.md). It establishes only a runnable technical backend foundation.
 
@@ -87,7 +87,7 @@ The public boundary is limited to the three `GET` endpoints above. Runtime depen
 
 ## Verification and evidence
 
-Revision 2 bounded behaviour and safe local defaults are human-approved, and independent behaviour/security specification reviews found no blocker. Executable tests, protected baseline, implementation snapshot, real PostgreSQL integration, clean migration and documentation-following evidence are pending. No criterion is verified and no production readiness is claimed.
+Revision 2 is implemented at `e3535964bf759589ed9d76fed168af842382692b`. The replacement protected baseline, all 16 backend tests, real test-PostgreSQL readiness and empty migration, loopback HTTP smoke, compilation, migration-head check, and independent behaviour/security reviews pass. A local PostgreSQL process already occupying port 5432 prevented a clean run of the documented development Compose service; the isolated test database and backend ran on port 5433. Human teammate review remains pending, so the capability stays In review. No production readiness is claimed.
 
 ## Revision history
 

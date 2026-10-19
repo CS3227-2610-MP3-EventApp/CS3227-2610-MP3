@@ -39,7 +39,7 @@ This index maps all **31** catalogue stories to 26 domain capability Drafts, one
 
 | Roadmap order | Story IDs | Authoritative Draft and criterion IDs | Status |
 | --- | --- | --- | --- |
-| 1 | N/A: backend technical foundation | [run-backend-with-postgresql](shared/run-backend-with-postgresql.md): run-backend-with-postgresql-AC01–09 | Ready revision 2; bounded behaviour and safe local defaults approved, independent specification reviews passed, executable evidence pending |
+| 1 | N/A: backend technical foundation | [run-backend-with-postgresql](shared/run-backend-with-postgresql.md): run-backend-with-postgresql-AC01–09 | In review revision 2; automated and independent implementation reviews pass, clean development-database workflow and human review pending |
 | 1a | Cross-cutting presentation of all 31 stories | [navigate-eventapp-workspaces](shared/navigate-eventapp-workspaces.md): navigate-eventapp-workspaces-AC01–10; domain criteria remain authoritative | Draft; approval and verification pending |
 | 1b | Presentation preview for F10-US01; does not satisfy real identity/authorisation | [preview-role-entry-and-workspaces](shared/preview-role-entry-and-workspaces.md): preview-role-entry-and-workspaces-AC01–12 | In review revision 2; automated and independent reviews pass, manual browser and human review pending |
 | 2 | F10-US01 | [access-authorised-workspaces](shared/access-authorised-workspaces.md): access-authorised-workspaces-AC01–09 | Draft; approval and verification pending |
