@@ -85,6 +85,24 @@ describe("AC03-AC04 and AC07 registration", () => {
     await waitFor(() => expect(window.location.pathname).toBe("/attendee"));
   });
 
+  test("rejects a whitespace-only confirmation that differs from the untrimmed password", async () => {
+    const user = userEvent.setup();
+    await renderPrototype("/register/attendee");
+    await user.type(screen.getByLabelText(/display name/i), "Confirmation Person");
+    await user.type(screen.getByLabelText(/^username$/i), "confirmation-user");
+    await user.type(screen.getByLabelText(/^email$/i), "confirmation@example.test");
+    await user.type(screen.getByLabelText(/^password$/i), "Different-123");
+    await user.type(screen.getByLabelText(/confirm password/i), "        ");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+    expect(await screen.findByText(/passwords.*match/i)).toBeVisible();
+    expect(screen.getByLabelText(/confirm password/i)).toBeInvalid();
+    expect(screen.getByLabelText(/^password$/i)).toHaveValue("Different-123");
+    expect(screen.getByLabelText(/confirm password/i)).toHaveValue("        ");
+    expect(screen.getByLabelText(/^username$/i)).toHaveValue("confirmation-user");
+    expect(window.location.pathname).toBe("/register/attendee");
+    expect(auth.requests.filter(({ path }) => path.includes("/auth/register/"))).toHaveLength(0);
+  });
+
   test.each([
     ["attendee", "/attendee"],
     ["business", "/business"],
@@ -94,7 +112,7 @@ describe("AC03-AC04 and AC07 registration", () => {
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => expect(window.location.pathname).toBe(path));
-    expect(screen.getByText("Synthetic Person")).toBeVisible();
+    expect(await screen.findByText("Synthetic Person")).toBeVisible();
     expect(window.localStorage).toHaveLength(0);
     expect(window.sessionStorage).toHaveLength(0);
     const request = auth.requests.find(({ path }) => path === `/api/v1/auth/register/${kind}`);

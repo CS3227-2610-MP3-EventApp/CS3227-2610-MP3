@@ -58,6 +58,12 @@ function expectMinimumTextSize(element: Element, minimumPixels: number) {
   expect(representativePixels(getComputedStyle(element).fontSize)).toBeGreaterThanOrEqual(minimumPixels);
 }
 
+function expectReadableAlertText(alert: HTMLElement) {
+  const message = alert.querySelector(".MuiAlert-message") ?? alert;
+  // jsdom omits the computed font size on this unstyled inheriting message div.
+  expectMinimumTextSize(getComputedStyle(message).fontSize === "" ? alert : message, 21);
+}
+
 describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
   test.each([
     [false, /switch.*dark.*mode/i],
@@ -348,17 +354,31 @@ describe("revision 2 AC09 representative typography and palette", () => {
 
   test.each(["attendee", "business"] as const)("scales representative %s registration form text", async (kind) => {
     preferDark(false);
+    const user = userEvent.setup();
     await renderPrototype(`/register/${kind}`);
     expectMinimumTextSize(document.body, 24);
     for (const input of screen.getAllByRole("textbox")) expectMinimumTextSize(input, 24);
     expectMinimumTextSize(screen.getByLabelText(/^password$/i), 24);
     expectMinimumTextSize(screen.getByLabelText(/confirm password/i), 24);
     expectMinimumTextSize(screen.getByRole("button", { name: /create account/i }), 21);
-    expectMinimumTextSize(screen.getByRole("alert").querySelector("p") ?? screen.getByRole("alert"), 21);
+    auth.failure = { status: 409, detail: "Registration could not be completed." };
+    await user.type(screen.getByLabelText(/display name/i), "Readable Person");
+    await user.type(screen.getByLabelText(/^username$/i), "readable-user");
+    await user.type(screen.getByLabelText(/^email$/i), "readable@example.test");
+    if (kind === "business") await user.type(screen.getByLabelText(/business name/i), "Readable Studio");
+    await user.type(screen.getByLabelText(/^password$/i), "Readable-123");
+    await user.type(screen.getByLabelText(/confirm password/i), "Readable-123");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Registration could not be completed.");
+    expectReadableAlertText(alert);
+    expect(window.location.pathname).toBe(`/register/${kind}`);
+    expect(auth.current).toBeNull();
   });
 
-  test("scales representative login form, tabs, controls and notice text", async () => {
+  test("scales representative login form, tabs, controls and server error text", async () => {
     preferDark(false);
+    const user = userEvent.setup();
     await renderPrototype("/login");
     expectMinimumTextSize(document.body, 24);
     expectMinimumTextSize(screen.getByLabelText(/username or email/i), 24);
@@ -366,7 +386,15 @@ describe("revision 2 AC09 representative typography and palette", () => {
     for (const tab of screen.getAllByRole("tab")) expectMinimumTextSize(tab, 21.6);
     expectMinimumTextSize(screen.getByRole("button", { name: /log in/i }), 21);
     expectMinimumTextSize(appearanceControl(), 21);
-    expectMinimumTextSize(screen.getByRole("alert").querySelector("p") ?? screen.getByRole("alert"), 21);
+    auth.failure = { status: 401, detail: "Invalid credentials." };
+    await user.type(screen.getByLabelText(/username or email/i), "readable-user");
+    await user.type(screen.getByLabelText(/^password$/i), "Readable-123");
+    await user.click(screen.getByRole("button", { name: /log in/i }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Invalid credentials.");
+    expectReadableAlertText(alert);
+    expect(window.location.pathname).toBe("/login");
+    expect(auth.current).toBeNull();
   });
 
   test.each([
@@ -375,16 +403,24 @@ describe("revision 2 AC09 representative typography and palette", () => {
     ["business", "Applications", "Keep track of your business’s next event opportunities and applications."],
   ] as const)("scales representative %s home navigation, cards and status text", async (role, cardTitle, description) => {
     preferDark(false);
+    const user = userEvent.setup();
     seedActor(role, `Synthetic ${role}`);
     await renderPrototype(`/${role}`);
     expectMinimumTextSize(document.body, 24);
     expectMinimumTextSize(document.querySelector("header")?.querySelector("p") ?? document.querySelector("header")!, 21);
     expectMinimumTextSize(screen.getByRole("button", { name: /sign out/i }), 21);
     expectMinimumTextSize(appearanceControl(), 21);
-    expectMinimumTextSize(screen.getByRole("alert").querySelector("p") ?? screen.getByRole("alert"), 21);
     expectMinimumTextSize(screen.getByText(cardTitle), 27);
     expectMinimumTextSize(screen.getByText(description), 21);
     expectMinimumTextSize(screen.getByText("03 / PREVIEWS"), 18);
     expectMinimumTextSize(screen.getAllByRole("button", { name: /coming later/i })[0], 21);
+    const actorBeforeFailure = auth.current;
+    auth.failure = { status: 500, detail: "Request could not be completed." };
+    await user.click(screen.getByRole("button", { name: /sign out/i }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Request could not be completed.");
+    expectReadableAlertText(alert);
+    expect(window.location.pathname).toBe(`/${role}`);
+    expect(auth.current).toEqual(actorBeforeFailure);
   });
 });

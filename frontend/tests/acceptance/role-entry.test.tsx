@@ -69,7 +69,7 @@ describe("AC01-AC04 role entry", () => {
     await user.click(screen.getByRole("button", { name: /log in/i }));
 
     await waitFor(() => expect(window.location.pathname).toBe(path));
-    expect(screen.getByText(`Synthetic ${storedRole}`)).toBeVisible();
+    expect(await screen.findByText(`Synthetic ${storedRole}`)).toBeVisible();
     expect(window.localStorage).toHaveLength(0);
     expect(window.sessionStorage).toHaveLength(0);
     expect(auth.requests.find(({ path }) => path.endsWith("/login"))?.body).toEqual({ identifier: "private@example.test", password: "NotStored-123", role: storedRole });
@@ -90,7 +90,7 @@ describe("AC01-AC04 role entry", () => {
     await user.keyboard("{Enter}");
     await waitFor(() => expect(window.location.pathname).toBe("/attendee"));
 
-    const signOut = screen.getByRole("button", { name: /sign out/i });
+    const signOut = await screen.findByRole("button", { name: /sign out/i });
     await tabTo(user, signOut);
     await user.keyboard("{Enter}");
     await waitFor(() => expect(window.location.pathname).toBe("/login"));

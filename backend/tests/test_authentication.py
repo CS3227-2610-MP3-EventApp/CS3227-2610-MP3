@@ -259,7 +259,7 @@ def test_cli_seeding_is_idempotent_does_not_reset_password_or_reactivate_members
 def protected_routes():
     from app.main import app
     dependencies = importlib.import_module("app.auth.dependencies")
-    if not any(route.path == "/_acceptance/workspace" for route in app.routes):
+    if not any(getattr(route, "path", None) == "/_acceptance/workspace" for route in app.routes):
         @app.get("/_acceptance/workspace", include_in_schema=False)
         def workspace(actor=Depends(dependencies.require_workspace("organiser"))):
             return {"allowed": True}
@@ -299,6 +299,26 @@ def test_mandatory_change_rotates_current_cookie_revokes_other_sessions_and_old_
     assert login(client, "seed-organiser", role="organiser").status_code == 401
     assert login(client, "seed-organiser", "Replacement-123", "organiser").status_code == 200
     assert client.get("/_acceptance/workspace").status_code == 200
+
+
+def test_same_password_is_not_a_mandatory_initial_password_replacement(client):
+    seed_organiser()
+    assert login(client, "seed-organiser", role="organiser").status_code == 200
+    token = client.cookies["eventapp_session"]
+    with connect() as connection:
+        credential_before = connection.execute("SELECT password_hash,must_change_password,updated_at FROM password_credentials").fetchone()
+        sessions_before = connection.execute("SELECT token_hash,expires_at,revoked_at FROM sessions ORDER BY id").fetchall()
+    assert credential_before[1] is True
+    response = client.post("/api/v1/auth/change-password", json={"currentPassword": PASSWORD, "newPassword": PASSWORD}, headers=ORIGIN)
+    problem(response, 422, "validation_error")
+    assert PASSWORD not in response.text and "set-cookie" not in response.headers
+    assert client.cookies["eventapp_session"] == token
+    with connect() as connection:
+        assert connection.execute("SELECT password_hash,must_change_password,updated_at FROM password_credentials").fetchone() == credential_before
+        assert connection.execute("SELECT token_hash,expires_at,revoked_at FROM sessions ORDER BY id").fetchall() == sessions_before
+    assert client.get("/api/v1/auth/me").json()["mustChangePassword"] is True
+    protected_routes()
+    problem(client.get("/_acceptance/workspace"), 403, "password_change_required")
 
 
 def test_event_membership_is_revalidated_on_next_request_and_me(client):
