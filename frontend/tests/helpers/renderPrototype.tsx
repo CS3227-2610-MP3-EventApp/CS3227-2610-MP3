@@ -1,7 +1,8 @@
 import type { ComponentType } from "react";
-import { render } from "@testing-library/react";
+import { render, waitFor, screen } from "@testing-library/react";
 import { expect, vi } from "vitest";
 import type userEvent from "@testing-library/user-event";
+import { auth } from "../fixtures/auth";
 
 const MissingApplication = () => <main data-testid="missing-application" />;
 
@@ -18,7 +19,18 @@ export async function renderPrototype(path = "/login") {
     }
   }
 
-  return render(<Application />);
+  const result = render(<Application />);
+  // Wait for the actor restoration contract, including redirects, before examining UI.
+  await waitFor(() => expect(auth.requests.some(({ path }) => path === "/api/v1/auth/me")).toBe(true));
+  await waitFor(() => expect(screen.queryByRole("heading", { level: 1 })).toBeInTheDocument());
+  if (["/attendee", "/business", "/organiser"].includes(path) && !auth.current?.mustChangePassword) {
+    if (auth.current?.role === path.slice(1)) {
+      const permitted = auth.current.role === "attendee" || auth.current.eventMemberships.length > 0 || auth.current.businessMemberships.length > 0;
+      if (permitted) await screen.findByText(auth.current.displayName);
+    }
+    else await waitFor(() => expect(window.location.pathname).toBe("/login"));
+  }
+  return result;
 }
 
 export function storedValues(storage: Storage): string {

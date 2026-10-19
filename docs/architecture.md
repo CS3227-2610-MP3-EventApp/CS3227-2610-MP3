@@ -1,9 +1,9 @@
 # EventApp architecture and shared contracts
 
-Status: Design draft for review. No models, migrations or application code implemented.
-Updated: 2026-10-18. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Physical schema details remain a design draft.
+Status: Domain design draft; backend foundation implemented and In review. Shared-authentication foundation contract below is selected; implementation/verification pending.
+Updated: 2026-10-19. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Remaining domain schemas stay proposed.
 
-Accepted direction: establish a small shared foundation, keep feature data in modules with clear ownership, and develop against stable contracts and synthetic fixtures. The logical schema below is a proposed design; bounded implementation tasks are assigned when a scoped capability is ready. PostgreSQL is the agreed planning baseline; hosting, identity provider and exact physical schema remain to be settled before implementation.
+Accepted direction: one FastAPI/PostgreSQL foundation, module-owned data and stable contracts. Application-owned authentication is selected for the authorised slice below; hosting and remaining domain schemas stay unresolved where recorded.
 
 ## Module boundaries and ownership
 
@@ -11,7 +11,7 @@ Use one database and one FastAPI application. A module is a code and data owners
 
 | Module | Tables it owns | Responsibility | Consumers |
 | --- | --- | --- | --- |
-| Identity | users, event_memberships, business_memberships | Verified identity and membership access | All modules |
+| Identity | users, password_credentials, sessions, event_memberships, business_memberships | Verified identity, credentials, sessions and membership access | All modules |
 | Programme | events, venues, rooms, programme_items, programme_changes | Authoritative event and programme facts | Attendee planning, submissions, business preparation, AI |
 | Business preparation | businesses, event_participations, preparation_tasks, budgets, budget_lines | Private business and event-preparation records | Identity, submissions, AI |
 | Attendee planning | attendee_preferences, bookmarks, itineraries, itinerary_revisions, itinerary_items | Private preferences and versioned attendee plans | AI and notifications |
@@ -28,18 +28,45 @@ Agree on these fields and semantics first. IDs are proposed UUIDs; timestamps ar
 
 | Entity | Minimum proposed fields | Integrity and visibility |
 | --- | --- | --- |
-| User | id, identity_issuer, identity_subject, display_name, created_at | Unique issuer/subject pair; do not use email as a primary key or accept client-supplied roles |
-| Event | id, title, event_type, timezone, starts_at, ends_at, visibility, revision | End after start; public readers see only published event information |
+| User | id, username, email, display_name, role, created_at, updated_at | Canonical username/email independently globally UNIQUE; one attendee/organiser/business role |
+| Event | id, title, timezone, starts_at, ends_at, revision | IANA timezone; end after start; publication fields added by programme capability |
 | EventMembership | id, user_id, event_id, role, status | Unique user/event/role; privileges require active membership and authorised provisioning |
-| Business | id, name, revision, created_at | Private business workspace; initial membership created atomically with business |
+| Business | id, name, normalized_name, revision, created_at | normalized_name globally UNIQUE; initial registration atomic with user/credential/owner/session |
 | BusinessMembership | id, business_id, user_id, membership_role, status | Unique business/user; active membership grants business-wide access across its event workspaces within the assigned role (RD01) |
 | EventParticipation | id, event_id, business_id, participant_type, revision | Unique event/business in the initial scope; establishes preparation context, not accepted status |
 
 Do not introduce a reverse dependency in Event or User on itineraries, budgets or AI artifacts. Domain consumers keep their own user_id, event_id and business_id references.
 
-Accepted access scope: business membership is business-wide, with event-specific participation; participation-specific staff access is deferred (RD01). A future successful business-owner registration creates the new Business and its active initial-owner BusinessMembership atomically; it cannot select an existing business or organiser authority. Additional member roles/invitations, ownership transfer, multiple event roles, public programme browsing, organiser invitations and business applications as the initial submission scope remain to review.
+Accepted access scope: business membership is business-wide, with event-specific participation; participation-specific staff access is deferred (RD01). Registration creates the new business and active owner membership atomically with user/credential/session. It cannot select existing businesses or organiser authority. Additional memberships/invitations/transfer are excluded; users have one product role. Attendee programme browsing requires sign-in. Initial submission scope remains a separate decision.
 
-Organiser authority is never client-selected. An authorised super organiser provisions an organiser identity and explicit event-scoped membership through the future server boundary. Initial organiser fixtures are development-only. The chosen temporary credential must be single-use, expiring, stored only as a verifier and replaced before workspace access; provider, delivery, recovery and precise expiry remain unresolved. Do not add password fields to the shared schema before the identity-provider contract is selected.
+The approved 2026-10-19 auth plan uses a trusted operator CLI for organiser/event provisioning with runtime passwords requiring replacement before workspace access. It supersedes provider selection, a stored super-organiser role and the earlier separate temporary-password expiry proposal. No public organiser registration, admin UI or default/shared password exists.
+
+## Shared authentication foundation contract
+
+[Access specification revision 3](../specs/shared/access-authorised-workspaces.md) owns exact normalization, HTTP/cookie/errors and CurrentActor v1. All foundation IDs are UUIDs; stored instants are timezone-aware. Physical fields supplement the tables above:
+
+| Table | Required columns / constraints |
+| --- | --- |
+| password_credentials | user_id PK/FK users, password_hash (Argon2id), must_change_password boolean, updated_at |
+| sessions | id PK, user_id FK, token_hash UNIQUE SHA-256 hex, created_at, last_used_at, expires_at, nullable revoked_at; last_used_at never extends absolute expiry |
+| event_memberships | id PK, user_id FK, event_id FK, role organiser, status active/inactive; UNIQUE user/event/role |
+| business_memberships | id PK, user_id FK, business_id FK, membership_role owner, status active/inactive; UNIQUE business/user |
+| audit_events | id PK, nullable user_id FK, action, nullable UUID resource_id, outcome, occurred_at; minimal SEC11 identity, no payload/contact/secret fields |
+
+Database checks enforce role/status values and positive event duration. Event title is trimmed 1–200 characters; events/businesses start at revision 1. Success audit entries commit with sensitive mutations. Auth audit actions are `registration`, `login`, `password_change`, `logout`; CLI may use `organiser_provision`. Credential `updated_at` records password-change time. Business/event ownership remains in the owning modules; the coordinated foundation transaction establishes shared records without duplicate stores. Use additive migrations preserving original migration history and synthetic data.
+
+`app.auth.dependencies` exposes `get_current_actor` (safe Pydantic `CurrentActor`, mandatory-change allowed), `require_workspace(role)` (dependency factory for a product-role literal), `require_event_membership(event_id: UUID)` and `require_business_membership(business_id: UUID)` (direct FastAPI dependencies taking route path parameters). The latter three require completed password replacement and current matching role/membership. Organiser workspace requires an active event; business workspace requires an active business membership. All return CurrentActor, query current stored membership every request and use the spec's denial problems. Tests mount test-only routes using these dependencies; no placeholder domain endpoint is shipped.
+
+OpenAPI schema names are `CurrentActor`, `AttendeeRegistration`, `BusinessRegistration`, `LoginRequest`, `PasswordChangeRequest`. React generates TypeScript from this schema. CurrentActor v1 fields are authoritative in the access spec, including username, displayName, mustChangePassword and active membership status.
+
+Trusted CLI commands, from `backend/`:
+
+```text
+uv run python -m app.auth.bootstrap event --id UUID --title TITLE --timezone IANA --starts-at ISO_OFFSET --ends-at ISO_OFFSET
+uv run python -m app.auth.bootstrap organiser --username NAME --email EMAIL --display-name NAME --event-id UUID
+```
+
+Repeat `--event-id` for multiple assignments. Required event `--id` makes replay deterministic: identical existing facts succeed unchanged; differing facts fail. Validate all events before atomic organiser creation. New organisers obtain password twice via runtime getpass and must change it; no password argument/env/default/output. Matching existing canonical username/email/organiser role/display name adds missing active memberships without resetting credentials or prompting again; existing inactive requested memberships remain inactive and replay succeeds without reactivation. Identity conflicts fail atomically. Event times require explicit offsets, valid IANA timezone and end after start. Failure exits nonzero with no credential/database disclosure. CLI access itself is the trusted administrative boundary; no bootstrap HTTP endpoint exists.
 
 ## Feature schemas
 
@@ -139,7 +166,7 @@ Feature branches can develop consumers using contracts before the producer is fi
 
 ## Review before implementation
 
-Carry accepted RD01–RD07 into feature criteria rather than reopening them. Confirm minimum field types, remaining invitation/member-role policies, the decision-to-participation projection, currency, buffer/accessibility semantics, transaction race handling and task-local contract coordination and independent review. Then record detailed feature approval before implementation. The MP3 brief, team size, repository and checkout are confirmed; identity, deployment, provider and detailed capability scope decisions remain open where recorded in [project.md](project.md).
+Carry accepted RD01–RD07 into feature criteria rather than reopening them. Confirm remaining invitation/member-role policies, the decision-to-participation projection, currency, buffer/accessibility semantics, transaction race handling and task-local coordination/review. The auth slice fixes its minimum field types and application-owned identity; deployment, AI providers and remaining domain decisions stay open in [project.md](project.md).
 
 Checks performed on this design: local links and consistency with feature scope and shared security rules. Database behavior, API compatibility and migration safety remain unverified until implementation and real integration checks run.
 
@@ -150,3 +177,5 @@ Checks performed on this design: local links and consistency with feature scope 
 2026-10-17: Replaced fixed personal assignments with module responsibilities and dependency-based tasks linked to the project roadmap. Recorded concurrent same-room programme activities with per-item capacity validation; retained attendee acceptance rules, contract boundaries, security controls and migration safeguards.
 
 2026-10-18: Recorded the bounded direction for atomic new-business/initial-owner registration and controlled event-scoped organiser provisioning. Kept identity-provider, credential-delivery and broader membership details unresolved; no schema or implementation is claimed.
+
+2026-10-19: Specified authorised application-owned auth foundation tables, CurrentActor/dependency/OpenAPI interfaces and trusted CLI idempotence; prior provider/super-organiser/temporary-expiry proposals superseded. Runtime evidence pending.

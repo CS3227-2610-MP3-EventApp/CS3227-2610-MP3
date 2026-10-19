@@ -1,6 +1,6 @@
 # EventApp project context
 
-EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python with FastAPI for the backend, TypeScript with React for the frontend, and a three-person team. All three teammates approved the review decisions below on 2026-10-15. Other scope and infrastructure recommendations remain proposals where labelled. A bounded frontend-only role-entry and workspace prototype is implemented and In review; domain features, real identity/authorisation, backend, database, AI integration and deployment remain deferred pending their feature criteria and blockers.
+EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python/FastAPI, TypeScript/React and three teammates. All three approved RD01–RD07 on 2026-10-15. The frontend prototype and FastAPI/PostgreSQL foundation are implemented and In review. The requesting teammate authorised the shared-authentication implementation plan on 2026-10-19; its exact revision/readiness, protected tests and implementation evidence are recorded separately. Other domain features, AI and deployment remain subject to their own gates.
 
 ## Shared UI direction
 
@@ -133,10 +133,10 @@ Use the confirmed FastAPI backend and React frontend. Recommended first architec
 | ID | Decision | Impact | Status |
 | --- | --- | --- | --- |
 | D01 | MP3 brief, rubric, deadline, team size | Required capabilities and realistic scope | Resolved: three-person team; MP3 brief reviewed; deadline 23 Oct 2026, 2pm SGT |
-| D02 | Repository, stack, identity provider, database, deployment | F01 implementation and delivery checks | Partially resolved: shared GitHub repository, checkout, stack and PostgreSQL planning baseline confirmed; identity and deployment providers remain open |
+| D02 | Repository, stack, authentication, database, deployment | F01 implementation and delivery checks | Application-owned FastAPI/PostgreSQL auth selected by requesting teammate 2026-10-19; existing backend foundation implemented/In review; deployment remains open |
 | D03 | Phase commitments and role capability coverage | Delivery commitment | Three role workspaces confirmed as direction; detailed stories proposed |
 | D04 | Task-time approval, bounded ownership and independent review | Approval and coordination | Task-based allocation adopted; record approval, bounded ownership and independent review for each selected capability; no standing person allocations |
-| D05 | Membership model and organiser provisioning | Prevent self-assigned organiser access | Partially resolved 2026-10-18: attendee and initial-business-owner self-registration; no organiser self-registration; controlled super-organiser provisioning and development-only seeded organisers. Provider details, additional members/invitations, multiple roles and guest browsing remain open |
+| D05 | Membership model and organiser provisioning | Prevent self-assigned organiser access | Resolved for auth slice 2026-10-19: one product role, globally unique normalized username/email/business name, attendee/new-business-owner registration, trusted runtime-password organiser/event CLI with mandatory replacement, attendee sign-in required. Additional invitations/members/transfer excluded |
 | D06 | Model provider, retention, consent, data minimisation | AI privacy and integration | Open before F03 |
 | D07 | Maps, search, email and commerce providers and budget | External integration scope | Open before relevant extension |
 | D08 | Preference semantics and measurable limits | Constraint correctness, latency, quotas and accessibility | Open before affected features |
@@ -153,7 +153,7 @@ Map every mandatory rubric item to a feature and acceptance criterion before fin
 
 Use one shared Git repository containing backend, frontend and this SDD folder. PostgreSQL is the accepted database planning baseline. SQLAlchemy and Alembic for persistence and migrations, and Pydantic models for API/tool validation remain recommendations. Use a separate local development database per developer with common migrations and fixtures. Use local containers to keep setup repeatable. Derive frontend API types from the reviewed FastAPI OpenAPI contract.
 
-Prefer a managed OpenID Connect identity provider if the rubric permits it; the backend verifies identity tokens and applies application memberships itself. Select the provider after checking course constraints, account access, pricing and hosting region. If the rubric requires implementing authentication, scope it separately before F01. For deployment, use static React hosting, a container-capable backend host and managed PostgreSQL, with separate development and production credentials. Specific vendors and paid tiers remain open.
+The requesting teammate selected application-owned authentication on 2026-10-19, superseding the earlier managed-OIDC recommendation: Argon2id 8–128-character passwords, seven-day opaque cookie sessions with SHA-256 token digests, Origin validation and generated React OpenAPI types. Exact contract: [access revision 3](../specs/shared/access-authorised-workspaces.md) and [foundation architecture](architecture.md#shared-authentication-foundation-contract). Static React/container backend/managed PostgreSQL deployment remains a recommendation; vendors/paid tiers are open.
 
 ### D03 Phase commitments
 
@@ -167,11 +167,11 @@ Record a human product approver and independent reviewer for each selected task/
 
 Accepted: BusinessMembership grants business-wide access across that business's events within the assigned membership role; EventParticipation stores each event's participant type (RD01). Participation-specific staff permissions are deferred. Event organiser access stays event-scoped and does not confer business-private access.
 
-Approved direction from the requesting teammate on 2026-10-18: attendees may self-register. A business registrant creates a new business and becomes its initial owner through one future server-controlled operation; the request cannot select an existing business or organiser authority. Additional business members, invitations, ownership transfer and multiple-role behaviour remain open.
+Approved direction, extended by the requesting teammate on 2026-10-19: attendees may self-register; business registrants atomically create a new business and active initial-owner membership. Username/email are normalized and globally unique across roles; normalized business names are globally unique. Users have one product role. Additional business members, invitations and ownership transfer are outside this slice.
 
-Organisers cannot self-register or obtain authority by choosing a UI tab. An already-authorised super organiser is the administrative provisioning actor: they create an organiser identity from username and email and assign explicit event-scoped membership. The super organiser is not a fourth product workspace. The selected initial-credential direction is a single-use, expiring temporary password that must be replaced before organiser workspace access; it must never be stored or logged as plaintext. The provider, secure delivery mechanism, expiry value, recovery process and future organiser-invitation lifecycle remain open.
+Organisers cannot self-register or gain authority from UI role selection. The trusted operator CLI provisions organiser identities and explicit event-scoped memberships using runtime getpass passwords requiring replacement before workspace access. No super-organiser account type or admin UI is included. This replaces the prior provider-dependent temporary-password expiry direction; no separate initial-credential expiry is promised. Recovery and future invitations remain excluded. Password change retains the current session (rotated token) and revokes other sessions.
 
-For the frontend prototype, super-organiser and organiser identities are synthetic development fixtures and there is no provisioning UI. Production must contain no default/shared account or fixture credential. Allowing public browsing of published programmes and other guest policies remains a recommendation. Changing UI role never grants permissions. Organisers see submitted applications for their own events, not private preparation budgets or draft applications.
+The frontend prototype remains historical synthetic presentation evidence. Production has no default/shared organiser credential. Attendee programme browsing requires sign-in. Changing UI role grants no authority. Organisers see submitted applications only for their events, not private preparation budgets/drafts. Rate limiting, recovery and deployed environment evidence remain production prerequisites.
 
 ### D06 Model data and retention
 
@@ -204,3 +204,4 @@ FastAPI provides [OAuth2 scope integration](https://fastapi.tiangolo.com/advance
 | 2026-10-14 | Confirmed stack; expanded business scope; established modular database and contract-first development direction. |
 | 2026-10-15 | Accepted RD01-RD07 and confirmed deadline; implementation remained deferred. |
 | 2026-10-17 | Consolidated stories/scopes into the canonical catalogue; adopted one phase-priority roadmap and task-based coordination; permitted concurrent same-room activities and clarified attendee warnings. |
+| 2026-10-19 | Recorded requesting teammate's shared-authentication plan and current backend foundation; replaced provider/multiple-role/temporary-expiry assumptions with the bounded one-role CLI/cookie contract; RD01–RD07 unchanged. |

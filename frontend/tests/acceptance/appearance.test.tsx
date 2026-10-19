@@ -2,6 +2,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import { renderPrototype, tabTo } from "../helpers/renderPrototype";
+import { auth, seedActor } from "../fixtures/auth";
 
 const colorModeKey = "eventapp.colorMode";
 const sessionKey = "eventapp.prototype.session";
@@ -117,7 +118,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     preferDark(true);
     window.localStorage.setItem(colorModeKey, "system-and-admin=true");
     const exactSession = { role: "organiser", displayName: "Synthetic Organiser" };
-    window.sessionStorage.setItem(sessionKey, JSON.stringify(exactSession));
+    seedActor(exactSession.role as "organiser", exactSession.displayName);
     await renderPrototype("/organiser");
 
     expect(window.location.pathname).toBe("/organiser");
@@ -125,7 +126,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     expectEffectiveMode("dark");
     expect(appearanceControl()).toHaveAccessibleName(/switch.*light.*mode/i);
     expect(window.localStorage).toHaveLength(0);
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual(exactSession);
+    expect(auth.current).toMatchObject(exactSession);
   });
 
   test.each(["/login", "/register/attendee", "/register/business"])(
@@ -141,7 +142,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     "provides a labelled appearance control on the %s home",
     async (role) => {
       preferDark(false);
-      window.sessionStorage.setItem(sessionKey, JSON.stringify({ role, displayName: `Synthetic ${role}` }));
+      seedActor(role, `Synthetic ${role}`);
       await renderPrototype(`/${role}`);
       expect(appearanceControl()).toBeVisible();
     },
@@ -172,13 +173,13 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     const user = userEvent.setup();
     const first = await renderPrototype();
     await user.click(appearanceControl());
-    window.sessionStorage.setItem(sessionKey, JSON.stringify({ role: "business", displayName: "Synthetic Business" }));
+    seedActor("business", "Synthetic Business");
     first.unmount();
 
     const home = await renderPrototype("/business");
     expect(appearanceControl()).toHaveAccessibleName(/switch.*light.*mode/i);
     expectOnlyColorPreference("dark");
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual({
+    expect(auth.current).toMatchObject({
       role: "business",
       displayName: "Synthetic Business",
     });
@@ -228,7 +229,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
   test("toggles on an existing role home without changing its exact session or route", async () => {
     preferDark(false);
     const exactSession = { role: "attendee", displayName: "Synthetic Attendee" };
-    window.sessionStorage.setItem(sessionKey, JSON.stringify(exactSession));
+    seedActor("attendee", exactSession.displayName);
     const user = userEvent.setup();
     await renderPrototype("/attendee");
 
@@ -236,7 +237,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
 
     expect(window.location.pathname).toBe("/attendee");
     expect(screen.getByText("Synthetic Attendee")).toBeVisible();
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual(exactSession);
+    expect(auth.current).toMatchObject(exactSession);
     expectOnlyColorPreference("dark");
     expectEffectiveMode("dark");
   });
@@ -244,7 +245,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
   test("falls back safely when reading the saved preference throws", async () => {
     preferDark(true);
     const exactSession = { role: "business", displayName: "Synthetic Business" };
-    window.sessionStorage.setItem(sessionKey, JSON.stringify(exactSession));
+    seedActor("business", exactSession.displayName);
     const nativeGet = Storage.prototype.getItem;
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
       if (this === window.localStorage && key === colorModeKey) throw new DOMException("blocked", "SecurityError");
@@ -255,7 +256,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
 
     expect(window.location.pathname).toBe("/business");
     expectEffectiveMode("dark");
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual(exactSession);
+    expect(auth.current).toMatchObject(exactSession);
   });
 
   test("keeps immediate mode and form state without claiming persistence when writing throws", async () => {
@@ -288,8 +289,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
   test("keeps an exact active session and home when preference persistence fails", async () => {
     preferDark(false);
     const exactSession = { role: "organiser", displayName: "Synthetic Organiser" };
-    const exactSessionBytes = JSON.stringify(exactSession);
-    window.sessionStorage.setItem(sessionKey, exactSessionBytes);
+    seedActor("organiser", exactSession.displayName);
     const user = userEvent.setup();
     await renderPrototype("/organiser");
     const nativeSet = Storage.prototype.setItem;
@@ -303,8 +303,8 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     expectEffectiveMode("dark");
     expect(window.location.pathname).toBe("/organiser");
     expect(screen.getByText("Synthetic Organiser")).toBeVisible();
-    expect(window.sessionStorage.getItem(sessionKey)).toBe(exactSessionBytes);
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual(exactSession);
+    expect(window.sessionStorage).toHaveLength(0);
+    expect(auth.current).toMatchObject(exactSession);
     expect(window.localStorage).toHaveLength(0);
     expect(Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))).not.toContain(sessionKey);
     expect(screen.queryByText(/preference saved|appearance saved|saved successfully/i)).not.toBeInTheDocument();
@@ -314,7 +314,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     preferDark(false);
     window.localStorage.setItem(colorModeKey, "invalid-mode");
     const exactSession = { role: "attendee", displayName: "Synthetic Attendee" };
-    window.sessionStorage.setItem(sessionKey, JSON.stringify(exactSession));
+    seedActor("attendee", exactSession.displayName);
     const nativeRemove = Storage.prototype.removeItem;
     vi.spyOn(Storage.prototype, "removeItem").mockImplementation(function (this: Storage, key) {
       if (this === window.localStorage && key === colorModeKey) throw new DOMException("blocked", "SecurityError");
@@ -326,7 +326,7 @@ describe("revision 2 AC07 and AC11-AC12 appearance preference", () => {
     expect(window.location.pathname).toBe("/attendee");
     expectEffectiveMode("light");
     expect(window.localStorage.getItem(colorModeKey)).toBe("invalid-mode");
-    expect(JSON.parse(window.sessionStorage.getItem(sessionKey) ?? "null")).toStrictEqual(exactSession);
+    expect(auth.current).toMatchObject(exactSession);
   });
 });
 
@@ -375,7 +375,7 @@ describe("revision 2 AC09 representative typography and palette", () => {
     ["business", "Applications", "Keep track of your business’s next event opportunities and applications."],
   ] as const)("scales representative %s home navigation, cards and status text", async (role, cardTitle, description) => {
     preferDark(false);
-    window.sessionStorage.setItem(sessionKey, JSON.stringify({ role, displayName: `Synthetic ${role}` }));
+    seedActor(role, `Synthetic ${role}`);
     await renderPrototype(`/${role}`);
     expectMinimumTextSize(document.body, 24);
     expectMinimumTextSize(document.querySelector("header")?.querySelector("p") ?? document.querySelector("header")!, 21);

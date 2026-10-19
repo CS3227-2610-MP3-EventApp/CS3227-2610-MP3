@@ -109,10 +109,12 @@ def test_openapi_describes_foundation_endpoints() -> None:
     assert response.status_code == 200
     document = response.json()
     assert document["openapi"].startswith("3.")
-    assert set(document["paths"]) == {
+    foundation_paths = {
         "/api/v1/health/live",
         "/api/v1/health/ready",
         "/api/v1/openapi.json",
     }
-    assert all(set(operations) == {"get"} for operations in document["paths"].values())
+    assert foundation_paths <= set(document["paths"])
+    assert all(set(document["paths"][path]) == {"get"} for path in foundation_paths)
+    assert {f"/api/v1/auth/{path}" for path in ("register/attendee", "register/business", "login", "logout", "me", "change-password")} <= set(document["paths"])
 
