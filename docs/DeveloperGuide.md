@@ -67,6 +67,8 @@ The reset flag permits the migration test to recreate only the synthetic local `
 
 ## Shared authentication development
 
+For the current workstation's existing port-5433 test database and detailed role-by-role flows, use [authentication manual testing](AuthenticationTesting.md). Its database is disposable and must not be used concurrently with the automated backend suite.
+
 On the shared-authentication branch, apply migrations using `uv run alembic upgrade head` before starting FastAPI. Start the frontend separately with `npm run dev` in `frontend/`; Vite proxies `/api` to `http://127.0.0.1:8000` so the browser uses same-origin cookies. Use the frontend on `http://localhost:5173` or `http://127.0.0.1:5173` with the default development trusted origins. The database, backend and frontend remain separate processes.
 
 Configuration adds `ENVIRONMENT` (`development`, `test`, `production`) and `TRUSTED_ORIGINS` (a JSON array of exact frontend origins). Outside development cookies require HTTPS; production requires explicit HTTPS trusted origins. Keep environment files, credentials and database URLs out of Git. Do not reuse the disposable test database for normal accounts.

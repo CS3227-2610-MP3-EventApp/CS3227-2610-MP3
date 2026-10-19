@@ -103,15 +103,26 @@ Produces CurrentActor v1 above; [architecture](../../docs/architecture.md#shared
 
 | Decision | Options / proposed direction | Owner | Blocks | Resolution |
 | --- | --- | --- | --- | --- |
-| A-01 | Application-owned FastAPI/PostgreSQL auth; trusted organiser/event CLI, runtime initial password and mandatory replacement; separate initial-credential expiry superseded | Requesting teammate | Exact revision readiness record | Full implementation plan authorised 2026-10-19 |
-| A-02 | One product role; unique normalized username/email/business name; attendee/new-business-owner registration; invitations/transfer/additional membership excluded | Requesting teammate | Exact revision readiness record | Full plan authorised 2026-10-19 |
+| A-01 | Application-owned FastAPI/PostgreSQL auth; trusted organiser/event CLI, runtime initial password and mandatory replacement; separate initial-credential expiry superseded | Requesting teammate | Resolved for foundation slice | Full implementation plan authorised 2026-10-19; readiness recorded before implementation |
+| A-02 | One product role; unique normalized username/email/business name; attendee/new-business-owner registration; invitations/transfer/additional membership excluded | Requesting teammate | Resolved for foundation slice | Full plan authorised 2026-10-19; readiness recorded before implementation |
 | A-03 | Attendee programme browsing requires sign-in; private domain denied-vs-absent semantics stay with their domain contracts | Requesting teammate / domain owners | Later private-domain visibility only | Sign-in direction confirmed 2026-10-19; domain contracts pending |
-| A-04 | Seven-day opaque cookies, SHA-256 digest storage, Argon2id 8–128 passwords, Origin check, password change retains current session/revokes others | Requesting teammate | Exact revision readiness record | Full plan authorised 2026-10-19 |
-| A-05 | Exact wire/error/normalization/cookie/dependency/CLI details and minimal SEC11 audit table complete the approved plan | Orchestrator / affected contributors | Independent pre-implementation review | Routine contract completion confirmed by orchestrator 2026-10-19; review pending |
+| A-04 | Seven-day opaque cookies, SHA-256 digest storage, Argon2id 8–128 passwords, Origin check, password change retains current session/revokes others | Requesting teammate | Resolved for foundation slice | Full plan authorised 2026-10-19; readiness recorded before implementation |
+| A-05 | Exact wire/error/normalization/cookie/dependency/CLI details and minimal SEC11 audit table complete the approved plan | Orchestrator / affected contributors | Resolved for foundation slice | Routine completion and independent pre-implementation reviews recorded 2026-10-19 |
 
 ## Verification and evidence
 
-No criterion is verified at this drafting handoff. Independent test design/review, protected baseline, implementation snapshot, real PostgreSQL integration and human teammate review remain pending in the run record. AC01–03 and domain portions of AC04/06 are explicitly deferred to F01/F02/F04/F06 and later jobs/actions; shared dependencies alone cannot satisfy them. Browser keyboard/cookie checks, online delivery and environment separation also need actual evidence. The analyst leaves revision 3 Draft for orchestrator readiness recording. [Session summary](../../logs/dylan/2026-10-19-shared-authentication.md): human verification pending.
+Implementation snapshot `e202ea95747a4c831cac7bb0d251c856a166d818` received independent behaviour and security approval. The protected baseline is `d60152a1b7ad78c90b5a7b26499eb1cb6b63e151`; earlier baselines and approved test corrections remain in the [run record](../../workflow/agents/runs/2026-10-19-shared-authentication.md). Fresh full runs passed 65 backend tests and 75 frontend tests; frontend build, baseline integrity, generated-contract checks and dependency audits passed. Real HTTP through Vite exercised all three identities, cookies, Origin/CORS, logout replay and password replacement. The same persisted identity/session survived both a real backend-process restart and PostgreSQL-container restart.
+
+| Criteria | Evidence / boundary |
+| --- | --- |
+| AC04–06 | Direct test-only server routes exercise real role, event/business membership, mandatory-change and next-request revocation guards. Actual domain/list/write/AI integration remains deferred. |
+| AC05, AC07–11, AC14, AC16 | Real PostgreSQL registration, conflicts/races/rollback, CLI provisioning and password/session tests; same-password replacement and whitespace-confirmation regressions pass. |
+| AC12–13, AC15 | Cookie, safe actor, absolute expiry and origin/environment tests; network CORS and backend/database restart smoke checks passed. Browser-enforced behaviour remains for human testing. |
+| AC17 | Empty-database migration test, UUID/FK/status/uniqueness constraints and restart persistence; no production data/migration claim. |
+| AC18 | Generated API types, 75 UI tests and build pass; human browser/visual/keyboard verification pending. |
+| AC19 | Success and selected denied-outcome audits, generic errors, log/response redaction and failed-write state preservation tested. Audit storage failure has a generic warning fallback; malformed/Origin-denied requests deliberately perform no database writes. |
+
+AC01–03 and downstream portions of AC04/06 remain explicitly deferred to their domain capabilities. Human browser checks were not performed after Safari access was denied. Human teammate review and [session-summary verification](../../logs/dylan/2026-10-19-shared-authentication.md) remain pending, so the capability stays In review. Rate limiting, recovery, online delivery and production environment separation remain later obligations.
 
 ## Revision history
 
@@ -120,3 +131,4 @@ No criterion is verified at this drafting handoff. Independent test design/revie
 | 1 / 2026-10-18 | Initial bounded Draft | Approval and verification pending |
 | 2 / 2026-10-18 | Recorded bounded attendee/business self-registration and controlled organiser-provisioning decisions; linked the presentation-only prototype and added AC07–09 | Full revision/provider contracts, approval and verification remain pending |
 | 3 / 2026-10-19 | Specified approved application-owned auth slice and CurrentActor v1; added AC10–19; retained AC01–09, deferring downstream checks and replacing AC05/09 provider/expiry assumptions with CLI/mandatory replacement | Full plan authorised; exact readiness/review and all runtime evidence pending; historical revision 2 preserved |
+| 3 evidence update / 2026-10-19 | Implemented foundation, completed protected tests, independent same-commit reviews and local proxy/restart checks | In review; human/browser/downstream and production obligations remain explicit |

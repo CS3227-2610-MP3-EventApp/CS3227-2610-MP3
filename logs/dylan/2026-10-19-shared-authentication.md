@@ -2,8 +2,8 @@
 
 - Date/timezone / owner: 2026-10-19 Asia/Singapore / Dylan.
 - Branch / source: `feat/shared-authentication`, starting snapshot `5c0ab1552d65bf400fbcc96fb99bde2b18da29ee`.
-- Coverage: analyst-visible orchestrator assignment, clarifications, actual peer messages and repository/tool output. Earlier human discussion is represented only by the orchestrator's relayed approval; no complete transcript claimed.
-- AI factual check: checked against the visible assignments, patch results and peer messages; final repository checks belong to orchestrator.
+- Coverage: visible human requests, actual specialist handoffs, implementation, test corrections, repository/tool evidence and final handoff. Earlier unavailable conversations are not reconstructed as complete transcripts.
+- AI factual check: checked against the visible conversation, commits, agent reports and root verification commands; human correctness verification remains separate.
 - Human verification: Pending; reviewer/date/corrections not supplied.
 
 ## Prompts and interactions
@@ -14,10 +14,14 @@ The orchestrator corrected an initial proposed 24-hour temporary-password expiry
 
 ## Decisions and actions
 
-Access revision 3 remains Draft for orchestrator readiness recording. It specifies one product role, normalized global identity/business uniqueness, atomic attendee/business registration, trusted organiser/event CLI, safe CurrentActor v1, seven-day digest-backed cookie sessions, Argon2id, Origin checks, RFC9457 problems and generated React OpenAPI types. AC01–09 remain allocated; downstream domain checks are deferred explicitly and AC10–19 cover the concrete slice. Minimal architecture/project/security/catalogue/index docs reflect the same approved direction without changing RD01–RD07.
+The user first deferred authentication to publish the backend/database foundation, and the partial spec edit was reverted. Once master contained that foundation, the user requested a new branch and implementation. The orchestrator created `feat/shared-authentication` from clean master `5c0ab15`, refined revision 3 and recorded approval before implementation. The user retained SDD and specialised agents after briefly discussing disabling them.
 
-The independent security reviewer found storage-status and inactive-CLI replay mismatches with tests; documentation was aligned through coordination. Initial same-path replacement and one architecture-context patch were rejected; subsequent update patches succeeded. No application/protected-test changes or fictional reviews are claimed. Actual handoffs and remaining evidence are in the [run record](../../workflow/agents/runs/2026-10-19-shared-authentication.md).
+Access revision 3 is now In review. It specifies one product role, normalized global identity/business uniqueness, atomic attendee/business registration, trusted organiser/event CLI, safe CurrentActor v1, seven-day digest-backed cookie sessions, Argon2id, Origin checks, RFC9457 problems and generated React OpenAPI types. AC01–09 remain allocated; downstream domain checks are deferred explicitly and AC10–19 cover the concrete slice. Architecture/project/security/catalogue/index docs reflect this direction without changing RD01–RD07.
+
+The test designer owned the protected baseline; the backend developer implemented backend code and the orchestrator implemented React integration. Independent behaviour/security reviewers approved initial adequacy and the final code snapshot `e202ea9`. AUTH-TCR-01–08 document replacing obsolete synthetic-auth expectations, typography checks for real errors, FastAPI router introspection, bounded asynchronous DOM waits, unchanged-password/whitespace-confirmation regressions, the patched test dependency and rejected-operation audit coverage. Tests were changed by their owner, not weakened by the implementer. Original and replacement baselines remain recorded.
 
 ## Verification, limitations and next steps
 
-This handoff establishes reviewable documentation, not working authentication. Exact revision readiness, protected baseline, implementation, real PostgreSQL migration/restart checks, browser integration/accessibility, human teammate review and production gates remain pending. Rate limiting/recovery/deployed environment controls are explicit limitations. Orchestrator owns subsequent execution evidence and session-log updates. Human correctness verification of this summary remains pending.
+Final root runs passed 65 PostgreSQL/backend tests and 75 frontend tests, production build, baseline integrity, link/agent validation and 9 guard tests. Dependency audits reported no known vulnerabilities after updating development-only Pytest. Local real HTTP/proxy checks passed registration/login/logout/password replacement for all roles and session survival through actual backend and PostgreSQL restarts. The first network CORS assertion targeted Vite's own preflight response; direct backend inspection established the correct configured CORS behaviour without a production change.
+
+The user asked why Safari access was requested, was told it was for browser smoke testing, then requested finishing the remaining work and test flows. Safari access was denied and no browser interaction occurred. [Manual testing instructions](../../docs/AuthenticationTesting.md) give launch commands, organiser seeding and expected results. Temporary smoke servers were stopped; no user port-8000 process was changed. Domain features remain preview cards; production deployment, abuse controls, recovery, human browser/teammate review and human verification of this summary remain pending. No push or merge was performed.
