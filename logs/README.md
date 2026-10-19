@@ -16,8 +16,11 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
-- [2026-10-15–16 coordination discussion and repository sync](2026-10-16-yik-bing-coordination-history.md): retrospective from the visible chat and Git evidence; earlier project-planning conversations are unavailable, and no claim of their complete coverage is made.
-- [2026-10-16 workflow implementation](2026-10-16-yik-bing-agent-workflow.md): branch setup, agent definitions, protected-test procedure, log requirement, validation and review evidence.
+- [2026-10-15–16 coordination discussion and repository sync](yikbing/2026-10-16-yik-bing-coordination-history.md): retrospective from the visible chat and Git evidence; earlier project-planning conversations are unavailable, and no claim of their complete coverage is made.
+- [2026-10-16 workflow implementation](yikbing/2026-10-16-yik-bing-agent-workflow.md): branch setup, agent definitions, protected-test procedure, log requirement, validation and review evidence.
+- [2026-10-17 Yik Bing specification scoping](yikbing/2026-10-17-yik-bing-spec-scoping.md): story-level specification scoping review and limits.
+- [2026-10-19 Yik Bing agent model discussion and workspace preparation](yikbing/2026-10-19-agent-model-discussion-and-workspace-preparation.md): model configuration discussion, corrected repository discovery, upstream update, working branch and log organization.
+- [2026-10-19 Yik Bing Claude model assignment recommendations](yikbing/2026-10-19-claude-model-assignment-recommendations.md): proposed Claude Code models/effort per SDD role, configuration guidance, unverified availability and pilot proposal; approved assignments applied to `.claude/agents/` on 2026-10-19, runtime discovery pending.
 - [2026-10-18 spec boundary and layout](isaac/2026-10-18-spec-boundary-and-layout.md): revised contract definition and template, approved folder layout, 26 domain Drafts and independent documentation review.
 - [2026-10-18 shared UI specification](isaac/2026-10-18-shared-ui-spec.md): user-requested visual and interaction direction, prior project/catalogue updates, UI Draft, scenario handoff and log organization.
 - [2026-10-18 Dylan project/authentication UI planning](dylan/2026-10-18-project-understanding-auth-ui-planning.md): repository review, account/provisioning decisions, bounded prototype specification, independent analysis/test/security handoffs and pre-implementation gates.

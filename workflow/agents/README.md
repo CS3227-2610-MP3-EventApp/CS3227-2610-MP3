@@ -4,18 +4,71 @@ Adopted by the requesting teammate on 2026-10-16; shared for team review in this
 
 ## Shared setup and invocation
 
-All three teammates use this repository's `AGENTS.md` and six project-scoped definitions under `.codex/agents/`. Open the actual repository root in Codex, use a feature branch, and start a new session after updating configuration. The main agent acts as orchestrator; its role definition is also available for explicitly delegated coordination, but an extra nested orchestrator is unnecessary.
+Teammates may use Codex, Claude Code, or both; both tools are first-class. All use this repository's `AGENTS.md` and the same six project-scoped roles, defined for Codex in `.codex/agents/*.toml` and for Claude Code in `.claude/agents/*.md`. Open the actual repository root in the chosen tool, use a feature branch, and start a new session after updating configuration. The main agent acts as orchestrator; its role definition is also available for explicitly delegated coordination, but an extra nested orchestrator is unnecessary.
 
-Example startup prompt:
+- **Codex:** supported versions discover custom agents from `.codex/agents/*.toml` and read `AGENTS.md` as project instructions.
+- **Claude Code:** supported versions discover project subagents from `.claude/agents/*.md` and load `AGENTS.md` as project instructions when no `CLAUDE.md` exists. Do not add a `CLAUDE.md` that diverges from `AGENTS.md`.
+
+Example startup prompt (either tool):
 
 > Act as the orchestrator using AGENTS.md and workflow/agents/README.md. My assigned story/scope is [IDs and ownership]. Read its specification and check readiness. Explicitly invoke specification_analyst, test_case_designer, developer, behaviour_verifier, and security_reviewer at the appropriate stages. For application feature implementation, establish the reviewed test baseline before development, preserve file ownership, coordinate fixes and test disputes, and record actual handoffs, evidence, and this session's prompt/interaction summary in logs/. Ask for unresolved product decisions rather than inventing them.
 
-Custom agents are discovered from `.codex/agents/*.toml` by supported Codex versions. No model override, provider, credentials, or machine-specific paths are required. The roles inherit the session's environment and permissions; instructions do not create filesystem isolation. If custom role discovery is unavailable but generic subagent tools exist, the main agent can read the corresponding TOML instructions and pass them to generic subagents, recording this fallback. If no delegation tools exist, stop the multi-agent portion and report the capability gap; do not simulate agents in prose. Check available capacity and sequence work within it; six roles do not mean six simultaneous workers.
+Each role file specifies its agreed model and reasoning effort for that tool below. Provider, credentials and machine-specific paths remain session-owned. The roles inherit the session's environment and permissions; instructions do not create filesystem isolation. In either tool, if custom role discovery is unavailable but generic subagent tools exist, the main agent can read the corresponding role instructions (TOML or Markdown; they are identical) and pass them to generic subagents, recording this fallback. If no delegation tools exist, stop the multi-agent portion and report the capability gap; do not simulate agents in prose. Check available capacity and sequence work within it; six roles do not mean six simultaneous workers.
+
+## Economical model assignments
+
+The responsibilities and SDD gates are shared across tools; only model and effort settings differ. Model families and effort names are not equivalent across tools, so each table was chosen separately.
+
+### Codex
+
+Agreed by Yik Bing on 2026-10-19 as an initial usage-conscious configuration, pending measurement on representative EventApp work.
+
+| Role | Model | Reasoning effort |
+| --- | --- | --- |
+| orchestrator | `gpt-6.1-sol` | `medium` |
+| specification_analyst | `gpt-6-luna` | `high` |
+| test_case_designer | `gpt-6.1-sol` | `high` |
+| developer | `gpt-6-luna` | `high` |
+| behaviour_verifier | `gpt-6.1-sol` | `high` |
+| security_reviewer | `gpt-6.1-sol` | `high` |
+
+The values are set in each standalone `.codex/agents/*.toml` file using `model` and `model_reasoning_effort`. The orchestrator is normally the main chat: select GPT-6.1 Sol / Medium in the client for that chat; the orchestrator role file applies only when that custom agent is invoked and cannot switch the main chat's model. Start a new session after updating role files and check actual model selection in the client. Static validation does not establish account access or runtime discovery.
+
+Use bounded assignments and relevant context. Apply the workflow proportionally to the change. Luna is the starting point for routine specification analysis and implementation; escalate to Sol for ambiguous requirements, shared contracts, authentication, migrations, difficult integration or a substantive failed attempt. Keep the existing two-unsuccessful-repair-round limit. Record any escalation and its reason; when using custom agents, update the applicable model setting for the authorized task because its file setting takes precedence over a spawn override. Model availability must be checked; report unavailable models rather than silently substituting one. These settings do not establish measured savings or guarantee a usage allowance.
+
+Model fields and precedence checked against [official Codex subagent documentation](https://learn.chatgpt.com/docs/agent-configuration/subagents) on 2026-10-19.
+
+### Claude Code
+
+Approved by Yik Bing on 2026-10-19 as an initial usage-conscious configuration, pending measurement on representative EventApp work. Rationale and sources are in [the recommendation log](../../logs/yikbing/2026-10-19-claude-model-assignment-recommendations.md).
+
+| Role | Model | Effort | First escalation |
+| --- | --- | --- | --- |
+| orchestrator (main chat) | `claude-sonnet-5-5` | `medium` | `claude-opus-5-5`, `medium` |
+| specification_analyst | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` |
+| test_case_designer | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` (`high` for authentication, persistence, concurrency or AI) |
+| developer | `claude-sonnet-5-5` | `medium` | `claude-sonnet-5-5`, `high` for repair; then `claude-opus-5-5`, `medium` |
+| behaviour_verifier | `claude-opus-5-5` | `medium` | `claude-opus-5-5`, `high` |
+| security_reviewer | `claude-opus-5-5` | `medium` | `claude-opus-5-5`, `high` |
+
+The values are set in each `.claude/agents/*.md` file using the `model` and `effort` frontmatter fields, with full model IDs for reproducible run records.
+
+- **Main chat.** The orchestrator is normally the main chat. Select Sonnet 5.5 / medium in the model picker (or start with `claude --model claude-sonnet-5-5 --effort medium`). The plan default is Opus 5.5, and subagents without a `model` field inherit the main chat's model. The orchestrator role file applies only when that subagent is invoked and does not set the main chat's model.
+- **Escalation triggers.** Escalate for ambiguous or conflicting requirements, shared contracts, authentication/authorization, migrations/persistence/restart behaviour, concurrency/retries, AI grounding or prompt injection, reviewer–developer disagreement, test-change disputes, or a first unsuccessful repair round (before the two-round limit is reached). Keep the existing two-unsuccessful-repair-round limit.
+- **Precedence.** Unlike Codex, a per-invocation model or effort override takes precedence over the role file's frontmatter, so escalate by overriding the invocation rather than editing the role file, and record each escalation, its model/effort and its reason in the run record.
+- **Environment overrides.** Do not set `CLAUDE_CODE_EFFORT_LEVEL` or `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`; they override the per-role settings.
+- Model availability must be checked; report unavailable models rather than silently substituting one. These settings do not establish measured savings or guarantee a usage allowance.
+
+Model fields and precedence checked against official Claude Code [subagent](https://code.claude.com/docs/en/sub-agents) and [model configuration](https://code.claude.com/docs/en/model-config) documentation on 2026-10-19.
+
+### Keeping the role files in sync
+
+Role instructions are shared. Any change to a role's responsibilities must update both its `.codex/agents/<role>.toml` and its `.claude/agents/<role>.md` in the same change; only model and effort settings may differ. `tools/validate_agent_setup.py` enforces matching role sets, descriptions and instructions.
 
 ## Source of truth and responsibilities
 
 - Approved capability specifications under root `specs/` and accepted decisions define required behaviour. Follow the [spec standard and index](../../specs/README.md) and [canonical template](../../specs/TEMPLATE.md) when extracting capabilities from user stories. The analyst drafts/refines them; humans approve product rules and resolve blockers.
-- `.codex/agents/` defines reusable agent responsibilities. The orchestrator delegates and reconciles results; the analyst also investigates code and contracts.
+- `.codex/agents/` (Codex) and `.claude/agents/` (Claude Code) define the same reusable agent responsibilities. The orchestrator delegates and reconciles results; the analyst also investigates code and contracts.
 - The test designer owns scenarios, executable acceptance tests, fixtures, integration checks, and approved test corrections. Developers may add explicitly assigned non-baseline unit tests.
 - Behaviour and security reviewers assess independently; neither edits the reviewed implementation. Required human teammate review still applies.
 - This document defines handoffs and stage gates. Templates record task-specific scope, approval, evidence, and exceptions. Do not duplicate authoritative criteria in role files.
@@ -49,9 +102,14 @@ Applicable review concerns: functionality, rejection/boundary/failure cases, aut
 
 Prerequisites: Git and Python 3.11 or later (the validator uses the standard-library TOML parser). No third-party Python packages are required.
 
-Run `python tools/validate_agent_setup.py` for TOML/role and local-link checks, `python -m unittest discover -s tools/tests -v` for guard regression tests, and `git diff --check`. Then perform a real delegation smoke run: ask the main agent to invoke a specification analyst and both reviewers on a bounded documentation-only task, collect their findings, and log actual identities/results. Do not claim the feature-development cycle was exercised until a real application feature and approved test baseline have gone through it. Custom-agent discovery must be checked in each teammate's installation; portable role instructions and structural validation alone do not prove it.
+Run `python tools/validate_agent_setup.py` for role, TOML, Claude frontmatter, cross-tool sync and local-link checks, `python -m unittest discover -s tools/tests -v` for guard regression tests, and `git diff --check`. Then perform a real delegation smoke run in each tool you use: ask the main agent to invoke a specification analyst and both reviewers on a bounded documentation-only task, collect their findings, and log actual identities/results. Do not claim the feature-development cycle was exercised until a real application feature and approved test baseline have gone through it.
 
-Configuration reference checked 2026-10-16: [official Codex subagents documentation](https://learn.chatgpt.com/docs/agent-configuration/subagents), including project-scoped standalone TOML definitions. No role-specific model is forced.
+Custom-agent discovery must be checked per tool in each teammate's installation; portable role instructions and structural validation alone do not prove it.
+
+- **Codex:** confirm that the custom roles are offered and that the client shows the expected model and reasoning effort for each spawned agent.
+- **Claude Code:** confirm that `AGENTS.md` is loaded as project instructions (for example with `/memory`), that the roles appear among the available subagents, and that the background-tasks view shows the expected model and effort for each invoked subagent.
+
+Configuration reference checked 2026-10-16: [official Codex subagents documentation](https://learn.chatgpt.com/docs/agent-configuration/subagents), including project-scoped standalone TOML definitions. Role-specific model defaults were added on 2026-10-19; see the economical model assignments above. Claude Code role files were added on 2026-10-19; see the Claude Code references in that section.
 
 ## Bootstrap exception
 
