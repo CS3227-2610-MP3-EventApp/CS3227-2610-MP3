@@ -26,7 +26,9 @@
 
 ## Fixes and test disputes
 
-No test dispute was raised. Review findings were corrected by the test owner before baseline freeze. Alternate pytest/CI configuration cannot be listed as an absent protected path, so every later non-baseline diff must be inspected for discovery or selection bypasses.
+On 2026-10-19, the developer raised a protected-test dispute for BF-06. The test owner reproduced that plain `docker compose config --format json` correctly excludes the inactive profiled `test-db`, while `docker compose --profile test config --format json` contains both required services. This was classified as a test defect: the assertion matched revision 2, but its rendering command did not activate the profile it intended to inspect. The smallest correction adds `--profile test`; all service, profile, database and port assertions remain unchanged. The focused test passed. The feasible full suite passed 14/16; the real readiness and migration cases failed only because Docker Desktop/test PostgreSQL was not running. `/root/backend_spec_behaviour_review` approved the classification and coverage-preserving correction from the reproduced Compose evidence; its independent Docker execution was sandbox-limited. `/root/backend_spec_security_review` approved the preserved safeguards and independently obtained `1 passed` on the focused test. The corrected snapshot is approved for replacement freeze, with its full SHA to be recorded after commit; baseline `80d8ac2` and its evidence remain preserved.
+
+Review findings were corrected by the test owner before the original baseline freeze. Alternate pytest/CI configuration cannot be listed as an absent protected path, so every later non-baseline diff must be inspected for discovery or selection bypasses.
 
 ## Completion and reflection
 

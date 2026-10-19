@@ -1,0 +1,14 @@
+# Backend foundation test baseline change request
+
+- Request ID, requester, date, feature/run: `BF-TCR-01`; developer via orchestrator; 2026-10-19; `run-backend-with-postgresql` / BF-06.
+- Old baseline commit; protected paths; specification revision: `80d8ac2244c3269da3ace56e3e5e0daac94ee7a1`; paths recorded in the run record; specification revision 2.
+- Failing test and exact reproduction/observed output: `test_compose_uses_loopback_ports_and_distinct_databases`; plain `docker compose config --format json` returned only `db`, so lookup of `test-db` failed. `docker compose --profile test config --format json` returned both `db` and profiled `test-db` with the expected configuration.
+- Relevant acceptance criterion and expected behaviour: AC06/AC08 require loopback-bound, distinct development and test PostgreSQL services and the documented test profile. A profiled service is expected to be inactive unless its profile is enabled.
+- Cause: test defect. The implementation follows normal Compose profile semantics and the approved specification; the test rendered inactive-profile configuration while asserting active-profile output.
+- Proposed correction and alternatives considered: add `--profile test` to the existing Compose render command. Removing the `test-db` assertions or removing its profile would reduce or change approved coverage and was rejected.
+- Coverage/security/regression impact; evidence this does not merely fit current code: all exact service, profile, database and loopback-port assertions remain unchanged. The correction exercises the approved documented profile and remains implementation-independent.
+- Independent verifier assessment: `/root/backend_spec_behaviour_review` approved the classification and coverage-preserving correction after reviewing the reproduced plain/profile Compose outputs; its own Docker execution was limited by the reviewer sandbox. `/root/backend_spec_security_review` approved the preserved loopback/profile safeguards and independently ran the focused test (`1 passed`).
+- Test owner decision and identity: correction approved and made by `/root/backend_foundation_tests`.
+- Human product approval if behaviour changes: N/A; no product or specification behaviour changes.
+- Test-owner correction commit and affected checks/reviews: commit pending. Focused BF-06 passed (`1 passed`). The feasible full suite collected 16 tests: 14 passed and only the real readiness and migration cases failed because Docker Desktop/test PostgreSQL was not running (`127.0.0.1:5433` refused connections). Independent verification remains required.
+- Replacement baseline commit, path set, rationale, and preserved old evidence: the corrected snapshot is approved for replacement freeze with the existing protected path set. Record the full immutable SHA after commit; preserve baseline `80d8ac2` as historical evidence.

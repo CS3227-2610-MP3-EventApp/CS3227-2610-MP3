@@ -74,7 +74,7 @@ def test_runtime_settings_require_database_url(monkeypatch) -> None:
 def test_compose_uses_loopback_ports_and_distinct_databases() -> None:
     assert shutil.which("docker"), "Docker is required to validate Compose"
     result = subprocess.run(
-        ["docker", "compose", "config", "--format", "json"],
+        ["docker", "compose", "--profile", "test", "config", "--format", "json"],
         cwd=REPOSITORY,
         capture_output=True,
         text=True,

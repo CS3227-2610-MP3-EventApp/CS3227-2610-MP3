@@ -1,6 +1,6 @@
 # Backend foundation test plan
 
-Status: Approved for baseline freeze; runtime evidence pending
+Status: Approved baseline `80d8ac2`; corrected snapshot independently approved for replacement freeze, full SHA pending post-commit
 Feature/story IDs: `run-backend-with-postgresql`, AC01–AC09
 Approved specification/contract revisions: `run-backend-with-postgresql` revision 2 at `d2ef875`
 Designer identity: `/root/backend_foundation_tests`; independent reviewers: `/root/backend_spec_behaviour_review` and `/root/backend_spec_security_review`
@@ -31,6 +31,10 @@ All fixtures are local synthetic values. Rejected startup cases perform no datab
 - Readiness failure tests use SQLAlchemy connection/execution boundary patches; BF-02 and BF-07 separately require real PostgreSQL so mocks cannot establish integration success.
 - Clean-checkout command following, Uvicorn listener inspection at `127.0.0.1`, Python 3.12 execution and stopping the database while observing liveness are manual/deferred. Parsed Compose configuration proves declared binding, not an actual listener.
 - Independent behaviour and security reviewers approved the test adequacy and safeguards for baseline freeze. Runtime, PostgreSQL, migration and implementation evidence remain pending.
+
+## Test change control
+
+On 2026-10-19, the developer reported that BF-06 used plain `docker compose config`, which correctly excludes the inactive profiled `test-db` service, while the test then required that service to be present. The test owner reproduced both Compose outputs and classified this as a test defect rather than an implementation or specification defect. The test now passes `--profile test` to configuration rendering; every service, profile, database and loopback-port assertion is unchanged. The focused test passed. A feasible full run passed 14/16; only the two real PostgreSQL cases failed because Docker Desktop/test PostgreSQL was unavailable. `/root/backend_spec_behaviour_review` approved the classification and correction from the reproduced outputs, with independent Docker execution limited by its sandbox. `/root/backend_spec_security_review` approved the security coverage and independently ran the focused test (`1 passed`). The corrected snapshot is approved for replacement freeze; record its full SHA after commit and preserve baseline `80d8ac2` in the run record.
 
 ## Proposed protected baseline
 
