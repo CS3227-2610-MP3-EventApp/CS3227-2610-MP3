@@ -203,6 +203,26 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
     } finally { browserZone.mockRestore(); }
   });
 
+  test("F01-AC03/07 preserves untouched fractional instants on a title-only edit at the event boundary", async () => {
+    seedActor("organiser");
+    const preciseDraft = { ...draft, startsAt: "2027-01-01T01:00:00.123456Z", endsAt: "2027-01-01T02:00:00.654321Z" };
+    const preciseEvent = { ...event, startsAt: preciseDraft.startsAt };
+    const server = programmeServer({ items: [preciseDraft], events: [preciseEvent] });
+    const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: preciseDraft.title }));
+    await replace(user, /^Title$/i, "Title changed without rescheduling");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    await waitFor(() => expect(server.writes()).toHaveLength(1));
+    // Assert raw HTTP values: JavaScript Date comparisons discard microseconds.
+    expect(server.writes()[0]).toEqual({
+      method: "PATCH", path: itemPath,
+      body: { ...fields, title: "Title changed without rescheduling", startsAt: preciseDraft.startsAt, endsAt: preciseDraft.endsAt, expectedRevision: 1 },
+    });
+    expect(await screen.findByRole("button", { name: "Title changed without rescheduling" })).toBeVisible();
+    expect(await screen.findByText(/^Revision\s*2$/i)).toBeVisible();
+    expect(server.items[0].state).toBe("draft");
+  });
+
   test("F01-AC03/AC10 associates server field errors and displays validation findings without changing the draft", async () => {
     seedActor("organiser"); const server = programmeServer({ items: [draft] }); const user = await openProgramme();
     await user.click(await screen.findByRole("button", { name: draft.title }));
