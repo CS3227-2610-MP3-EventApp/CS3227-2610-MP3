@@ -6,7 +6,7 @@ import { renderPrototype, storedValues } from "../helpers/renderPrototype";
 
 const CURRENT = "Synthetic-Current-Password";
 const REPLACEMENT = "Synthetic-New-Password";
-const HOSTILE = "PRIVATE-PASSWORD postgresql://secret@example.invalid <script>bad()</script>";
+const HOSTILE = "PRIVATE-PASSWORD https://example.invalid/database <script>bad()</script>";
 function fill(current = CURRENT, replacement = REPLACEMENT, confirmation = replacement) {
   for (const [label, value] of [[/^current password$/i, current], [/^new password$/i, replacement], [/^confirm new password$/i, confirmation]] as const) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });

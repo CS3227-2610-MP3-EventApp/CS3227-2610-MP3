@@ -588,7 +588,7 @@ def test_explicit_submit_freezes_content_and_scoped_organiser_projection(world):
     problem(world.ob.get(f"/api/v1/organiser/events/{world.b}/applications/{record['id']}"), 404, "not_found")
     problem(world.ob.get(route + "/" + record["id"]), 403, "forbidden")
     assert set(submitted) == APPLICATION_KEYS and submitted["status"] == "submitted"
-    assert not {"decision", "booth", "accepted", "setup"} & set(submitted)
+    assert submitted["decision"] is None and not {"booth", "accepted", "setup"} & set(submitted)
     audits = [row for row in success_audits() if row["resource_id"] == record["id"]]
     assert {(row["action"], row["resource_revision"]) for row in audits} == {("application_create", 1), ("application_submit", 2)}
 
