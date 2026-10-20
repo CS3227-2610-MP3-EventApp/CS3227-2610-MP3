@@ -300,8 +300,8 @@ def test_private_owner_and_organiser_read_write_boundaries(world):
     assert success(world.oa.get(f"/api/v1/organiser/events/{world.a}/applications")) == []
     problem(world.oa.get(f"/api/v1/organiser/events/{world.a}/applications/{record['id']}"), 404, "not_found")
     problem(world.ob.get(f"/api/v1/organiser/events/{world.a}/applications"), 403, "forbidden")
-    problem(world.x.get("/api/v1/business/applications", params={"businessId": world.yid}), 403, "forbidden")
-    problem(request(world.x, "POST", "/api/v1/business/applications", json={"businessId": world.yid, "eventId": world.a, **content()}), 403, "forbidden")
+    problem(world.x.get("/api/v1/business/applications", params={"businessId": world.yid}), 404, "not_found")
+    problem(request(world.x, "POST", "/api/v1/business/applications", json={"businessId": world.yid, "eventId": world.a, **content()}), 404, "not_found")
     assert domain_state() == before
 
 
@@ -331,6 +331,46 @@ def test_active_workspace_does_not_expose_an_inactive_other_business(world):
     response = world.x.get(own_path(other))
     problem(response, 404, "not_found")
     assert "OTHER-BUSINESS-PRIVATE" not in response.text and domain_state() == before
+
+
+@pytest.mark.parametrize("inactive_target_membership", [False, True])
+@pytest.mark.parametrize("route_kind", ["events", "list", "create"])
+def test_foreign_absent_business_selectors_are_identical_404_after_workspace_check(world, route_kind, inactive_target_membership):
+    # APP-TCR-02 / APP-S03/13 / AC03/06/08: target existence must stay hidden
+    # once the actor has a valid active workspace; global workspace loss is403.
+    approve(world, business=world.yid)
+    create(world, business=world.yid, client=world.y, description="OTHER-BUSINESS-PRIVATE")
+    if inactive_target_membership:
+        with connect() as connection:
+            connection.execute("INSERT INTO business_memberships(id,user_id,business_id,membership_role,status) VALUES(%s,%s,%s,'owner','inactive')", (str(uuid4()), world.xuser, world.yid))
+    absent = str(uuid4())
+    before, successful = domain_state(), success_audits()
+    audit_ids = {row["id"] for row in table_rows("audit_events")}
+
+    def select_business(target):
+        if route_kind == "create":
+            return request(world.x, "POST", "/api/v1/business/applications", json={"businessId": target, "eventId": world.a, **content()})
+        path = "/api/v1/business/application-events" if route_kind == "events" else "/api/v1/business/applications"
+        return world.x.get(path, params={"businessId": target})
+
+    foreign = problem(select_business(world.yid), 404, "not_found")
+    missing = problem(select_business(absent), 404, "not_found")
+    assert foreign == missing
+    assert world.yid not in json.dumps(foreign) and absent not in json.dumps(missing)
+    assert domain_state() == before and success_audits() == successful
+
+    # Remove the actor's only active workspace; optional target membership is
+    # still inactive. Now the approved global403 must precede target lookup.
+    with connect() as connection:
+        connection.execute("UPDATE business_memberships SET status='inactive' WHERE user_id=%s AND business_id=%s", (world.xuser, world.xid))
+    for target in [world.yid, absent]:
+        problem(select_business(target), 403, "forbidden")
+    assert domain_state() == before and success_audits() == successful
+    added_audits = [row for row in table_rows("audit_events") if row["id"] not in audit_ids]
+    assert all(row["resource_id"] in {None, world.xid, world.xuser} for row in added_audits)
+    captured = json.dumps(added_audits) + json.dumps(foreign) + json.dumps(missing)
+    for marker in [world.yid, "OTHER-BUSINESS-PRIVATE", *content().values()]:
+        assert marker not in captured
 
 
 @pytest.mark.parametrize("field,minimum,maximum", [("description", 1, 5000), ("requestedSpace", 1, 500), ("contactName", 1, 100)])
@@ -471,7 +511,7 @@ def test_private_discovery_lists_and_submitted_contacts_recheck_current_authorit
     approve(world)
     frozen = submit(world, create(world))
     before = domain_state()
-    for client, status, code in [(world.anonymous, 401, "unauthenticated"), (world.attendee, 403, "forbidden"), (world.oa, 403, "forbidden"), (world.y, 403, "forbidden")]:
+    for client, status, code in [(world.anonymous, 401, "unauthenticated"), (world.attendee, 403, "forbidden"), (world.oa, 403, "forbidden"), (world.y, 404, "not_found")]:
         for path in ["/api/v1/business/application-events", "/api/v1/business/applications"]:
             response = client.get(path, params={"businessId": world.xid})
             problem(response, status, code)
