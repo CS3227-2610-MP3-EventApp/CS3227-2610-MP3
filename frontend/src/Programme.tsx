@@ -1,5 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, TextField, Typography } from "@mui/material";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Stack, SvgIcon, TextField, Tooltip, Typography } from "@mui/material";
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { type Dayjs } from "dayjs";
+import utc from "dayjs/plugin/utc";
+import "dayjs/locale/en-gb";
 import { useNavigate } from "react-router-dom";
 import { AppearanceControl } from "./Appearance";
 import { Brand } from "./components";
@@ -7,12 +12,26 @@ import { ApiError, programmeApi, type EventSummary, type ItemFields, type Progra
 import { localTime, localTimeChoices } from "./programmeTime";
 import { useAuth } from "./Auth";
 
+dayjs.extend(utc);
+
 type Errors = Record<string, string[]>;
 const types: ItemFields["type"][] = ["talk", "workshop", "panel", "booth", "performance", "other"];
 const panel = { p: { xs: 2, md: 3 }, border: 1, borderColor: "divider" };
 const actions = { flexWrap: "wrap", gap: 1.5 };
 const optionalText = (value: string) => value.trim() || null;
 const integer = (value: string, minimum: number) => /^\d+$/.test(value) && Number.isInteger(Number(value)) && Number(value) >= minimum && Number(value) <= 2147483647;
+function priceInCents(value: string): number | null {
+  if (!/^\d+(?:\.\d{1,2})?$/.test(value.trim())) return null;
+  const [whole, fraction = ""] = value.trim().split(".");
+  const dollars = Number(whole);
+  if (dollars > 21474836) return null;
+  const cents = dollars * 100 + Number(fraction.padEnd(2, "0"));
+  return cents <= 2147483647 ? cents : null;
+}
+const priceInDollars = (cents: number) => `${Math.trunc(cents / 100)}.${String(cents % 100).padStart(2, "0")}`;
+const pickerWallClock = (value: Dayjs | null) => value?.isValid() ? value.format("YYYY-MM-DDTHH:mm:ss") : "";
+const pencilPath = "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z";
+const trashPath = "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z";
 function fieldError(errors: Errors, field: string) { return { error: !!errors[field]?.length, helperText: errors[field]?.join(" ") }; }
 function textErrors(name: string, value: string, maximum: number, required = true): string[] {
   if (required && !value.trim()) return [`${name} is required.`];
@@ -200,7 +219,11 @@ function LocationManager({ eventId, venues, rooms, items, blocked, perform, onVe
     <Paper component="section" elevation={0} sx={panel}>
       <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Venues</Typography>
       {!venues.length && <Typography color="text.secondary" sx={{ mb: 2 }}>No venues yet. Add a venue before a room.</Typography>}
-      <Stack spacing={1} sx={{ mb: 2 }}>{venues.map((value) => <Stack key={value.id} direction="row" sx={actions} alignItems="center"><Typography sx={{ flex: 1 }}>{value.name}</Typography><Button disabled={blocked} onClick={() => editVenue(value)}>Edit venue {value.name}</Button><Button color="error" disabled={blocked || rooms.some((current) => current.venueId === value.id)} onClick={() => onDelete("venues", value)}>Delete venue {value.name}</Button></Stack>)}</Stack>
+      <Stack spacing={1} sx={{ mb: 2 }}>{venues.map((value) => <Stack key={value.id} direction="row" sx={actions} alignItems="center">
+        <Typography sx={{ flex: 1 }}>{value.name}</Typography>
+        <Tooltip title={`Edit venue ${value.name}`}><span><IconButton aria-label={`Edit venue ${value.name}`} disabled={blocked} onClick={() => editVenue(value)}><SvgIcon><path d={pencilPath} /></SvgIcon></IconButton></span></Tooltip>
+        <Tooltip title={`Delete venue ${value.name}`}><span><IconButton aria-label={`Delete venue ${value.name}`} color="error" disabled={blocked || rooms.some((current) => current.venueId === value.id)} onClick={() => onDelete("venues", value)}><SvgIcon><path d={trashPath} /></SvgIcon></IconButton></span></Tooltip>
+      </Stack>)}</Stack>
       <Box component="form" noValidate onSubmit={saveVenue}><Stack spacing={2}>
         {venue && <Stack direction="row" sx={actions}><Typography>Editing venue · revision {venue.revision}</Typography><Button disabled={blocked} onClick={() => editVenue(null)}>Cancel venue edit</Button></Stack>}
         {venueLocked && <Alert severity="info">This venue is read-only because a published item uses it.</Alert>}
@@ -213,11 +236,15 @@ function LocationManager({ eventId, venues, rooms, items, blocked, perform, onVe
     <Paper component="section" elevation={0} sx={panel}>
       <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Rooms</Typography>
       {!rooms.length && <Typography color="text.secondary" sx={{ mb: 2 }}>No rooms yet.</Typography>}
-      <Stack spacing={1} sx={{ mb: 2 }}>{rooms.map((value) => <Stack key={value.id} direction="row" sx={actions} alignItems="center"><Typography sx={{ flex: 1 }}>{value.name} · maximum {value.maxCapacity}</Typography><Button disabled={blocked} onClick={() => editRoom(value)}>Edit room {value.name}</Button><Button color="error" disabled={blocked || items.some((item) => item.roomId === value.id)} onClick={() => onDelete("rooms", value)}>Delete room {value.name}</Button></Stack>)}</Stack>
+      <Stack spacing={1} sx={{ mb: 2 }}>{rooms.map((value) => <Stack key={value.id} direction="row" sx={actions} alignItems="center">
+        <Typography sx={{ flex: 1 }}>{value.name} · maximum {value.maxCapacity}</Typography>
+        <Tooltip title={`Edit room ${value.name}`}><span><IconButton aria-label={`Edit room ${value.name}`} disabled={blocked} onClick={() => editRoom(value)}><SvgIcon><path d={pencilPath} /></SvgIcon></IconButton></span></Tooltip>
+        <Tooltip title={`Delete room ${value.name}`}><span><IconButton aria-label={`Delete room ${value.name}`} color="error" disabled={blocked || items.some((item) => item.roomId === value.id)} onClick={() => onDelete("rooms", value)}><SvgIcon><path d={trashPath} /></SvgIcon></IconButton></span></Tooltip>
+      </Stack>)}</Stack>
       <Box component="form" noValidate onSubmit={saveRoom}><Stack spacing={2}>
         {room && <Stack direction="row" sx={actions}><Typography>Editing room · revision {room.revision}</Typography><Button disabled={blocked} onClick={() => editRoom(null)}>Cancel room edit</Button></Stack>}
         {roomLocked && <Alert severity="info">This room is read-only because a published item uses it.</Alert>}
-        <TextField id="room-venue" label="Venue" select value={venueId} onChange={(event) => setVenueId(event.target.value)} disabled={blocked || !!room} slotProps={{ select: { native: true } }} {...fieldError(roomErrors, "venueId")}><option value="">Choose a venue</option>{venues.map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</TextField>
+        <TextField id="room-venue" label="Venue" select value={venueId} onChange={(event) => setVenueId(event.target.value)} disabled={blocked || !!room} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }} {...fieldError(roomErrors, "venueId")}><option value="">Choose a venue</option>{venues.map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</TextField>
         <TextField id="room-name" label="Room name" value={roomName} onChange={(event) => setRoomName(event.target.value)} disabled={blocked || roomLocked} {...fieldError(roomErrors, "name")} />
         <TextField id="room-capacity" label="Room capacity" type="number" value={maxCapacity} onChange={(event) => setMaxCapacity(event.target.value)} disabled={blocked || roomLocked} slotProps={{ htmlInput: { min: 1, max: 2147483647, step: 1 } }} {...fieldError(roomErrors, "maxCapacity")} />
         <TextField id="room-access" label="Room accessibility details" value={roomAccess} onChange={(event) => setRoomAccess(event.target.value)} multiline minRows={2} disabled={blocked || roomLocked} {...fieldError(roomErrors, "accessibilityDetails")} />
@@ -235,20 +262,23 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
   const [title, setTitle] = useState(item?.title ?? "");
   const [type, setType] = useState<ItemFields["type"]>(item?.type ?? "talk");
   const [roomId, setRoomId] = useState(item?.roomId ?? "");
-  const [startsAt, setStartsAt] = useState(item ? localTime(item.startsAt, event.timezone) : "");
-  const [endsAt, setEndsAt] = useState(item ? localTime(item.endsAt, event.timezone) : "");
+  // UTC carries wall-clock fields without normalizing DST gaps; Intl resolves the event zone below.
+  const [startValue, setStartValue] = useState<Dayjs | null>(item ? dayjs.utc(localTime(item.startsAt, event.timezone)) : null);
+  const [endValue, setEndValue] = useState<Dayjs | null>(item ? dayjs.utc(localTime(item.endsAt, event.timezone)) : null);
+  const startsAt = pickerWallClock(startValue);
+  const endsAt = pickerWallClock(endValue);
   const [startChoice, setStartChoice] = useState(item ? originalChoice(item.startsAt) : "");
   const [endChoice, setEndChoice] = useState(item ? originalChoice(item.endsAt) : "");
   const [capacity, setCapacity] = useState(item ? String(item.capacity) : "");
-  const [price, setPrice] = useState(item ? String(item.priceMinorUnits) : "");
+  const [price, setPrice] = useState(item ? priceInDollars(item.priceMinorUnits) : "");
   const [access, setAccess] = useState(item?.accessibilityDetails ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [validation, setValidation] = useState("");
   const [dirty, setDirty] = useState(false);
   const published = item?.state === "published";
   const disabled = blocked || published;
-  const startChoices = localTimeChoices(startsAt, event.timezone);
-  const endChoices = localTimeChoices(endsAt, event.timezone);
+  const startChoices = useMemo(() => localTimeChoices(startsAt, event.timezone), [startsAt, event.timezone]);
+  const endChoices = useMemo(() => localTimeChoices(endsAt, event.timezone), [endsAt, event.timezone]);
   function resolve(value: string, choices: ReturnType<typeof localTimeChoices>, choice: string, original?: string) {
     // Preserve server precision beyond the wall-clock control and JavaScript Date.
     if (original && value === localTime(original, event.timezone) && choice === originalChoice(original)) return original;
@@ -260,19 +290,20 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
     if (published) return;
     const start = resolve(startsAt, startChoices, startChoice, item?.startsAt);
     const end = resolve(endsAt, endChoices, endChoice, item?.endsAt);
+    const priceMinorUnits = priceInCents(price);
     const room = rooms.find((value) => value.id === roomId);
     const next = findings({
       title: textErrors("Title", title, 200), roomId: room ? [] : ["Choose a room."], type: types.includes(type) ? [] : ["Choose an activity type."],
       startsAt: start ? [] : [startChoices.length ? "Choose an explicit offset for this repeated local time." : "Enter a valid local time. This time may not exist in the event timezone."],
       endsAt: end ? [] : [endChoices.length ? "Choose an explicit offset for this repeated local time." : "Enter a valid local time. This time may not exist in the event timezone."],
       capacity: !integer(capacity, 1) ? ["Enter a whole number from 1 to 2147483647."] : room && Number(capacity) > room.maxCapacity ? ["Capacity exceeds the room maximum."] : [],
-      priceMinorUnits: integer(price, 0) ? [] : ["Enter whole SGD cents from 0 to 2147483647."], accessibilityDetails: textErrors("Accessibility details", access, 2000, false),
+      priceMinorUnits: priceMinorUnits !== null ? [] : ["Enter an SGD amount from 0 to 21474836.47 with at most two decimal places."], accessibilityDetails: textErrors("Accessibility details", access, 2000, false),
     });
     if (start && (Date.parse(start) < Date.parse(event.startsAt) || Date.parse(start) >= Date.parse(event.endsAt))) next.startsAt = ["Start must be within the event dates."];
     if (end && (Date.parse(end) > Date.parse(event.endsAt) || Date.parse(end) <= Date.parse(event.startsAt))) next.endsAt = ["End must be within the event dates."];
     if (start && end && Date.parse(end) <= Date.parse(start)) next.endsAt = ["End must follow start."];
-    setErrors(next); if (Object.keys(next).length || !start || !end) return;
-    void perform(() => programmeApi.saveItem(event.id, { title: title.trim(), type, roomId, startsAt: start, endsAt: end, capacity: Number(capacity), priceMinorUnits: Number(price), currency: "SGD", accessibilityDetails: optionalText(access) }, item ?? undefined), onSaved, setErrors);
+    setErrors(next); if (Object.keys(next).length || !start || !end || priceMinorUnits === null) return;
+    void perform(() => programmeApi.saveItem(event.id, { title: title.trim(), type, roomId, startsAt: start, endsAt: end, capacity: Number(capacity), priceMinorUnits, currency: "SGD", accessibilityDetails: optionalText(access) }, item ?? undefined), onSaved, setErrors);
   }
   async function validate() {
     if (!item || published) return;
@@ -280,7 +311,7 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
     await perform(() => programmeApi.validate(event.id, item), (result) => { setErrors(result.errors); setValidation(result.valid ? "Saved revision is valid. Publication will independently validate it again." : "Saved revision has validation findings. Correct the draft before publication."); }, setErrors);
   }
   function offsetField(label: string, choices: ReturnType<typeof localTimeChoices>, value: string, change: (value: string) => void) {
-    return choices.length > 1 && <TextField id={`item-${label.toLowerCase()}-offset`} label={`${label} offset`} select value={value} onChange={(event) => { change(event.target.value); changed(); }} disabled={disabled} slotProps={{ select: { native: true } }} helperText="This local time occurs twice. Choose its UTC offset."><option value="">Choose offset</option>{choices.map((choice) => <option key={choice.instant} value={choice.instant}>UTC{choice.offset}</option>)}</TextField>;
+    return choices.length > 1 && <TextField id={`item-${label.toLowerCase()}-offset`} label={`${label} offset`} select value={value} onChange={(event) => { change(event.target.value); changed(); }} disabled={disabled} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }} helperText="This local time occurs twice. Choose its UTC offset."><option value="">Choose offset</option>{choices.map((choice) => <option key={choice.instant} value={choice.instant}>UTC{choice.offset}</option>)}</TextField>;
   }
   return <Paper component="section" elevation={0} sx={panel}>
     <Stack spacing={2.5} component="form" noValidate onSubmit={save}>
@@ -289,16 +320,18 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
       {dirty && item && <Typography variant="body2" color="text.secondary">You have unsaved changes. Validation checks the saved revision. Save before publication.</Typography>}
       <TextField id="item-title" label="Title" value={title} onChange={(event) => { setTitle(event.target.value); changed(); }} disabled={disabled} {...fieldError(errors, "title")} />
       <TextField id="item-type" label="Type" select value={type} onChange={(event) => { setType(event.target.value as ItemFields["type"]); changed(); }} disabled={disabled} slotProps={{ select: { native: true } }} {...fieldError(errors, "type")}>{types.map((value) => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}</TextField>
-      <TextField id="item-room" label="Room" select value={roomId} onChange={(event) => { setRoomId(event.target.value); changed(); }} disabled={disabled} slotProps={{ select: { native: true } }} {...fieldError(errors, "roomId")}><option value="">Choose a room</option>{rooms.map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</TextField>
+      <TextField id="item-room" label="Room" select value={roomId} onChange={(event) => { setRoomId(event.target.value); changed(); }} disabled={disabled} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }} {...fieldError(errors, "roomId")}><option value="">Choose a room</option>{rooms.map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</TextField>
       {roomId && <Typography variant="body2" color="text.secondary">Venue: {venues.find((venue) => venue.id === rooms.find((room) => room.id === roomId)?.venueId)?.name ?? "Unknown"}. Capacity is per item; activities may overlap in the same room.</Typography>}
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
-        <Stack spacing={2}><TextField id="item-start" label="Starts at" type="datetime-local" value={startsAt} onChange={(event) => { setStartsAt(event.target.value); setStartChoice(""); changed(); }} disabled={disabled} slotProps={{ inputLabel: { shrink: true }, htmlInput: { step: 1 } }} {...fieldError(errors, "startsAt")} />{offsetField("Start", startChoices, startChoice, setStartChoice)}</Stack>
-        <Stack spacing={2}><TextField id="item-end" label="Ends at" type="datetime-local" value={endsAt} onChange={(event) => { setEndsAt(event.target.value); setEndChoice(""); changed(); }} disabled={disabled} slotProps={{ inputLabel: { shrink: true }, htmlInput: { step: 1 } }} {...fieldError(errors, "endsAt")} />{offsetField("End", endChoices, endChoice, setEndChoice)}</Stack>
-      </Box>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
+          <Stack spacing={2}><DateTimePicker label="Starts at" value={startValue} onChange={(value) => { setStartValue(value); if (pickerWallClock(value) !== startsAt) setStartChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-start", ...fieldError(errors, "startsAt") } }} />{offsetField("Start", startChoices, startChoice, setStartChoice)}</Stack>
+          <Stack spacing={2}><DateTimePicker label="Ends at" value={endValue} onChange={(value) => { setEndValue(value); if (pickerWallClock(value) !== endsAt) setEndChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-end", ...fieldError(errors, "endsAt") } }} />{offsetField("End", endChoices, endChoice, setEndChoice)}</Stack>
+        </Box>
+      </LocalizationProvider>
       <TextField id="item-capacity" label="Capacity" type="number" value={capacity} onChange={(event) => { setCapacity(event.target.value); changed(); }} disabled={disabled} slotProps={{ htmlInput: { min: 1, max: 2147483647, step: 1 } }} {...fieldError(errors, "capacity")} />
-      <TextField id="item-price" label="Price (SGD cents)" type="number" value={price} onChange={(event) => { setPrice(event.target.value); changed(); }} disabled={disabled} slotProps={{ htmlInput: { min: 0, max: 2147483647, step: 1 } }} {...fieldError(errors, "priceMinorUnits")} />
+      <TextField id="item-price" label="Price (SGD)" value={price} onChange={(event) => { setPrice(event.target.value); changed(); }} disabled={disabled} slotProps={{ htmlInput: { inputMode: "decimal" } }} {...fieldError(errors, "priceMinorUnits")} />
       <TextField id="item-access" label="Accessibility details" value={access} onChange={(event) => { setAccess(event.target.value); changed(); }} multiline minRows={2} disabled={disabled} {...fieldError(errors, "accessibilityDetails")} />
-      <Typography variant="caption" color="text.secondary">Blank accessibility details mean unknown. Price is in whole SGD cents (1200 = SGD 12.00).</Typography>
+      <Typography variant="caption" color="text.secondary">Blank accessibility details mean unknown. Enter price in SGD dollars, with up to two decimal places (maximum 21474836.47).</Typography>
       {validation && <Typography role="status">{validation}</Typography>}
       <Stack direction="row" sx={actions}><Button type="submit" variant="contained" disabled={disabled}>Save draft</Button>{item && <><Button disabled={disabled} onClick={validate}>Validate</Button><Button disabled={disabled || dirty} variant="outlined" onClick={onPublish}>Publish</Button><Button disabled={disabled} color="error" onClick={onDelete}>Delete</Button></>}</Stack>
     </Stack>

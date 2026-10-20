@@ -12,10 +12,10 @@ Use the existing trusted bootstrap CLI to create an event and assign an organise
 
 1. Sign in using the Organiser tab; open Programme Management. Only assigned events should appear. An account with no active event membership must not enter the workspace.
 2. Select an event. Create a venue with a name/address, then a room in that venue with capacity 30. Leave accessibility notes empty: this means unknown, not confirmed accessible.
-3. Create a draft workshop in that room, inside the event's dates, capacity 30 and price 0 SGD cents. Save, select it again and refresh: the draft should persist and remain private.
-4. Try capacity 31, a negative price, missing title and an end time before the start. Expect actionable errors and no accepted invalid changes. Two otherwise valid items may overlap in the same room.
+3. Create a draft workshop in that room, inside the event's dates, capacity 30 and price SGD `12.50`. Use the start/end calendar and time controls in the displayed event timezone. Save, select it again and refresh: the draft should persist and remain private, with the same SGD dollar price.
+4. Try capacity 31, a negative price, a price with three decimal places, missing title and an end time before the start. Expect actionable errors and no accepted invalid changes. Price `0` is valid; `0.29` must become exactly 29 API cents, without rounding. Two otherwise valid items may overlap in the same room.
 5. Validate a draft. This must not publish or increment its revision. Open publication confirmation and cancel: nothing should publish. Confirm publication: the item becomes read-only with a new revision.
-6. Try editing/deleting that published item or changing its room/venue. Expect rejection. An unused room can be deleted; a referenced room cannot. Delete a different draft only after explicit confirmation; cancelling deletion preserves it.
+6. Try editing/deleting that published item or changing its room/venue. Expect rejection. Venue/room pencil and trash icons have tooltips and keyboard-accessible names. An unused room can be deleted; a referenced room cannot. Delete a different draft from its selected details only after explicit confirmation; cancelling deletion preserves it. Delete unused rooms before deleting their venue.
 7. Open the same draft in two tabs. Save an edit in the first, then save/publish the old revision in the second. Expect a conflict and an explicit reload/review step, not silent overwrite.
 8. Switch events while editing. Selected item, unsaved inputs and old field errors must clear. Check both appearance modes and keyboard operation. Displayed times must use the selected event's timezone, even when your computer uses another timezone.
 
@@ -33,7 +33,7 @@ Lists return `{items,total,limit,offset}`. Filters combine with AND. Title searc
 
 An event with no published items is absent; its programme read returns 404. A draft ID returns 404 even in an otherwise visible event. Published details contain frozen item, event, venue and room facts, not organiser audit identity or private drafts. Business/organiser sessions cannot substitute for attendee authority.
 
-`PublishedProgramme` includes `id`, `eventId`, `revision`, `state`, `title`, `type`, `startsAt`, `endsAt`, `capacity`, `priceMinorUnits`, `currency`, `accessibilityDetails`, `publishedAt`, and nested `event`, `venue`, `room`. IDs are UUIDs; output instants are UTC ISO strings. Preserve item IDs/revisions for later planning integration. Prices are nonnegative integer SGD cents, not floating-point dollars.
+`PublishedProgramme` includes `id`, `eventId`, `revision`, `state`, `title`, `type`, `startsAt`, `endsAt`, `capacity`, `priceMinorUnits`, `currency`, `accessibilityDetails`, `publishedAt`, and nested `event`, `venue`, `room`. IDs are UUIDs; output instants are UTC ISO strings. Preserve item IDs/revisions for later planning integration. API prices are nonnegative integer SGD cents, not floating-point dollars: the UI's SGD `12.50` is `priceMinorUnits: 1250`. The maximum remains 2147483647 cents (SGD 21,474,836.47).
 
 ## Automated and lifecycle checks
 
