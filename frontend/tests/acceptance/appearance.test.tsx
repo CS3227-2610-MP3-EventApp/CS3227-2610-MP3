@@ -412,7 +412,7 @@ describe("revision 2 AC09 representative typography and palette", () => {
     expectMinimumTextSize(appearanceControl(), 21);
     expectMinimumTextSize(screen.getByText(cardTitle), 27);
     expectMinimumTextSize(screen.getByText(description), 21);
-    expectMinimumTextSize(screen.getByText("03 / PREVIEWS"), 18);
+    expectMinimumTextSize(screen.getByText(role === "attendee" ? "03 / PREVIEWS" : "01 / AVAILABLE · 02 / PREVIEWS"), 18);
     expectMinimumTextSize(screen.getAllByRole("button", { name: /coming later/i })[0], 21);
     const actorBeforeFailure = auth.current;
     auth.failure = { status: 500, detail: "Request could not be completed." };
