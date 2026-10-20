@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import secrets
 import subprocess
 import sys
 from uuid import uuid4
@@ -442,7 +443,7 @@ def test_additive_upgrade_preserves_legacy_grants_drafts_frozen_records_and_sess
     migrate("20261020_0003")
     org, event = seed_organiser("legacy-organiser", password_hash)
     owner, business, participation, draft_id, frozen_participation, frozen_id = [str(uuid4()) for _ in range(6)]
-    now, token = datetime.now(timezone.utc), "Synthetic-upgrade-session-" + str(uuid4())
+    now, token = datetime.now(timezone.utc), secrets.token_urlsafe(32)
     with connect() as connection:
         connection.execute("INSERT INTO users(id,username,email,display_name,role,created_at,updated_at) VALUES(%s,'legacy-owner','legacy@example.test','Legacy Owner','business',%s,%s)", (owner, now, now))
         connection.execute("INSERT INTO password_credentials(user_id,password_hash,must_change_password,updated_at) VALUES(%s,%s,false,%s)", (owner, password_hash, now))
