@@ -1,4 +1,8 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { useState } from "react";
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import { auth, seedActor } from "../fixtures/auth";
@@ -114,8 +118,28 @@ async function replace(user: User, label: RegExp, value: string) {
 }
 
 function setLocalTime(label: RegExp, value: string) {
-  // datetime-local typing is incomplete in jsdom; dispatch the browser input event.
-  fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  const field = screen.getByRole("group", { name: label });
+  const [date, time] = value.split("T");
+  const [year, month, day] = date.split("-");
+  const [hours, minutes, seconds = "00"] = time.split(":");
+  const meridiem = within(field).queryByRole("spinbutton", { name: /^Meridiem$/i });
+  const sections = { Year: year, Month: month, Day: day, Hours: meridiem ? String(Number(hours) % 12 || 12) : hours, Minutes: minutes, Seconds: seconds, ...(meridiem ? { Meridiem: Number(hours) < 12 ? "AM" : "PM" } : {}) };
+  // Paste through MUI's public accessible sections; no hidden-input mutation.
+  for (const [name, content] of Object.entries(sections)) {
+    const section = within(field).queryByRole("spinbutton", { name: new RegExp(`^${name}$`, "i") });
+    if (!section && name === "Seconds") continue;
+    expect(section).not.toBeNull();
+    fireEvent.focus(section!);
+    fireEvent.paste(section!, { clipboardData: { getData: () => content } });
+  }
+  fireEvent.blur(field);
+}
+
+function expectLocalTime(label: RegExp, expected: { day: number; hours: number; minutes: number }) {
+  const field = screen.getByRole("group", { name: label });
+  for (const [section, value] of Object.entries(expected)) {
+    expect(within(field).getByRole("spinbutton", { name: new RegExp(`^${section}$`, "i") })).toHaveAttribute("aria-valuenow", String(value));
+  }
 }
 
 async function fillItem(user: User) {
@@ -125,7 +149,7 @@ async function fillItem(user: User) {
   setLocalTime(/^Starts at$/i, "2027-01-01T09:00");
   setLocalTime(/^Ends at$/i, "2027-01-01T10:00");
   await replace(user, /^Capacity$/i, "40");
-  await replace(user, /^Price \(SGD cents\)$/i, "1200");
+  await replace(user, /^Price \(SGD\)$/i, "12.00");
   await replace(user, /^Accessibility details$/i, fields.accessibilityDetails);
 }
 
@@ -187,12 +211,12 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
     const browserZone = vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({ ...resolved, timeZone: "UTC" });
     try {
       const user = await openProgramme(); await user.click(await screen.findByRole("button", { name: draft.title }));
-      expect(screen.getByLabelText(/^Starts at$/i)).toHaveValue("2027-01-01T09:00");
-      expect(screen.getByLabelText(/^Ends at$/i)).toHaveValue("2027-01-01T10:00");
+      expectLocalTime(/^Starts at$/i, { day: 1, hours: 9, minutes: 0 });
+      expectLocalTime(/^Ends at$/i, { day: 1, hours: 10, minutes: 0 });
       expect(screen.getByText(/Asia\/Singapore/)).toBeVisible();
       await replace(user, /^Title$/i, "Updated Workshop"); await choose(user, /^Type$/i, "Workshop");
       setLocalTime(/^Starts at$/i, "2027-01-02T00:30"); setLocalTime(/^Ends at$/i, "2027-01-02T01:30");
-      await replace(user, /^Capacity$/i, "30"); await replace(user, /^Price \(SGD cents\)$/i, "2500");
+      await replace(user, /^Capacity$/i, "30"); await replace(user, /^Price \(SGD\)$/i, "25.00");
       await replace(user, /^Accessibility details$/i, "Hearing loop available");
       await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
       expect(await screen.findByRole("button", { name: "Updated Workshop" })).toBeVisible();
@@ -307,5 +331,196 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
     expect(server.writes()).toHaveLength(writesBeforeSwitch); expect(server.items[0]).toEqual(draft);
     await user.click(screen.getByRole("button", { name: /^New item$/i })); expect(screen.getByLabelText(/^Title$/i)).toHaveValue("");
     expect(screen.queryByRole("option", { name: room.name })).not.toBeInTheDocument();
+  });
+});
+
+describe("approved programme UI refinements (mocked HTTP integration)", () => {
+  test("the date helper edits actual installed MUI accessible sections and its calendar supports keyboard selection", async () => {
+    const changed = vi.fn();
+    function PickerHarness() {
+      const [value, setValue] = useState<Dayjs | null>(dayjs("2027-01-01T09:00:00"));
+      return <LocalizationProvider dateAdapter={AdapterDayjs}><DateTimePicker label="Starts at" value={value} onChange={(next) => { setValue(next); changed(next?.format("YYYY-MM-DDTHH:mm:ss")); }} format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} /></LocalizationProvider>;
+    }
+    const user = userEvent.setup(); render(<PickerHarness />);
+    setLocalTime(/^Starts at$/i, "2027-01-02T10:35:14");
+    expectLocalTime(/^Starts at$/i, { day: 2, hours: 10, minutes: 35 });
+    expect(changed).toHaveBeenLastCalledWith("2027-01-02T10:35:14");
+    const field = screen.getByRole("group", { name: /^Starts at$/i });
+    await user.click(within(field).getByRole("button", { name: /choose date/i }));
+    const calendar = await screen.findByRole("grid");
+    within(calendar).getByRole("gridcell", { name: /^2$/ }).focus();
+    await user.keyboard("{ArrowRight}{Enter}");
+    const accept = screen.queryByRole("button", { name: /^OK$/i });
+    if (accept) await user.click(accept);
+    await waitFor(() => expect(screen.queryByRole("grid")).not.toBeInTheDocument());
+    expect(changed).toHaveBeenLastCalledWith("2027-01-03T10:35:14");
+    await user.click(within(field).getByRole("spinbutton", { name: /^Year$/i }));
+    await user.keyboard("{Delete}");
+    expect(within(field).getByRole("spinbutton", { name: /^Year$/i })).not.toHaveAttribute("aria-valuenow");
+  });
+
+  test("keeps empty Venue and Room labels floated above their choice placeholders", async () => {
+    seedActor("organiser"); const server = programmeServer(); const user = await openProgramme();
+    const venueControl = await screen.findByRole("combobox", { name: /^Venue$/i });
+    expect(venueControl).toHaveDisplayValue("Choose a venue");
+    // MUI exposes the shrink state; jsdom cannot establish pixel non-overlap.
+    expect(screen.getByText("Venue", { selector: "label" })).toHaveAttribute("data-shrink", "true");
+    await user.click(screen.getByRole("button", { name: /^New item$/i }));
+    expect(screen.getByRole("combobox", { name: /^Room$/i })).toHaveDisplayValue("Choose a room");
+    expect(screen.getByText("Room", { selector: "label" })).toHaveAttribute("data-shrink", "true");
+    await choose(user, /^Venue$/i, venue.name); await choose(user, /^Room$/i, room.name);
+    expect(screen.getByRole("combobox", { name: /^Venue$/i })).toHaveValue(venue.id);
+    expect(screen.getByRole("combobox", { name: /^Room$/i })).toHaveValue(room.id);
+    expect(server.writes()).toEqual([]);
+  });
+
+  test("uses labelled pencil and trash controls while preserving location editing and delete confirmation", async () => {
+    seedActor("organiser"); const server = programmeServer(); const user = await openProgramme();
+    for (const [kind, name] of [["venue", venue.name], ["room", room.name]]) {
+      for (const action of ["Edit", "Delete"]) {
+        const button = await screen.findByRole("button", { name: `${action} ${kind} ${name}` });
+        expect(button.querySelector("svg")).not.toBeNull();
+        expect(button.textContent?.trim()).toBe("");
+      }
+    }
+    await user.click(screen.getByRole("button", { name: `Edit venue ${venue.name}` }));
+    expect(screen.getByLabelText(/^Venue name$/i)).toHaveValue(venue.name);
+    await user.click(screen.getByRole("button", { name: /^Cancel venue edit$/i }));
+    await user.click(screen.getByRole("button", { name: `Edit room ${room.name}` }));
+    expect(screen.getByLabelText(/^Room name$/i)).toHaveValue(room.name);
+    expect(screen.getByRole("combobox", { name: /^Venue$/i })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: /^Cancel room edit$/i }));
+    expect(screen.getByRole("button", { name: `Delete venue ${venue.name}` })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: `Delete room ${room.name}` }));
+    const dialog = await screen.findByRole("dialog", { name: /delete/i });
+    expect(within(dialog).getByText(room.name)).toBeVisible();
+    await user.click(within(dialog).getByRole("button", { name: /^Cancel$/i }));
+    expect(server.writes()).toEqual([]);
+  });
+
+  test.each([
+    ["12.50", 1250], [" 12.50 ", 1250], ["0", 0], ["0.01", 1], ["0.29", 29], ["19.99", 1999], ["1.2", 120], ["21474836.47", 2147483647],
+  ])("saves SGD %s as exactly %i integer cents and displays stored dollars", async (input, cents) => {
+    seedActor("organiser"); const server = programmeServer({ items: [draft] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: draft.title }));
+    const price = screen.getByLabelText(/^Price \(SGD\)$/i);
+    expect(price).toHaveDisplayValue("12.00");
+    await replace(user, /^Price \(SGD\)$/i, input);
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    await waitFor(() => expect(server.writes()).toHaveLength(1));
+    expect(server.writes()[0]).toEqual({ method: "PATCH", path: itemPath, body: { ...fields, priceMinorUnits: cents, expectedRevision: 1 } });
+    expect(await screen.findByText(/^Revision\s*2$/i)).toBeVisible();
+    expect(screen.getByLabelText(/^Price \(SGD\)$/i)).toHaveDisplayValue((cents / 100).toFixed(2));
+    expect(server.items[0]).toMatchObject({ priceMinorUnits: cents, currency: "SGD", state: "draft" });
+  });
+
+  test.each(["-1", "bad", "", "1e2", "+1", "1,000", "0.001", "12.500", "21474836.48", "9999999999999999999"])("rejects invalid dollar amount %j without rounding or sending a mutation", async (input) => {
+    seedActor("organiser"); const server = programmeServer({ items: [draft] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: draft.title }));
+    const price = screen.getByLabelText(/^Price \(SGD\)$/i);
+    // Inject the exact raw input, including forms that type=number sanitizes.
+    fireEvent.change(price, { target: { value: input } });
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    expect(price).toBeInvalid();
+    expect(price).toHaveAccessibleDescription(/SGD|decimal|amount|price|number/i);
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([draft]);
+    expect(screen.getByText(/^Revision\s*1$/i)).toBeVisible();
+  });
+
+  test("opens the activity calendar, selects a day by keyboard, and saves event-zone instants", async () => {
+    seedActor("organiser"); const server = programmeServer({ items: [draft] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: draft.title }));
+    const start = screen.getByRole("group", { name: /^Starts at$/i });
+    const end = screen.getByRole("group", { name: /^Ends at$/i });
+    expect(within(start).getByRole("spinbutton", { name: /^Hours$/i })).toBeVisible();
+    expect(within(end).getByRole("button", { name: /choose date/i })).toBeEnabled();
+    await user.click(within(start).getByRole("button", { name: /choose date/i }));
+    const calendar = await screen.findByRole("grid");
+    const day = within(calendar).getByRole("gridcell", { name: /^1$/ });
+    day.focus(); await user.keyboard("{ArrowRight}{Enter}");
+    const accept = screen.queryByRole("button", { name: /^OK$/i });
+    if (accept) await user.click(accept);
+    await waitFor(() => expect(screen.queryByRole("grid")).not.toBeInTheDocument());
+    expectLocalTime(/^Starts at$/i, { day: 2, hours: 9, minutes: 0 });
+    setLocalTime(/^Ends at$/i, "2027-01-02T10:00");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    await waitFor(() => expect(server.writes()).toHaveLength(1));
+    expectCompleteItem(server.writes()[0].body, { ...fields, startsAt: "2027-01-02T01:00:00Z", endsAt: "2027-01-02T02:00:00Z" });
+    expect(server.writes()[0].body.expectedRevision).toBe(1);
+  });
+
+  test("rejects invalid activity date order and out-of-event dates without changing stored facts", async () => {
+    seedActor("organiser"); const server = programmeServer({ items: [draft] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: draft.title }));
+    setLocalTime(/^Ends at$/i, "2027-01-01T08:30");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    expect(await screen.findByText(/end must follow start/i)).toBeVisible();
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([draft]);
+    setLocalTime(/^Starts at$/i, "2026-12-31T09:00");
+    setLocalTime(/^Ends at$/i, "2027-01-01T10:00");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    expect(await screen.findByText(/start must be within the event dates/i)).toBeVisible();
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([draft]);
+  });
+
+  test("rejects a DST gap entered through the calendar field without silently moving the activity", async () => {
+    seedActor("organiser");
+    const gapEvent = { ...event, timezone: "America/New_York", startsAt: "2027-03-14T05:00:00Z", endsAt: "2027-03-15T04:00:00Z" };
+    const gapItem = { ...draft, startsAt: "2027-03-14T06:00:00Z", endsAt: "2027-03-14T08:00:00Z" };
+    const server = programmeServer({ events: [gapEvent], items: [gapItem] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: gapItem.title }));
+    setLocalTime(/^Starts at$/i, "2027-03-14T02:30:00");
+    expectLocalTime(/^Starts at$/i, { day: 14, hours: 2, minutes: 30 });
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    expect(await screen.findByText(/valid local time|not exist/i)).toBeVisible();
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([gapItem]);
+  });
+
+  test("rejects a partially cleared activity date and preserves the saved draft", async () => {
+    seedActor("organiser"); const server = programmeServer({ items: [draft] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: draft.title }));
+    const start = screen.getByRole("group", { name: /^Starts at$/i });
+    await user.click(within(start).getByRole("spinbutton", { name: /^Year$/i }));
+    await user.keyboard("{Delete}");
+    expect(within(start).getByRole("spinbutton", { name: /^Year$/i })).not.toHaveAttribute("aria-valuenow");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    expect(await screen.findByText(/valid local time|date.*required|invalid date/i)).toBeVisible();
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([draft]);
+  });
+
+  test("requires an explicit DST fold offset and saves the selected occurrence", async () => {
+    seedActor("organiser");
+    const foldEvent = { ...event, timezone: "America/New_York", startsAt: "2027-11-07T04:00:00Z", endsAt: "2027-11-08T05:00:00Z" };
+    const foldItem = { ...draft, startsAt: "2027-11-07T04:30:00Z", endsAt: "2027-11-07T08:00:00Z" };
+    const server = programmeServer({ events: [foldEvent], items: [foldItem] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: foldItem.title }));
+    setLocalTime(/^Starts at$/i, "2027-11-07T01:30:00");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    expect(await screen.findByText(/choose an explicit offset/i)).toBeVisible();
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([foldItem]);
+    await choose(user, /^Start offset$/i, "UTC−05:00");
+    await user.click(screen.getByRole("button", { name: /^Save draft$/i }));
+    await waitFor(() => expect(server.writes()).toHaveLength(1));
+    expectCompleteItem(server.writes()[0].body, { ...fields, startsAt: "2027-11-07T06:30:00Z", endsAt: foldItem.endsAt });
+    expect(server.writes()[0].body.expectedRevision).toBe(1);
+  });
+
+  test("retains published item and parent read-only protections with the new controls", async () => {
+    seedActor("organiser");
+    const published = { ...draft, state: "published", publishedAt: "2026-10-20T01:00:00Z" };
+    const server = programmeServer({ items: [published] }); const user = await openProgramme();
+    await user.click(await screen.findByRole("button", { name: published.title }));
+    expect(screen.getByLabelText(/^Price \(SGD\)$/i)).toBeDisabled();
+    for (const label of [/^Starts at$/i, /^Ends at$/i]) {
+      const group = screen.getByRole("group", { name: label });
+      for (const section of within(group).getAllByRole("spinbutton")) expect(section).toHaveAttribute("aria-disabled", "true");
+      expect(within(group).getByRole("button", { name: /choose date/i })).toBeDisabled();
+    }
+    await user.click(screen.getByRole("button", { name: `Edit venue ${venue.name}` }));
+    expect(screen.getByLabelText(/^Venue name$/i)).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: `Edit room ${room.name}` }));
+    expect(screen.getByLabelText(/^Room name$/i)).toBeDisabled();
+    expect(screen.getByRole("button", { name: `Delete room ${room.name}` })).toBeDisabled();
+    expect(server.writes()).toEqual([]); expect(server.items).toEqual([published]);
   });
 });

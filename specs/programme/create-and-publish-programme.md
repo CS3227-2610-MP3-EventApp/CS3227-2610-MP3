@@ -25,6 +25,8 @@ Organisers select a permitted event, manage its venues/rooms, save complete draf
 
 Times display and edit in the selected event's IANA timezone, not the browser's implicit timezone. Nonexistent or ambiguous local times require correction or an explicit offset choice before submission. Attendee consumers can browse published events/items, search titles, filter type/date and inspect details; private drafts and audit records remain absent.
 
+Presentation mapping (Dylan's approved 2026-10-20 bounded UI refinement): empty Venue/Room selects keep their labels floated; venue/room edit/delete icons retain accessible names and confirmation/lock behaviour. The editor presents SGD dollars with at most two decimal places, mapping decimal digits exactly to the unchanged integer-cent API field; invalid/negative/over-precision/overflow input is rejected rather than rounded. MUI calendar/time controls edit activity wall-clock values while the existing event-timezone/DST and unchanged-instant precision rules remain authoritative. This does not add event editing, published deletion or cancellation, nor change the version-1 API/storage contract. [Refinement evidence](../../workflow/agents/runs/2026-10-20-programme-ui-refinements.md) is separate from historical revision-6 test results.
+
 ## Inputs, outputs and functional contract
 
 ### Approved request and response shapes
