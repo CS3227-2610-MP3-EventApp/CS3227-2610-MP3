@@ -4,9 +4,9 @@
 | --- | --- |
 | Stable capability ID | access-authorised-workspaces |
 | Covered stories | [F10-US01](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 3 / In review |
+| Specification revision / status | 4 / Ready |
 | Product roles / roadmap | Attendee, organiser, business participant; [phase 1 foundation](../../docs/project.md#phase-priority-roadmap) |
-| Product and contract approval | Dylan authorised the complete shared-authentication plan on 2026-10-19 and requested execution on a new branch from master. Revision 3 / CurrentActor v1 records that approved plan; routine wire details reviewed by orchestrator and independent security reviewer. Test-baseline gates remain separate. |
+| Product and contract approval | Dylan authorised the complete shared-authentication plan on 2026-10-19 and requested execution on a new branch from master. Revision 3 / CurrentActor v1 records that approved plan; routine wire details reviewed by orchestrator and independent security reviewer. On2026-10-21 the user approved the r4 safe actionable error amendment recorded below; exact readiness/review metadata owned by orchestrator. Test-baseline gates remain separate. |
 | Review / run record | [Shared-authentication run](../../workflow/agents/runs/2026-10-19-shared-authentication.md); independent specification/test review pending |
 
 Sources: [spec standard](../README.md), catalogue, [RD01–RD07](../../docs/project.md#accepted-review-decisions), [security](../../docs/security.md), [architecture](../../docs/architecture.md), and the requesting teammate's 2026-10-19 approved implementation plan relayed by the orchestrator. This revision selects application-owned FastAPI/PostgreSQL authentication and supersedes the earlier provider-dependent provisioning/expiry assumptions.
@@ -56,14 +56,20 @@ Errors are `application/problem+json`, RFC9457 `{type:"about:blank",title,status
 
 | Status | Code | Detail |
 | --- | --- | --- |
-| 401 | `invalid_credentials` | `Invalid credentials.` (unknown identity, wrong password/role/current password) |
+| 401 | `invalid_credentials` | `Invalid credentials.` (unknown identity, wrong password/role) |
 | 401 | `unauthenticated` | `Authentication required.` (missing/invalid/revoked/expired session) |
 | 403 | `forbidden` | `Access is not permitted.` (Origin/role/membership denial) |
 | 403 | `password_change_required` | `Password change required.` (mandatory-change protected access) |
 | 409 | `registration_conflict` | `Registration could not be completed.` (any username/email/business-name duplicate) |
-| 422 | `validation_error` | `Request validation failed.` |
+| 422 | `validation_error` | `Request validation failed.`; fixed safe field errors below |
+| 422 | `current_password_incorrect` | `The current password is incorrect.`; authenticated password-change only |
+| 422 | `password_unchanged` | `The new password must be different from your current password.`; authenticated password-change only |
 | 500 | `internal_error` | `Request could not be completed.` |
 | 503 | `service_unavailable` | `Request could not be completed.` (storage unavailable/transaction failure) |
+
+Revision 4 safe error contract: validation problems additionally contain `fieldErrors:[{field,code}]`, deduplicated and sorted by field then code. `field` is a fixed accepted request field name or `request` for malformed/unknown input; never echo unknown names or values. `code` is `required` for missing/empty required fields, `password_length` for supplied passwords outside 8–128 characters, otherwise `invalid`. Password whitespace is content, never trimmed. Login credential failures remain identical generic 401s; registration conflicts remain generic regardless of the duplicate namespace. Authenticated change-password checks session/Origin before credentials, rejects an incorrect current password with `current_password_incorrect`, and rejects an otherwise valid identical new password with `password_unchanged`; neither rejection rotates/revokes sessions or changes credentials. These specific errors are never returned by login or registration.
+
+The UI displays the producer category, a fixed safe reason and an actionable next step under shared UI revision 4. It maps only known allowlisted problem codes/field codes to static messages; it never renders arbitrary `problem.detail`. Unknown/malformed responses use `The request could not be completed.` and a permitted recovery action. Required fields say `This field is required.`; password bounds say `Use between 8 and 128 characters.`. Password confirmation is client-only, compares exact untrimmed strings, and says `The passwords do not match.` before any write; confirmation is never sent to the API. A rejected current password says to check it and retry; identical replacement says to choose a different password. An unauthenticated response says to sign in again without claiming whether a session expired, was revoked or was invalid. Access denial says this account cannot perform the action and offers permitted workspace navigation. Generic login failure asks the user to check identifier, password and selected role. Generic registration conflict asks the user to check their details or sign in; it never identifies a duplicate field. Storage/network failure never fabricates a reason or success. A lost registration/login/password-change/logout response is `Outcome not confirmed`; bootstrap `/me` before showing authoritative identity/session state or offering supported recovery, and never blindly replay an uncertain mutation. For an uncertain password change, `/me` cannot prove which password is stored: retain uncertainty and offer sign-in with the intended new password rather than claiming success.
 
 No error echoes password, token, hash, validation input, database URL or trace. Audit/log output excludes secrets and unnecessary contact payloads. No claim of timing-enumeration resistance or deployed abuse controls is made.
 
@@ -94,6 +100,8 @@ No error echoes password, token, hash, validation input, database URL or trace. 
 | access-authorised-workspaces-AC17 | UUID/FK/uniqueness/status constraints work in real PostgreSQL; additive migrations upgrade foundation data and users/businesses/memberships/sessions persist across a connection lifecycle. | F10-US01; SEC12 | Fresh/upgrade migration, catalog and reopen/read |
 | access-authorised-workspaces-AC18 | React consumes generated OpenAPI types and credentialed APIs for registration/login/bootstrap/logout/password change; forged prototype storage grants no access; required-change/no-membership/server-failure states are visible. | F10-US01; SEC01/02/08 | API-backed UI tests plus manual keyboard/browser cookie checks |
 | access-authorised-workspaces-AC19 | Errors/logs/audit entries exclude secrets; minimal attributable audit entries persist; validation/conflict/storage failures preserve other state. | F10-US01; SEC02/08/11/12 | Problem/log/audit inspection and forced failure |
+| access-authorised-workspaces-AC20 | Authentication forms show fixed required, password-length and exact confirmation guidance; authenticated password change distinguishes wrong current password and unchanged replacement with the specified 422 codes/details, preserving all credential/session state on rejection. Login and registration retain generic privacy-safe failures. | F10-US01; SEC01/02/08 | Field/error matrix, exact strings, no current-password oracle on public endpoints, before/after session/verifier assertions |
+| access-authorised-workspaces-AC21 | Auth errors include a safe reason and next action; 401/403 recovery and uncertain writes remain truthful, scoped and secret-free; confirmation values never reach API/log/storage. | F10-US01; SEC01/02/08/10 | Expired/invalid session, denied Origin/access, lost responses after commit, fixed guidance and request/storage inspection |
 
 ## External interfaces and dependencies
 
@@ -132,3 +140,7 @@ AC01–03 and downstream portions of AC04/06 remain explicitly deferred to their
 | 2 / 2026-10-18 | Recorded bounded attendee/business self-registration and controlled organiser-provisioning decisions; linked the presentation-only prototype and added AC07–09 | Full revision/provider contracts, approval and verification remain pending |
 | 3 / 2026-10-19 | Specified approved application-owned auth slice and CurrentActor v1; added AC10–19; retained AC01–09, deferring downstream checks and replacing AC05/09 provider/expiry assumptions with CLI/mandatory replacement | Full plan authorised; exact readiness/review and all runtime evidence pending; historical revision 2 preserved |
 | 3 evidence update / 2026-10-19 | Implemented foundation, completed protected tests, independent same-commit reviews and local proxy/restart checks | In review; human/browser/downstream and production obligations remain explicit |
+
+| 4 / 2026-10-21 | Approved safe actionable authentication error amendment; added AC20-21, retained CurrentActor v1 and prior credential/privacy contracts | Prior r3 evidence remains historical; new exact-revision approval/reviews and verification recorded by orchestrator, no new runtime result claimed |
+
+Readiness record 2026-10-21: Isaac explicitly approved the proposed amendment and defaults before edits. Root aligned saved wire contracts with the independent test owner and behaviour/security scope reviews. Product/contract is Ready for protected-test design and review; executable baseline and implementation evidence remain separately pending. No human runtime/accessibility review is inferred.

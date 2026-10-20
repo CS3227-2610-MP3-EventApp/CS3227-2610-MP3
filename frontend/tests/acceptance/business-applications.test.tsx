@@ -59,18 +59,195 @@ function expectCredentialedWrites() {
 }
 afterEach(() => { vi.useRealTimers(); });
 
+describe("Approved request evolution: open settings, one decision and clear recovery", () => {
+  async function organiserApplication() {
+    applications.install("organiser"); applications.records = [submitted()];
+    await renderPrototype(`${organiserRoute}&applicationId=${A1}`);
+    await screen.findByText(content.description);
+  }
+  async function decisionDialog(outcome: "approval" | "rejection") {
+    await userEvent.setup().click(screen.getByRole("button", { name: outcome === "approval" ? /^approve application$/i : /^reject application$/i }));
+    return screen.findByRole("dialog", { name: /^confirm decision$/i });
+  }
+  test("AC18 closed own draft stays editable and explains why submission is unavailable", async () => {
+    applications.install(); applications.records = [draft()]; applications.events[0].applicationsOpen = false;
+    await renderPrototype(savedRoute); await heading();
+    await waitFor(() => expect(description()).toHaveValue(content.description));
+    expect(document.body).toHaveTextContent(/applications.*closed|closed.*applications/i);
+    expect(screen.getByRole("button", { name: /^save draft$/i })).toBeEnabled();
+    const submit = screen.queryByRole("button", { name: /^review submission$/i });
+    if (submit) expect(submit).toBeDisabled();
+    fill({ description: "Still allowed to edit own closed draft" }); await save();
+    await waitFor(() => expect(applications.records[0].revision).toBe(2));
+    expect(applications.records[0].status).toBe("draft");
+    expect(applications.writes()).toHaveLength(1);
+  });
+  test("AC14 a formerly open event closing before create gives safe unavailable recovery", async () => {
+    await business(); fill(); applications.events[0].applicationsOpen = false;
+    await save();
+    expect(await screen.findByText(/not available|no longer available|refresh.*events|check.*events/i)).toBeVisible();
+    expect(description()).toHaveValue(content.description);
+    expect(applications.records).toHaveLength(0);
+    expect(applications.writes()).toHaveLength(1);
+  });
+  test.each(["approval", "rejection"] as const)("Decision AC08 confirms exact %s target and reason before one write", async (outcome) => {
+    await organiserApplication();
+    const dialog = await decisionDialog(outcome);
+    expect(dialog).toHaveTextContent("Synthetic Studio");
+    expect(dialog).toHaveTextContent("Synthetic Autumn Fair");
+    expect(dialog).toHaveTextContent(content.description);
+    fireEvent.change(within(dialog).getByLabelText(/^decision reason$/i), { target: { value: "  Applicant-safe synthetic reason  " } });
+    expect(applications.writes()).toHaveLength(0);
+    const release = applications.hold(`/api/v1/organiser/events/${E1}/applications/${A1}/decision`, "POST");
+    const confirm = within(dialog).getByRole("button", { name: new RegExp(`^confirm ${outcome}$`, "i") });
+    await userEvent.setup().dblClick(confirm);
+    expect(confirm).toBeDisabled();
+    expect(applications.writes()).toHaveLength(1);
+    expect(applications.writes()[0]).toMatchObject({ path: `/api/v1/organiser/events/${E1}/applications/${A1}/decision`, method: "POST", body: { expectedRevision: 2, outcome: outcome === "approval" ? "accepted" : "rejected", reason: "Applicant-safe synthetic reason" } });
+    await act(async () => { release(); });
+    const expected = outcome === "approval" ? "accepted" : "rejected";
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(document.body).toHaveTextContent(new RegExp(expected, "i"));
+    expect(applications.records[0]).toMatchObject({ status: expected, revision: 3, frozenSubmittedContentRevision: 1, content });
+    expect(screen.queryByRole("button", { name: /^approve application$|^reject application$/i })).not.toBeInTheDocument();
+    expectCredentialedWrites();
+    expectNoPrivateStorage("Applicant-safe synthetic reason", content.contactEmail);
+  });
+  test("Decision AC08 cancel preserves undecided submission without writing", async () => {
+    await organiserApplication(); const dialog = await decisionDialog("rejection");
+    fireEvent.change(within(dialog).getByLabelText(/^decision reason$/i), { target: { value: "Do not send this cancelled reason" } });
+    await userEvent.setup().click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+    expect(applications.records[0].decision).toBeNull(); expect(applications.writes()).toHaveLength(0);
+  });
+  test.each(["", " ", "x".repeat(1001)])("Decision AC01/08 rejects invalid reason length%s without write", async (reason) => {
+    await organiserApplication(); const dialog = await decisionDialog("rejection");
+    const input = within(dialog).getByLabelText(/^decision reason$/i);
+    fireEvent.change(input, { target: { value: reason } });
+    await userEvent.setup().click(within(dialog).getByRole("button", { name: /^confirm rejection$/i }));
+    expect(input).toBeInvalid();
+    const ids = (input.getAttribute("aria-describedby") ?? "").split(" ");
+    expect(ids.some((id) => document.getElementById(id)?.textContent?.match(/required|1.*1,?000|1,?000.*characters/i))).toBe(true);
+    expect(applications.writes()).toHaveLength(0); expect(applications.records[0].decision).toBeNull();
+  });
+  test("Decision AC03 current-state conflict explains the prior decision and never retries", async () => {
+    await organiserApplication(); const dialog = await decisionDialog("approval");
+    const decided = submitted({ status: "rejected", revision: 3, decision: { outcome: "rejected", reason: "Prior organiser decision", decidedAt: "2026-10-21T03:00:00Z" } });
+    applications.records = [decided];
+    await userEvent.setup().click(within(dialog).getByRole("button", { name: /^confirm approval$/i }));
+    expect(await screen.findByText(/already.*decision|decided.*elsewhere|already.*decided/i)).toBeVisible();
+    expect(applications.writes()).toHaveLength(1);
+    const check = screen.queryByRole("button", { name: /^check outcome$|refresh.*application/i });
+    if (check) await userEvent.setup().click(check);
+    expect(await screen.findByText("Prior organiser decision")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^approve application$|^reject application$/i })).not.toBeInTheDocument();
+  });
+  test.each([true, false])("Decision AC08 lost response committed%s reconciles through a read without a second decision", async (committed) => {
+    await organiserApplication(); const dialog = await decisionDialog("rejection");
+    fireEvent.change(within(dialog).getByLabelText(/^decision reason$/i), { target: { value: "Confirmed-safe rejection reason" } });
+    applications.once(`/api/v1/organiser/events/${E1}/applications/${A1}/decision`, "POST", { lost: true, commit: committed });
+    await userEvent.setup().click(within(dialog).getByRole("button", { name: /^confirm rejection$/i }));
+    expect(await screen.findByText(/outcome not confirmed/i)).toBeVisible();
+    expect(applications.writes()).toHaveLength(1);
+    await userEvent.setup().click(screen.getByRole("button", { name: /^check outcome$/i }));
+    if (committed) expect(await screen.findByText("Confirmed-safe rejection reason")).toBeVisible();
+    else await waitFor(() => expect(applications.requests.filter((request) => request.path === `/api/v1/organiser/events/${E1}/applications/${A1}` && request.method === "GET").length).toBeGreaterThan(1));
+    expect(applications.writes()).toHaveLength(1);
+    if (committed) expect(screen.queryByRole("button", { name: /^approve application$|^reject application$/i })).not.toBeInTheDocument();
+    else expect(applications.records[0].decision).toBeNull();
+  });
+  test("AC19 settings stale revision explains refresh and preserves intended choice", async () => {
+    applications.install("organiser"); await renderPrototype(organiserRoute);
+    const user = userEvent.setup();
+    const toggle = await screen.findByRole("checkbox", { name: /^accepting applications$/i });
+    await user.click(toggle);
+    await user.click(screen.getByRole("button", { name: /^save application settings$/i }));
+    const dialog = await screen.findByRole("dialog", { name: /^confirm application settings$/i });
+    applications.events[0].settingsRevision += 1;
+    await user.click(within(dialog).getByRole("button", { name: /^confirm settings$/i }));
+    expect(await screen.findByText(/event settings.*changed|settings.*changed.*elsewhere/i)).toBeVisible();
+    expect(applications.writes()).toHaveLength(1);
+    expect(document.body).toHaveTextContent(/refresh|check.*settings/i);
+    expect(applications.events[0].applicationsOpen).toBe(true);
+    expect(screen.getByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked();
+  });
+  test.each([true, false])("AC14/19 settings lost response committed%s reconciles authoritative state without repeat PUT", async (committed) => {
+    applications.install("organiser"); await renderPrototype(organiserRoute);
+    const user = userEvent.setup(); const path = `/api/v1/organiser/events/${E1}/application-settings`;
+    await user.click(await screen.findByRole("checkbox", { name: /^accepting applications$/i }));
+    await user.click(screen.getByRole("button", { name: /^save application settings$/i }));
+    const dialog = await screen.findByRole("dialog", { name: /^confirm application settings$/i });
+    applications.once(path, "PUT", { lost: true, commit: committed });
+    await user.click(within(dialog).getByRole("button", { name: /^confirm settings$/i }));
+    expect(await screen.findByText(/outcome not confirmed/i)).toBeVisible();
+    expect(applications.writes()).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: /^check outcome$/i }));
+    await waitFor(() => expect(applications.requests.filter((request) => request.path === path && request.method === "GET").length).toBeGreaterThan(1));
+    expect(applications.writes()).toHaveLength(1);
+    expect(applications.events[0].applicationsOpen).toBe(!committed);
+    if (committed) await waitFor(() => expect(screen.getByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked());
+  });
+  test.each(["wrong event", "wrong application", "malformed decision"])("Decision AC05/08 rejects%s conflict projection without showing private reason", async (invalid) => {
+    await organiserApplication(); const dialog = await decisionDialog("approval");
+    const record = submitted({ status: "rejected", revision: 3, decision: { outcome: "rejected", reason: "PRIVATE-INVALID-DECISION", decidedAt: "2026-10-21T03:00:00Z" } });
+    if (invalid === "wrong event") record.eventId = E2;
+    if (invalid === "wrong application") record.id = A2;
+    if (invalid === "malformed decision") record.decision = null;
+    applications.once(`/api/v1/organiser/events/${E1}/applications/${A1}/decision`, "POST", { status: 409, value: problem(409, "application_decided", { currentApplication: record, detail: "PRIVATE-UNTRUSTED-DETAIL" }) });
+    await userEvent.setup().click(within(dialog).getByRole("button", { name: /^confirm approval$/i }));
+    expect(await screen.findByText(/invalid.*response|not available|temporarily unavailable|could not.*confirm/i)).toBeVisible();
+    expect(document.body).not.toHaveTextContent("PRIVATE-INVALID-DECISION");
+    expect(document.body).not.toHaveTextContent("PRIVATE-UNTRUSTED-DETAIL");
+    expect(applications.writes()).toHaveLength(1);
+  });
+  test.each(["decision", "settings"] as const)("AC13 new%s response cannot restore a departed organiser scope", async (operation) => {
+    applications.install("organiser", true); applications.records = [submitted()];
+    await renderPrototype(`${organiserRoute}&applicationId=${A1}`); await screen.findByText(content.description);
+    const path = `/api/v1/organiser/events/${E1}/${operation === "decision" ? `applications/${A1}/decision` : "application-settings"}`;
+    const release = applications.hold(path, operation === "decision" ? "POST" : "PUT");
+    const user = userEvent.setup();
+    if (operation === "decision") {
+      const dialog = await decisionDialog("rejection");
+      fireEvent.change(within(dialog).getByLabelText(/^decision reason$/i), { target: { value: "PRIVATE-DEPARTED-REASON" } });
+      await user.click(within(dialog).getByRole("button", { name: /^confirm rejection$/i }));
+    } else {
+      await user.click(screen.getByRole("checkbox", { name: /^accepting applications$/i }));
+      await user.click(screen.getByRole("button", { name: /^save application settings$/i }));
+      const dialog = await screen.findByRole("dialog", { name: /^confirm application settings$/i });
+      await user.click(within(dialog).getByRole("button", { name: /^confirm settings$/i }));
+    }
+    // History/focus may change context while controls are disabled by pending write.
+    await act(async () => { window.history.pushState({}, "", `/organiser/applications?eventId=${E2}`); window.dispatchEvent(new PopStateEvent("popstate")); });
+    expect(await screen.findByText(/no results/i)).toBeVisible();
+    await act(async () => { release(); });
+    expect(document.body).not.toHaveTextContent("PRIVATE-DEPARTED-REASON");
+    expect(document.body).not.toHaveTextContent(content.description);
+    expect(screen.getByRole("combobox", { name: /^event$/i })).toHaveTextContent("Synthetic Winter Market");
+    expect(screen.queryByText(/completed/i)).not.toBeInTheDocument();
+    expect(applications.writes()).toHaveLength(1);
+  });
+  test("Decision AC02/05 applicant sees only own plain-text outcome without organiser controls", async () => {
+    applications.install(); applications.records = [submitted({ status: "rejected", revision: 3, decision: { outcome: "rejected", reason: "<img src=x onerror=alert(1)> Plain decision", decidedAt: "2026-10-21T03:00:00Z" } })];
+    await renderPrototype(savedRoute); await heading();
+    expect(await screen.findByText("<img src=x onerror=alert(1)> Plain decision")).toBeVisible();
+    expect(document.querySelector("img[src='x']")).toBeNull();
+    expect(screen.queryByRole("button", { name: /^approve application$|^reject application$|^save draft$|^review submission$/i })).not.toBeInTheDocument();
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("Plain decision", content.contactEmail);
+  });
+});
+
 describe("F06 frontend AC09-AC17: approved contexts and complete drafts", () => {
-  test("AC09 discovers approved events for the selected owned business without writing on navigation", async () => {
+  test("AC09 discovers open events for the selected owned business without writing on navigation", async () => {
     await business(false, true);
     expect(screen.getByRole("combobox", { name: /^business$/i })).toHaveTextContent("Synthetic Studio");
     expect(screen.getByRole("combobox", { name: /^event$/i })).toHaveTextContent("Synthetic Autumn Fair");
-    expect(screen.getByText(B1, { exact: false })).toBeVisible();
+    expect(screen.getByRole("combobox", { name: /^event$/i })).not.toHaveTextContent(E1);
     expect(screen.queryByText("Synthetic Winter Market")).not.toBeInTheDocument();
     expect(applications.requests.some((request) => request.url === `${discoveryPath}?businessId=${B1}`)).toBe(true);
     expect(applications.writes()).toHaveLength(0);
     await choose(/^business$/i, "Synthetic Second Studio");
-    expect(await screen.findByText(/no results/i)).toBeVisible();
-    expect(screen.queryByLabelText(/^description$/i)).not.toBeInTheDocument();
+    expect(await screen.findByLabelText(/^description$/i)).toBeVisible();
+    expect(screen.getByRole("combobox", { name: /^event$/i })).toHaveTextContent("Synthetic Autumn Fair");
     expect(applications.requests.some((request) => request.url === `${discoveryPath}?businessId=${B2}`)).toBe(true);
     expect(applications.writes()).toHaveLength(0);
   });
@@ -302,34 +479,43 @@ describe("F06 frontend AC12: organiser eligibility and frozen review", () => {
     expect(applications.requests.some((request) => request.path === `/api/v1/organiser/events/${E1}/applications/${A1}`)).toBe(true);
     expect(applications.writes()).toHaveLength(0);
   });
-  test("AC12 grants/replays a known ID for the assigned event without directory lookup", async () => {
+  test("AC19 names assigned events and confirms event-wide opening without a Business ID", async () => {
     applications.install("organiser", true);
     await renderPrototype(organiserRoute);
     await screen.findByRole("heading", { name: /^application reviews$/i, level: 1 });
+    expect(screen.getByRole("combobox", { name: /^event$/i })).toHaveTextContent("Synthetic Autumn Fair");
+    expect(screen.getByRole("combobox", { name: /^event$/i })).not.toHaveTextContent(E1);
+    expect(screen.queryByLabelText(/^business id$/i)).not.toBeInTheDocument();
+    await choose(/^event$/i, "Synthetic Winter Market");
+    const toggle = await screen.findByRole("checkbox", { name: /^accepting applications$/i });
+    expect(toggle).not.toBeChecked();
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText(/^business id$/i), B2);
-    await user.click(screen.getByRole("button", { name: /^approve business$/i }));
-    expect(await screen.findByText(/completed/i)).toBeVisible();
-    expect(applications.writes()[0]).toMatchObject({ path: `/api/v1/organiser/events/${E1}/business-approvals`, method: "POST", body: { businessId: B2 } });
-    const grant = applications.approvals.find((value) => value.businessId === B2);
-    await user.clear(screen.getByLabelText(/^business id$/i)); await user.type(screen.getByLabelText(/^business id$/i), B2);
-    await user.click(screen.getByRole("button", { name: /^approve business$/i }));
-    await waitFor(() => expect(applications.writes()).toHaveLength(2));
-    expect(applications.approvals.filter((value) => value.businessId === B2)).toEqual([grant]);
-    expect(screen.queryByLabelText(/business name|contact email/i)).not.toBeInTheDocument();
-    expect(applications.requests.some((request) => /directory|search|lookup/.test(request.path))).toBe(false);
+    await user.click(toggle);
+    await user.click(screen.getByRole("button", { name: /^save application settings$/i }));
+    const dialog = await screen.findByRole("dialog", { name: /^confirm application settings$/i });
+    expect(dialog).toHaveTextContent("Synthetic Winter Market");
+    expect(applications.writes()).toHaveLength(0);
+    await user.click(within(dialog).getByRole("button", { name: /^confirm settings$/i }));
+    await waitFor(() => expect(applications.events[1].applicationsOpen).toBe(true));
+    expect(applications.writes()).toHaveLength(1);
+    expect(applications.writes()[0]).toMatchObject({ path: `/api/v1/organiser/events/${E2}/application-settings`, method: "PUT", body: { expectedRevision: 1, applicationsOpen: true } });
+    expect(applications.events[1].eventRevision).toBe(1);
+    expect(applications.requests.some((request) => /directory|search|lookup|business-approvals/.test(request.path))).toBe(false);
     expectCredentialedWrites();
   });
 
-  test("AC12 rejects invalid known IDs locally with no approval mutation", async () => {
+  test("AC19 cancelling an application-setting confirmation changes nothing", async () => {
     applications.install("organiser"); await renderPrototype(organiserRoute);
-    const input = await screen.findByLabelText(/^business id$/i);
-    fireEvent.change(input, { target: { value: "not-an-id" } });
-    await userEvent.setup().click(screen.getByRole("button", { name: /^approve business$/i }));
-    expect(input).toBeInvalid(); expect(applications.writes()).toHaveLength(0);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("checkbox", { name: /^accepting applications$/i }));
+    await user.click(screen.getByRole("button", { name: /^save application settings$/i }));
+    const dialog = await screen.findByRole("dialog", { name: /^confirm application settings$/i });
+    await user.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+    expect(applications.events[0].applicationsOpen).toBe(true);
+    expect(applications.writes()).toHaveLength(0);
   });
 
-  test("AC12 shows only submitted selected-event content as plain text, without decision controls", async () => {
+  test("AC12 shows only submitted selected-event content as plain text, without AI or booth controls", async () => {
     applications.install("organiser", true);
     const injected = "<img src=x onerror=alert(1)> javascript:alert('synthetic')";
     applications.records = [draft({ id: A2, content: { ...content, description: "PRIVATE-DRAFT-MARKER" } }), submitted({ content: { ...content, description: injected } })];
@@ -338,8 +524,8 @@ describe("F06 frontend AC12: organiser eligibility and frozen review", () => {
     expect(document.body).not.toHaveTextContent("PRIVATE-DRAFT-MARKER");
     expect(document.querySelector("img[src='x']")).toBeNull();
     expect(document.querySelector("a[href^='javascript:']")).toBeNull();
-    expect(screen.queryByRole("button", { name: /^accept$|^reject$|booth|AI analysis/i })).not.toBeInTheDocument();
-    await choose(/^event$/i, E2);
+    expect(screen.queryByRole("button", { name: /booth|AI analysis/i })).not.toBeInTheDocument();
+    await choose(/^event$/i, "Synthetic Winter Market");
     expect(await screen.findByText(/no results/i)).toBeVisible();
     expect(document.body).not.toHaveTextContent(injected);
     expect(applications.writes()).toHaveLength(0);
@@ -444,6 +630,7 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
 
   test("AC13 ignores a departed-context response after A to B to A without overwriting newer input", async () => {
     applications.install("business", true); applications.records = [draft()];
+    applications.events[0].applicationsOpen = false; // Same closed B1-own/B2-no-context setup as history coverage.
     const release = applications.hold(applicationPath);
     await renderPrototype(savedRoute); await heading();
     await choose(/^business$/i, "Synthetic Second Studio");
@@ -486,11 +673,12 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
   });
 
   test.each([
-    ["owned business with no approved events", `/business/applications?businessId=${B2}`, /no results/i],
-    ["unapproved event", `/business/applications?businessId=${B1}&eventId=${E2}`, /access denied/i],
+    ["owned business with no discoverable closed events", `/business/applications?businessId=${B2}`, /no results/i],
+    ["closed event with no application", `/business/applications?businessId=${B1}&eventId=${E2}`, /access denied/i],
   ] as const)("AC13/15 history context change to %s purges the departed private draft", async (_context, destination, feedback) => {
     await business(true, true);
     fill({ description: "PRIVATE-DEPARTED-SCOPE-MARKER" });
+    applications.events[0].applicationsOpen = false; // Own saved B1 remains discoverable; unrelated B2 has no closed context.
     await act(async () => {
       window.history.pushState({}, "", destination);
       window.dispatchEvent(new PopStateEvent("popstate"));
