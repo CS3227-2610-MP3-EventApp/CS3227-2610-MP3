@@ -68,7 +68,14 @@ workflow/agents/runs/2026-10-20-business-applications-test-change.md
 workflow/agents/runs/2026-10-20-business-applications-test-change-02.md
 workflow/agents/runs/2026-10-21-business-frontend-test-plan.md
 workflow/agents/runs/2026-10-21-business-frontend-test-change.md
+workflow/agents/runs/2026-10-21-business-frontend-test-change-02.md
 ```
+
+## Post-implementation test-budget investigation
+
+APP-UI-TCR-02 records developer-observed isolated default5000ms keyboard-journey timeouts and an isolated diagnostic completing all unchanged assertions in5.83s. The whole keyboard journey has no5000ms product SLA; shared200ms/10s feedback targets remain independently protected. After independent verifier classification and root authorization, the test owner added a10000ms timeout argument to that single keyboard test; no actions/assertions/inputs/tablimits or global runner/configuration changed. Original reviewed executable SHA/evidence above remain historical. Saved minimal-diff approval and replacement freeze are recorded in TCR02/root run before final default checks; no passing whole-suite result is claimed here. TCR02 extends the full protected set from15 to16 paths.
+
+Both behaviour and security reviewers independently approved the exact saved one-argument diff, test SHA-256 `92B9D85F7B3E6C54483CB56CBED864717BC39A23FA82A03668746779EEE5E81A`, with all actions/assertions and the separate timing case unchanged. Replacement baseline commit is root-owned and recorded externally; subsequent source fixes and normal default-suite passing evidence remain required.
 
 Readiness feedback from actual behaviour verifier `/root/f06_frontend_readiness`: record complete URLs including search selectors in the new fixture; preserve existing `auth` fixture/configuration; test late 401 after newer sign-in as well as late successful data. The orchestrator reports isolated Chrome 156/CDP is available for real browser follow-up without installing browser dependencies. This is harness availability, not a passed browser or NVDA check.
 

@@ -500,7 +500,7 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
     await tabTo(user, within(dialog).getByRole("button", { name: /^submit application$/i }), 20); await user.keyboard("{Enter}");
     expect(await screen.findByText(/awaiting.*decision/i)).toBeVisible();
     expect(applications.records[0].status).toBe("submitted");
-  });
+  }, 10000);
 
   test("AC14/16 pending feedback appears immediately, adds still-in-progress at ten seconds and terminal state wins", async () => {
     await business(); fill();
