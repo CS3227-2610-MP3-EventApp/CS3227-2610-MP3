@@ -41,3 +41,40 @@ Both independent reviewers approved scoped frontend acceptance adequacy, exact n
 The coordinator independently reran the final two acceptance files under the reviewed bundled Node24.19.0/Vitest4.1.11/TZUTC/serial/30000ms command:50 cases,22passed28failed0pending. JSON inspection confirms all27 new failures are the actual disabled Browse action `toBeEnabled` assertion; the one corrected historical failure expects two disabled previews but receives three. No timeout/import failures or unexpected failure messages. The remaining three original files passed55/55. Aggregate across all five files at final source:105 cases77passed28expectedRED, without omitting a case. TypeScript `tsc -p frontend/tsconfig.app.json --noEmit` passes on the exact final sources. These are split-file runs, not falsely reported as one full-suite invocation. Temporary JSON output was inspected then removed; assertions/results are recorded here and in the plan.
 
 Both reviewers' conditional adequacy/runner requirements are satisfied by these results. This is readiness to freeze the scoped frontend test baseline, not runtime verification of deeper browsing assertions or complete shared capability readiness. BROWSE-TCR-01 preserves original role/auth tests except approved attendee action progression; BROWSE-TCR-02 explicitly records reviewed harness allowance without product timing claims.
+
+## Frozen scoped test baseline
+
+- Primary reviewed baseline: `4ee5b7c29a8efb212050ecef3b322275ed12c4b9` (local commit; no push). It contains the reviewed tests, exact accepted consumer contract, plan, TCR decisions and historical evidence. No application files changed.
+- Approved frontend runner: from `frontend`, set `$env:TZ='UTC'`; invoke `& 'C:/Users/yikbi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' 'node_modules/vitest/vitest.mjs' run --maxWorkers=1 --testTimeout=30000`. No skips/retries/filtered failing tests. Compile with the same executable and `node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`.
+- Independent approvals: behaviour `/root/browse_behaviour_review`, security `/root/browse_draft_review`; designer `/root/browse_scenarios`. Static/final-source conditions satisfied by the exact-source results above. Human teammate review/log verification remain pending; backend capability readiness is not claimed.
+
+Primary protected paths (literal, concrete; includes inherited authentication protection):
+
+```text
+backend/tests/
+backend/pyproject.toml
+backend/uv.lock
+frontend/tests/
+frontend/package.json
+frontend/package-lock.json
+frontend/vite.config.ts
+frontend/tsconfig.json
+frontend/tsconfig.app.json
+frontend/tsconfig.node.json
+tools/check_test_baseline.py
+workflow/agents/runs/2026-10-19-authentication-test-plan.md
+workflow/agents/runs/2026-10-19-auth-test-change.md
+workflow/agents/runs/2026-10-20-browsing-test-plan.md
+workflow/agents/runs/2026-10-20-browsing-test-change.md
+specs/programme/create-and-publish-programme.md
+specs/README.md
+AGENTS.md
+workflow/agents/README.md
+docs/architecture.md
+docs/security.md
+docs/project.md
+```
+
+Use `tools/check_test_baseline.py --baseline 4ee5b7c29a8efb212050ecef3b322275ed12c4b9 --paths` followed by ALL primary paths above. This run record is separately protected against the evidence-seal commit immediately following the primary commit; obtain its full immutable SHA from the orchestrator handoff, and perform a SECOND guard call with that SHA and `--paths workflow/agents/runs/2026-10-20-browsing-test-first.md`. This two-anchor approach avoids pretending the record can contain its own final commit hash. Both hashes must be supplied explicitly to the developer; never resolve a moving branch/tag for baseline control.
+
+No developer has write ownership over tests, config/runner, baseline references, fixtures or this record. Any proposed correction returns to the test owner and independent reviewers. Frozen expectations remain binding even where deeper assertions have not yet executed due to the missing entry. Fixture-backed acceptance cannot establish real publication, schema generation, authorization, persistence or delivery. Publication owner and contributor interface agreement remain pending; do not mark the complete programme Draft Ready or implement organiser writes under this consumer test baseline.
