@@ -10,7 +10,7 @@ Across the 31 stories, the attendee, organiser and business interfaces share a [
 
 ## Story-to-spec links
 
-These links identify the proposed authoritative capability contract for each of the 31 stories. All linked contracts are Drafts; a link does not approve their behaviour or implementation. The [spec index](../specs/README.md#story-to-spec-index) records revision-specific criterion mappings.
+These links identify the proposed authoritative capability contract for each of the 31 stories. Revision-specific status and approval are recorded in the spec index; a link alone does not approve implementation. The [spec index](../specs/README.md#story-to-spec-index) records revision-specific criterion mappings.
 
 | Story IDs | Related capability spec |
 | --- | --- |
@@ -43,7 +43,7 @@ These links identify the proposed authoritative capability contract for each of 
 
 ### Shared foundation
 
-F10 identity verifies sign-in; server permissions restrict attendees to their private records, organisers to assigned events, and business members to their business across events. Changing screens grants no authority. The requesting teammate authorised application-owned auth on 2026-10-19: one product role, attendee/new-business-owner registration, trusted runtime-password organiser/event CLI with mandatory password replacement, and cookie sessions. Email/username and normalized business names are globally unique. Attendee browsing requires sign-in; additional invitations/members/transfer/recovery are excluded. [Access revision 3](../specs/shared/access-authorised-workspaces.md) defines the exact slice; downstream real-domain access checks remain pending. Prototype storage is presentation state only.
+F10 identity verifies sign-in; server permissions restrict attendees to their private records, organisers to assigned events, and business members to their business across events. Changing screens grants no authority. The requesting teammate authorised application-owned auth on 2026-10-19: one product role, attendee/new-business-owner registration, trusted runtime-password organiser/event CLI with mandatory password replacement, and cookie sessions. Email/username and normalized business names are globally unique. Attendee browsing requires sign-in; additional invitations/members/transfer/recovery are excluded. [Access revision 4](../specs/shared/access-authorised-workspaces.md) defines the exact slice; downstream real-domain access checks remain pending. Prototype storage is presentation state only.
 
 F10 bounded AI jobs persist owner, progress and failure state, enforce time/usage/tool limits, cancel between steps, minimise outbound data and validate results before display. Jobs may create authorised drafts but cannot approve applications, publish announcements or execute external actions autonomously. Build identity/permissions with the first F01 slice, business checks with F06, and job controls before role AI features. Exact-action approval precedes any external send or execution.
 
@@ -91,3 +91,5 @@ F10 bounded AI jobs persist owner, progress and failure state, enforce time/usag
 - All three workspaces retain core manual workflows when AI fails or another role is offline. AI cannot silently replace accepted records.
 - Use authorised data, validated schemas and factual references; test injection, privacy, stale output, limits, failures and approval bypasses under [security rules](security.md). Research requires sources/timestamps/uncertainty; screened links do not guarantee supplier safety.
 - Module boundaries, relationship constraints, missing booth/setup and participation-projection contracts, migrations and integration checkpoints remain in the [schema plan](architecture.md). Accepted plans remain domain records rather than generic AI artifacts. Meal/route entries, wishlists and optional image/export designs require explicit refinement.
+
+2026-10-21 approved scope: F06-US01 includes named open-event discovery, private drafts and explicit frozen submission without a known-ID eligibility step. F04-US01 and the status/reason portion of F06-US02 add one organiser acceptance/rejection and applicant-visible outcome. Booth/setup remains deferred; see the existing submit and decision specs for precise criteria.

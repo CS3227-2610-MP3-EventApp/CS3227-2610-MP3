@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | navigate-eventapp-workspaces |
 | Covered stories | Cross-cutting presentation contract for all 31 [catalogue stories](../../docs/UserStoriesAndFeatures.md#story-to-spec-links); domain criteria remain in their linked specs |
-| Specification revision / status | 4 / Ready |
+| Specification revision / status | 4 / In review |
 | Product roles / roadmap | Attendee, organiser and business participant; [shared UI foundation, order 1a](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | The Material UI prototype direction was approved by the requesting teammate on 2026-10-18. This is not full production visual sign-off. Isaac explicitly answered "Approve revision 3; Chrome + NVDA" on 2026-10-21 for UI-02-05 and their F06-US01 use. On2026-10-21 the user approved the r4 category/safe reason/next-action amendment; exact readiness/review metadata owned by orchestrator. Production visual sign-off and actual verification remain pending; see the [F06 completion run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md). |
-| Review / run record | Original revision-1 review, [2026-10-18 prototype planning and rechecks](../../logs/dylan/2026-10-18-project-understanding-auth-ui-planning.md), and [2026-10-20 foundation/UI follow-through](../../workflow/agents/runs/2026-10-20-foundation-follow-through.md); no shared-navigation executable baseline exists. |
+| Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
 
 Sources: [specification standard](../README.md), [catalogue](../../docs/UserStoriesAndFeatures.md), [project UI direction](../../docs/project.md#shared-ui-direction), [accepted RD01–RD07](../../docs/project.md#accepted-review-decisions), [security rules](../../docs/security.md), and [shared contracts](../../docs/architecture.md#contracts-for-independent-development). External guidance: [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [W3C menu structure](https://www.w3.org/WAI/tutorials/menus/structure/) and [web.dev Web Vitals](https://web.dev/articles/vitals). These references inform this contract; no accessibility conformance or performance result is claimed.
 
@@ -82,7 +82,7 @@ Consumes `CurrentActor v1` for real available contexts and server denial categor
 
 Human approval of revision 3 is historical; revision4 approval/readiness metadata is recorded by the orchestrator. Ready does not authorise implementation; the [agent workflow](../../workflow/agents/README.md) requires independent test design, review and a protected baseline first.
 
-## Verification and evidence
+## Historical verification and evidence
 
 - Scenario-only Draft review from `/root/test_readiness` (test_case_designer): NAV-S01–10 map one group to each AC, covering synthetic role/context navigation, no mutation on navigation, visual/reflow and keyboard/AT checks, deterministic timing boundaries, response-category distinction, scoped memory-only recovery, revocation/late-response ordering, authoritative proposal/commit states and untrusted text/links. These are proposed verification scenarios, not an approved test plan or executable baseline; no tests or UI behaviour were run.
 - Deferred/manual scenarios: inventory every delivered route and its pending, empty, error, draft and committed states; inspect orientation/status/visual consistency; perform approved viewport/zoom/keyboard/screen-reader/reduced-motion checks; measure presentation timing in the approved setup; verify saved-draft recovery and real membership revocation/late responses against delivered domain producers; test untrusted content and destination enforcement. UI-02 through UI-05 require exact human approval before their checks can be treated as acceptance. None has run.
@@ -103,3 +103,7 @@ Human approval of revision 3 is historical; revision4 approval/readiness metadat
 Approval metadata update, 2026-10-21: exact r3 approved for F06-US01 delivery. Earlier Draft/unexecuted evidence remains historical; no full cross-story implementation or conformance is claimed.
 
 | 4 / 2026-10-21 | Approved category + safe specific reason + supported next-action amendment; AC11-12 added, prior IDs unchanged | Earlier r3 approval/evidence preserved; exact r4 approval/review metadata owned by orchestrator; no new runtime/conformance claim |
+
+## Current revision-4 evidence
+
+Current evidence (2026-10-21): implementation fingerprint `a9b755d3120f94b9bf85278d7753eec7ff2fa9944ca9531ade46a5c5bc4508e6`, protected baseline `6a9f01c15796509ec11db968090139149c6688c6` (22 paths). Backend195 tests passed; frontend173 tests and production build passed, with an independent full173-test rerun. Both independent final reviews approved the same snapshot. Real Chrome/UI/API/PostgreSQL normal journeys, restarts, keyboard and targeted Unicode/input-recovery checks passed with revision attribution. See [the current run](../../workflow/agents/runs/2026-10-21-open-participation-requests.md) and [session summary](../../logs/isaac/2026-10-21-open-participation-requests.md). Human teammate/summary verification, Chrome+NVDA, actual400% browser zoom and comprehensive accessibility sign-off remain pending. This is In review, not Verified/Completed or deployed.

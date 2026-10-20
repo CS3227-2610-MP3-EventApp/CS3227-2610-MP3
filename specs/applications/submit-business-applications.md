@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | submit-business-applications |
 | Covered stories | [F06-US01](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 4 / Ready |
+| Specification revision / status | 4 / In review |
 | Product roles / roadmap | Active business owners and assigned event organisers; [manual journeys](../../docs/project.md#phase-priority-roadmap) |
-| Product and contract approval | Historical exact r2 backend and r3 frontend approval by Isaac on 2026-10-20/21 remains bound to those revisions and recorded below. On 2026-10-21 the user approved replacing known-ID eligibility with one application/participation request and organiser-controlled open applications. Orchestrator records exact r4 readiness/review metadata; new verification pending. |
-| Review / run record | [r2 preparation](../../workflow/agents/runs/2026-10-20-business-application-preparation.md), [r3 delivery](../../workflow/agents/runs/2026-10-21-complete-business-applications.md); new protected baseline and independent review owned by orchestrator/test designer |
+| Product and contract approval | Historical exact r2 backend and r3 frontend approval by Isaac on 2026-10-20/21 remains bound to those revisions and recorded below. On 2026-10-21 the user approved replacing known-ID eligibility with one application/participation request and organiser-controlled open applications. Current r4 checks are recorded below; human verification remains pending. |
+| Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
 
 Sources: catalogue F06-US01; accepted RD01-RD07; [architecture](../../docs/architecture.md), [security](../../docs/security.md); access r4 / unchanged CurrentActor v1; shared UI r4; user-approved 2026-10-21 request amendment. This is the current authoritative contract. Historical evidence below does not establish r4 implementation.
 
@@ -116,7 +116,7 @@ D01 original field/lifecycle/privacy approval remains. D02 prior eligibility-onl
 
 ## Current verification and evidence (revision 4)
 
-Independent test design, adequacy/security review, protected baseline, implementation and real integration checks are pending for the amendment. Prior baseline `254bc0507788c0ef1c255ad2238e3894eb4e798b` and evidence below apply to r3; changed expectations require test-owner correction/new baseline before development. No r4 runtime check or human verification claimed.
+Current evidence (2026-10-21): implementation fingerprint `a9b755d3120f94b9bf85278d7753eec7ff2fa9944ca9531ade46a5c5bc4508e6`, protected baseline `6a9f01c15796509ec11db968090139149c6688c6` (22 paths). Backend195 tests passed; frontend173 tests and production build passed, with an independent full173-test rerun. Both independent final reviews approved the same snapshot. Real Chrome/UI/API/PostgreSQL normal journeys, restarts, keyboard and targeted Unicode/input-recovery checks passed with revision attribution. See [the current run](../../workflow/agents/runs/2026-10-21-open-participation-requests.md) and [session summary](../../logs/isaac/2026-10-21-open-participation-requests.md). Human teammate/summary verification, Chrome+NVDA, actual400% browser zoom and comprehensive accessibility sign-off remain pending. This is In review, not Verified/Completed or deployed.
 
 ## Historical verification and evidence (revision 2)
 
@@ -158,5 +158,3 @@ Active protected baseline: `254bc0507788c0ef1c255ad2238e3894eb4e798b`, all17 pat
 | Remaining AC16 / release gates | Chrome+NVDA, actual400% browser zoom, reduced-motion checks, comprehensive accessibility/production visual sign-off, human teammate and summary correctness review | Pending; automated AX/layout checks do not establish WCAG conformance; no production delivery claimed |
 
 Use the [Git Bash website/API guide](../../docs/BusinessApplicationsTesting.md) for manual review. Actual identities, defects, protected-test correction history and residual checks are in the [frontend run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md) and [session log](../../logs/isaac/2026-10-21-complete-business-applications.md). No push, merge or deployment.
-
-Readiness record 2026-10-21: Isaac explicitly approved the proposed amendment and defaults before edits. Root aligned saved wire contracts with the independent test owner and behaviour/security scope reviews. Product/contract is Ready for protected-test design and review; executable baseline and implementation evidence remain separately pending. No human runtime/accessibility review is inferred.

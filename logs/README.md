@@ -27,4 +27,10 @@ The AI checks factual statements against the visible interaction/tool evidence a
 - [2026-10-18 Dylan project/authentication UI planning](dylan/2026-10-18-project-understanding-auth-ui-planning.md): repository review, account/provisioning decisions, bounded prototype specification, independent analysis/test/security handoffs and pre-implementation gates.
 - [2026-10-19 Dylan shared authentication](dylan/2026-10-19-shared-authentication.md): revision 3 application-owned auth contracts, exact peer handoffs and corrected provisioning/session choices; implementation and human verification pending.
 
+- [2026-10-20 foundation follow-through and backend applications](isaac/2026-10-20-foundation-follow-through.md): original Business multi-agent request, prerequisite evidence, approval gates, backend delivery, agent performance and corrected test-contract mismatch.
+
+- [2026-10-21 complete Business application journey](isaac/2026-10-21-complete-business-applications.md): frontend scope/spec ownership and delivery questions, approved F06 revision 3, actual agent performance/corrections, 127 passing frontend checks and real browser/restart evidence; human review pending.
+
+- [2026-10-21 open participation requests](isaac/2026-10-21-open-participation-requests.md): user-approved spec amendments, request/decision journey, agent performance and missed-coverage fixes, 195/173 passing suites, testing-guide and conversation-logging follow-ups; human verification pending.
+
 Each teammate must add summaries for their own earlier sessions and verify the historical coverage. Existing SDD revision records can support backfills but are not original prompt transcripts.

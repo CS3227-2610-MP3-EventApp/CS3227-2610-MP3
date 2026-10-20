@@ -16,7 +16,7 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. Programme, application, itinerary and AI actions remain previews or later capabilities; online deployment is separate.
+The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. F06-US01 now connects Business draft/create/edit/review/submit and organiser open-application/submitted review screens, once-only approval/rejection and business outcomes to the approved backend. Application workspace cards are available; programme, preparation, itinerary, AI and online deployment remain separate. See [Business application website and API testing](BusinessApplicationsTesting.md) for Git Bash startup and synthetic local flows, plus the [frontend delivery evidence](../workflow/agents/runs/2026-10-21-complete-business-applications.md). Human/NVDA review remains pending. Apply additive migrations with `alembic upgrade head`; never reset retained development data to enable this feature.
 
 ## Run locally
 
@@ -125,7 +125,7 @@ What the commands do:
 - **Organiser seed:** The `organiser` command creates an organiser account and grants it access to the event named by `--event-id`. That value must match the event's `--id`. The username, email, and display name identify the account.
 - **Password and repeats:** For a new account, the CLI asks for an initial password twice in hidden prompts. The organiser must change it at first sign-in. Repeating a matching command does not reset the password or reactivate an inactive membership. Use synthetic details only.
 
-After provisioning succeeds, make sure the backend is running with the same development database URL on port 5432, and open the frontend URL printed by Vite. Select the **Organiser** tab, enter `dev-organiser` or `organiser@example.test` as the username/email, enter the initial password you just set, and select **Log in**. On the required password-change page, enter that initial password as the current password, then enter and confirm a different new password (8–128 characters). After a successful change, the app opens the organiser workspace. Its feature cards are currently previews; programme-management actions are not implemented yet.
+After provisioning succeeds, make sure the backend is running with the same development database URL on port 5432, and open the frontend URL printed by Vite. Select the **Organiser** tab, enter `dev-organiser` or `organiser@example.test` as the username/email, enter the initial password you just set, and select **Log in**. On the required password-change page, enter that initial password as the current password, then enter and confirm a different new password (8–128 characters). After a successful change, the app opens the organiser workspace. Application Reviews provides named assigned events, explicitly confirmed open/closed settings and one-time submitted-application approval/rejection; programme management and other feature cards remain previews.
 
 ### Run automated tests
 
@@ -186,8 +186,43 @@ Historical presentation evidence is recorded in the [role-entry run record](../w
 
 Configuration supports `ENVIRONMENT` (`development`, `test`, `production`) and `TRUSTED_ORIGINS` (a JSON array of exact frontend origins). Outside development, cookies require HTTPS; production requires explicit HTTPS trusted origins. Keep environment files, credentials and database URLs out of Git. Do not reuse the disposable test database for normal accounts.
 
-Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Domain cards remain previews until their own capabilities are implemented.
+Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Only delivered application cards are enabled for Business/organiser; other domain cards remain previews until their own capabilities are implemented.
 
 ## Delivery evidence to maintain
 
 Document deployment/recovery steps and the online application URL when hosting is implemented. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific evidence to the release gates in project context. This slice does not provide password recovery, email verification, rate limiting or a production deployment.
+
+### Run all automated tests in Git Bash (Windows)
+
+With Docker Desktop running, execute this block from the repository root. Dependencies must already be installed (`uv sync` in `backend/` and `npm ci` in `frontend/` for first-time setup).
+
+```bash
+docker compose --profile test up -d test-db
+
+until docker compose --profile test exec -T test-db pg_isready \
+  -U eventapp_test -d eventapp_test; do sleep 1; done
+
+# All backend tests
+(
+  cd backend
+  export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
+  export TEST_DATABASE_URL='postgresql+psycopg://eventapp_test:eventapp_test@127.0.0.1:5433/eventapp_test'
+  export EVENTAPP_ALLOW_TEST_DB_RESET=true
+  export PYTHONPATH="$(pwd -W)/.venv/Lib/site-packages"
+  uv run pytest -q
+)
+
+# All frontend tests
+(
+  cd frontend
+  NODE_OPTIONS=--no-experimental-webstorage npm test
+)
+```
+
+At the 2026-10-21 request-flow baseline, these suites contain195 backend and173 frontend cases; counts may increase with future changes. The suites run separately so frontend tests still run if backend tests fail. Subshells keep directory/environment changes local. Only the disposable test database on5433 is reset; development data on5432 is not used by tests. The PYTHONPATH and Node26 settings address the Windows runtime issues noted below. Automated suites do not execute the separate Chrome/NVDA/manual accessibility checks.
+
+### Windows test runtime notes
+
+If the legacy migration subprocess uses a base Python without the virtual environment packages, set `$env:PYTHONPATH = (Resolve-Path '.venv/Lib/site-packages').Path` from `backend/` before `uv run pytest`. For Node 26 jsdom tests, set `$env:NODE_OPTIONS = '--no-experimental-webstorage'` in the frontend test terminal. These are process-local compatibility settings, not changes to the protected test runner.
+
+Approved request-flow amendment: [submit r4](../specs/applications/submit-business-applications.md), [decision r2](../specs/applications/decide-applications-and-show-outcomes.md), auth/UI r4 replace known-ID grants with open-event applications and actionable safe errors. See [current checks and limitations](../workflow/agents/runs/2026-10-21-open-participation-requests.md) before treating the amendment as verified.

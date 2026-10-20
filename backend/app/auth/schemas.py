@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 import unicodedata
 from uuid import UUID
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, SecretStr, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, SecretStr
 
 
 Role = Literal["attendee", "organiser", "business"]
@@ -77,13 +77,6 @@ class PasswordChangeRequest(Input):
     currentPassword: Password
     newPassword: Password
 
-    @model_validator(mode="after")
-    def require_replacement(self):
-        if self.currentPassword == self.newPassword:
-            raise ValueError("A different password is required")
-        return self
-
-
 class EventMembershipActor(BaseModel):
     eventId: UUID
     role: Literal["organiser"] = "organiser"
@@ -107,6 +100,11 @@ class CurrentActor(BaseModel):
     businessMemberships: list[BusinessMembershipActor]
 
 
+class AuthFieldError(BaseModel):
+    field: Literal["username", "email", "displayName", "password", "businessName", "identifier", "role", "currentPassword", "newPassword", "request"]
+    code: Literal["required", "password_length", "invalid"]
+
+
 class Problem(BaseModel):
     type: Literal["about:blank"] = "about:blank"
     title: str
@@ -114,3 +112,4 @@ class Problem(BaseModel):
     detail: str
     instance: str
     code: str
+    fieldErrors: list[AuthFieldError] | None = None

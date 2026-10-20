@@ -32,8 +32,10 @@ def verify(verifier: str, password: str) -> bool:
         return False
 
 
-def audit(db: DBSession, action: str, user_id: UUID | None, outcome="success", resource_id: UUID | None = None):
-    db.add(AuditEvent(action=action, user_id=user_id, outcome=outcome, resource_id=resource_id))
+def audit(db: DBSession, action: str, user_id: UUID | None, outcome="success", resource_id: UUID | None = None,
+          resource_revision: int | None = None):
+    db.add(AuditEvent(action=action, user_id=user_id, outcome=outcome, resource_id=resource_id,
+                      resource_revision=resource_revision))
 
 
 def audit_denial(action: str):

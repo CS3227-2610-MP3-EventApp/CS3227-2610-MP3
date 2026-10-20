@@ -10,6 +10,10 @@ The proposed [shared UI capability Draft](../specs/shared/navigate-eventapp-work
 
 Accessibility and performance references for the Draft are [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [W3C navigation guidance](https://www.w3.org/WAI/tutorials/menus/structure/) and [web.dev Core Web Vitals](https://web.dev/articles/vitals). These references guide proposed, testable requirements; no conformance or measured performance is claimed.
 
+## Approved Business request amendment (2026-10-21)
+
+Isaac approved access/shared UI r4, submit r4 and bounded decision r2 before edits. Businesses browse named open events and submit one frozen application as the participation request; organisers open/close applications and decide submitted requests without exchanging business IDs. Settings default closed; closure blocks new drafts/submission while preserving editable own drafts and reviewable submissions. Rejection reason is required (1-1000 trimmed characters), acceptance reason optional (maximum1000). Legacy grants remain history only. No automatic date cutoff, resubmission, reconsideration or booth/setup assignment is included. RD01-RD07 remain authoritative. See [current evidence](../workflow/agents/runs/2026-10-21-open-participation-requests.md); implementation and required human verification remain separately tracked.
+
 ## Accepted review decisions
 
 These decisions supersede conflicting earlier recommendations. They approve the specified behavior, not every feature or physical schema detail. Dylan, Yik Bing, and Isaac approved them on 2026-10-15; feature-specific approval records remain to be assigned.
@@ -153,7 +157,7 @@ Map every mandatory rubric item to a feature and acceptance criterion before fin
 
 Use one shared Git repository containing backend, frontend and this SDD folder. PostgreSQL is the accepted database planning baseline. SQLAlchemy and Alembic for persistence and migrations, and Pydantic models for API/tool validation remain recommendations. Use a separate local development database per developer with common migrations and fixtures. Use local containers to keep setup repeatable. Derive frontend API types from the reviewed FastAPI OpenAPI contract.
 
-The requesting teammate selected application-owned authentication on 2026-10-19, superseding the earlier managed-OIDC recommendation: Argon2id 8–128-character passwords, seven-day opaque cookie sessions with SHA-256 token digests, Origin validation and generated React OpenAPI types. Exact contract: [access revision 3](../specs/shared/access-authorised-workspaces.md) and [foundation architecture](architecture.md#shared-authentication-foundation-contract). Static React/container backend/managed PostgreSQL deployment remains a recommendation; vendors/paid tiers are open.
+The requesting teammate selected application-owned authentication on 2026-10-19, superseding the earlier managed-OIDC recommendation: Argon2id 8–128-character passwords, seven-day opaque cookie sessions with SHA-256 token digests, Origin validation and generated React OpenAPI types. Exact contract: [access revision 4](../specs/shared/access-authorised-workspaces.md) and [foundation architecture](architecture.md#shared-authentication-foundation-contract). Static React/container backend/managed PostgreSQL deployment remains a recommendation; vendors/paid tiers are open.
 
 ### D03 Phase commitments
 

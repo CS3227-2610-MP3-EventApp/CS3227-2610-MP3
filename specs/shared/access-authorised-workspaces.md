@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | access-authorised-workspaces |
 | Covered stories | [F10-US01](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 4 / Ready |
+| Specification revision / status | 4 / In review |
 | Product roles / roadmap | Attendee, organiser, business participant; [phase 1 foundation](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Dylan authorised the complete shared-authentication plan on 2026-10-19 and requested execution on a new branch from master. Revision 3 / CurrentActor v1 records that approved plan; routine wire details reviewed by orchestrator and independent security reviewer. On2026-10-21 the user approved the r4 safe actionable error amendment recorded below; exact readiness/review metadata owned by orchestrator. Test-baseline gates remain separate. |
-| Review / run record | [Shared-authentication run](../../workflow/agents/runs/2026-10-19-shared-authentication.md); independent specification/test review pending |
+| Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
 
 Sources: [spec standard](../README.md), catalogue, [RD01–RD07](../../docs/project.md#accepted-review-decisions), [security](../../docs/security.md), [architecture](../../docs/architecture.md), and the requesting teammate's 2026-10-19 approved implementation plan relayed by the orchestrator. This revision selects application-owned FastAPI/PostgreSQL authentication and supersedes the earlier provider-dependent provisioning/expiry assumptions.
 
@@ -117,7 +117,7 @@ Produces CurrentActor v1 above; [architecture](../../docs/architecture.md#shared
 | A-04 | Seven-day opaque cookies, SHA-256 digest storage, Argon2id 8–128 passwords, Origin check, password change retains current session/revokes others | Requesting teammate | Resolved for foundation slice | Full plan authorised 2026-10-19; readiness recorded before implementation |
 | A-05 | Exact wire/error/normalization/cookie/dependency/CLI details and minimal SEC11 audit table complete the approved plan | Orchestrator / affected contributors | Resolved for foundation slice | Routine completion and independent pre-implementation reviews recorded 2026-10-19 |
 
-## Verification and evidence
+## Historical verification and evidence
 
 Implementation snapshot `e202ea95747a4c831cac7bb0d251c856a166d818` received independent behaviour and security approval. The protected baseline is `d60152a1b7ad78c90b5a7b26499eb1cb6b63e151`; earlier baselines and approved test corrections remain in the [run record](../../workflow/agents/runs/2026-10-19-shared-authentication.md). Fresh full runs passed 65 backend tests and 75 frontend tests; frontend build, baseline integrity, generated-contract checks and dependency audits passed. Real HTTP through Vite exercised all three identities, cookies, Origin/CORS, logout replay and password replacement. The same persisted identity/session survived both a real backend-process restart and PostgreSQL-container restart.
 
@@ -143,4 +143,7 @@ AC01–03 and downstream portions of AC04/06 remain explicitly deferred to their
 
 | 4 / 2026-10-21 | Approved safe actionable authentication error amendment; added AC20-21, retained CurrentActor v1 and prior credential/privacy contracts | Prior r3 evidence remains historical; new exact-revision approval/reviews and verification recorded by orchestrator, no new runtime result claimed |
 
-Readiness record 2026-10-21: Isaac explicitly approved the proposed amendment and defaults before edits. Root aligned saved wire contracts with the independent test owner and behaviour/security scope reviews. Product/contract is Ready for protected-test design and review; executable baseline and implementation evidence remain separately pending. No human runtime/accessibility review is inferred.
+
+## Current revision-4 evidence
+
+Current evidence (2026-10-21): implementation fingerprint `a9b755d3120f94b9bf85278d7753eec7ff2fa9944ca9531ade46a5c5bc4508e6`, protected baseline `6a9f01c15796509ec11db968090139149c6688c6` (22 paths). Backend195 tests passed; frontend173 tests and production build passed, with an independent full173-test rerun. Both independent final reviews approved the same snapshot. Real Chrome/UI/API/PostgreSQL normal journeys, restarts, keyboard and targeted Unicode/input-recovery checks passed with revision attribution. See [the current run](../../workflow/agents/runs/2026-10-21-open-participation-requests.md) and [session summary](../../logs/isaac/2026-10-21-open-participation-requests.md). Human teammate/summary verification, Chrome+NVDA, actual400% browser zoom and comprehensive accessibility sign-off remain pending. This is In review, not Verified/Completed or deployed.

@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | decide-applications-and-show-outcomes |
 | Covered stories | F04-US01; F06-US02 own status/reason portion; booth/setup portion explicitly deferred |
-| Specification revision / status | 2 / Ready |
+| Specification revision / status | 2 / In review |
 | Product roles / roadmap | Assigned organisers deciding frozen submitted applications; active business owners viewing own outcomes; [manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | User approved one irreversible accepted/rejected decision, applicant-visible reason and no booth/setup assignment on2026-10-21. Exact revision/readiness metadata and pre-implementation gates owned by orchestrator; Draft not promoted by analyst. |
-| Review / run record | Independent test design and scoped behaviour/security review in current orchestrator run; implementation verification pending |
+| Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
 
 Sources: catalogue F04-US01/F06-US02, accepted RD01/RD02/RD06, SEC01/02/03/08/11/13, [submit r4](submit-business-applications.md), access r4 / CurrentActor v1 and shared UI r4. The bounded approved decision outcome supersedes the wider r1 booth/setup proposal; no story completion for deferred setup is claimed.
 
@@ -84,7 +84,7 @@ D01 r1 broad decision-to-participation/booth/setup policy is superseded for this
 
 ## Verification and evidence
 
-Independent test design, adequacy/security reviews, protected baseline, implementation snapshot and actual integration remain pending for r2. No runtime, persistence, accessibility or deployment result is claimed. Required Chrome+NVDA/keyboard/320px/400%zoom/reduced-motion/shared feedback checks, human teammate review and summary verification remain required where applicable. This manual slice contributes SDD/security evidence, supplies no actual LLM capability and does not satisfy online-production release gates by itself.
+Current evidence (2026-10-21): implementation fingerprint `a9b755d3120f94b9bf85278d7753eec7ff2fa9944ca9531ade46a5c5bc4508e6`, protected baseline `6a9f01c15796509ec11db968090139149c6688c6` (22 paths). Backend195 tests passed; frontend173 tests and production build passed, with an independent full173-test rerun. Both independent final reviews approved the same snapshot. Real Chrome/UI/API/PostgreSQL normal journeys, restarts, keyboard and targeted Unicode/input-recovery checks passed with revision attribution. See [the current run](../../workflow/agents/runs/2026-10-21-open-participation-requests.md) and [session summary](../../logs/isaac/2026-10-21-open-participation-requests.md). Human teammate/summary verification, Chrome+NVDA, actual400% browser zoom and comprehensive accessibility sign-off remain pending. This is In review, not Verified/Completed or deployed. This manual slice supplies no actual LLM capability and does not satisfy online production release gates or the deferred booth/setup portion by itself.
 
 ## Revision history
 
@@ -92,5 +92,3 @@ Independent test design, adequacy/security reviews, protected baseline, implemen
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial wider Draft for decision and booth/setup proposal, AC01-06 allocated | No product approval or implementation evidence |
 | 2 / 2026-10-21 | User-approved bounded one-time decision/outcome contract; AC01-05 refined, AC02 setup portion deferred, AC06 retired; AC07 transaction preservation, AC08-09 added; booth/setup remains deferred | Exact readiness/review owned by orchestrator; independent tests and all implementation evidence pending |
-
-Readiness record 2026-10-21: Isaac explicitly approved the proposed amendment and defaults before edits. Root aligned saved wire contracts with the independent test owner and behaviour/security scope reviews. Product/contract is Ready for protected-test design and review; executable baseline and implementation evidence remain separately pending. No human runtime/accessibility review is inferred.

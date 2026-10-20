@@ -6,9 +6,12 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from starlette.exceptions import HTTPException
 
 from app.auth.problems import AuthProblem, problem_response
 from app.auth.routes import router
+from app.applications.routes import router as application_router
+from app.applications.problems import ApplicationError, is_application_path, problem_response as application_problem_response
 from app.database import engine
 from app.settings import Settings
 
@@ -17,8 +20,21 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="EventApp API", openapi_url=None)
 settings = Settings()
 app.include_router(router)
+app.include_router(application_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
-                   allow_credentials=True, allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+                   allow_credentials=True, allow_methods=["GET", "POST", "PUT"], allow_headers=["Content-Type"])
+
+
+@app.exception_handler(ApplicationError)
+async def application_problem(request: Request, exc: ApplicationError):
+    return application_problem_response(request, exc.code, current_application=exc.current_application)
+
+
+@app.exception_handler(HTTPException)
+async def http_problem(request: Request, exc: HTTPException):
+    if is_application_path(request.url.path) and exc.status_code in {404, 405}:
+        return application_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=exc.headers)
 
 
 @app.exception_handler(AuthProblem)
@@ -28,7 +44,9 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
-    return problem_response(request, "validation_error")
+    if is_application_path(request.url.path):
+        return application_problem_response(request, "validation_error", exc.errors())
+    return problem_response(request, "validation_error", exc.errors())
 
 
 @app.exception_handler(SQLAlchemyError)
@@ -43,7 +61,7 @@ async def unexpected_failure(request: Request, exc: Exception):
 
 @app.middleware("http")
 async def auth_boundary(request: Request, call_next):
-    if request.url.path.startswith("/api/v1/auth/"):
+    if request.url.path.startswith("/api/v1/auth/") or is_application_path(request.url.path):
         if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("origin") not in settings.trusted_origins:
             return problem_response(request, "forbidden")
         response = await call_next(request)
