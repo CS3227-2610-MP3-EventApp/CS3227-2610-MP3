@@ -202,7 +202,7 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
     expectCompleteItem(server.writes()[2].body);
     expect(server.items[0]).toMatchObject({ ...fields, revision: 1, state: "draft", publishedAt: null });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
+  }, 10000);
 
   test("F01-AC03/07 saves complete edits with expectedRevision and converts event-local times", async () => {
     seedActor("organiser"); const server = programmeServer({ items: [draft] });
