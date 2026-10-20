@@ -23,6 +23,7 @@ The AI checks factual statements against the visible interaction/tool evidence a
 - [2026-10-19 Yik Bing Claude model assignment recommendations](yikbing/2026-10-19-claude-model-assignment-recommendations.md): proposed Claude Code models/effort per SDD role, configuration guidance, unverified availability and pilot proposal; approved assignments applied to `.claude/agents/` on 2026-10-19, runtime discovery pending.
 - [2026-10-18 spec boundary and layout](isaac/2026-10-18-spec-boundary-and-layout.md): revised contract definition and template, approved folder layout, 26 domain Drafts and independent documentation review.
 - [2026-10-18 shared UI specification](isaac/2026-10-18-shared-ui-spec.md): user-requested visual and interaction direction, prior project/catalogue updates, UI Draft, scenario handoff and log organization.
+- [2026-10-20 cross-platform run guide](isaac/2026-10-20-cross-platform-run-guide.md): ordered local startup, backend/frontend test commands, PowerShell and bash/zsh equivalents, and troubleshooting clarifications.
 - [2026-10-18 Dylan project/authentication UI planning](dylan/2026-10-18-project-understanding-auth-ui-planning.md): repository review, account/provisioning decisions, bounded prototype specification, independent analysis/test/security handoffs and pre-implementation gates.
 - [2026-10-19 Dylan shared authentication](dylan/2026-10-19-shared-authentication.md): revision 3 application-owned auth contracts, exact peer handoffs and corrected provisioning/session choices; implementation and human verification pending.
 
