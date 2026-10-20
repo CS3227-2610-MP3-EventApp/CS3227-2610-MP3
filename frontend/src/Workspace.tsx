@@ -84,16 +84,16 @@ export function Workspace({ session }: { session: CurrentActor }) {
           <Box sx={{ position: "relative", maxWidth: 470 }}>
             <Chip label="WORKSPACE PREVIEW" size="small" sx={{ bgcolor: "background.paper", color: colors.tintText, fontSize: 15, fontWeight: 700, letterSpacing: 1, mb: 2 }} />
             <Typography component="p" sx={{ fontSize: { xs: 32, sm: 43.5 }, lineHeight: 1.25, fontWeight: 650, letterSpacing: "-0.7px", overflowWrap: "anywhere" }}>{content.intro}</Typography>
-            <Typography variant="body2" sx={{ mt: 1.5, color: colors.tintText }}>A first look at your EventApp workspace. Explore the direction below; feature actions are coming later.</Typography>
+            <Typography variant="body2" sx={{ mt: 1.5, color: colors.tintText }}>{session.role === "organiser" ? "Prepare your event programme, manage locations and publish activities when they are ready." : "A first look at your EventApp workspace. Explore the direction below; feature actions are coming later."}</Typography>
           </Box>
         </Paper>
-        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 2.5, flexWrap: "wrap", gap: 1.5 }}><Typography component="h2" variant="h2">Your starting points</Typography><Typography variant="caption" color="text.secondary">03 / PREVIEWS</Typography></Stack>
+        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 2.5, flexWrap: "wrap", gap: 1.5 }}><Typography component="h2" variant="h2">Your starting points</Typography><Typography variant="caption" color="text.secondary">{session.role === "organiser" ? "01 / READY · 02 / PREVIEWS" : "03 / PREVIEWS"}</Typography></Stack>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 2.5 }}>
           {content.cards.map(([title, description, glyph], index) => <Paper component="article" key={title} elevation={0} sx={{ p: 3, border: 1, borderColor: "divider", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: "100%", mb: 3 }}><Box aria-hidden="true" sx={{ display: "grid", placeItems: "center", width: 54, height: 54, fontSize: 37.5, color: index === 2 ? colors.lavenderText : "secondary.main", bgcolor: index === 2 ? colors.lavender : colors.tint, borderRadius: 2 }}>{glyph}</Box><Typography variant="caption" color="text.secondary">0{index + 1}</Typography></Stack>
             <Typography component="h3" variant="h2" sx={{ fontSize: 27, mb: 1 }}>{title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>{description}</Typography>
-            <Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button>
+            {session.role === "organiser" && index === 0 ? <Button variant="contained" size="small" sx={{ mt: "auto" }} onClick={() => navigate("/organiser/programme")}>Open programme</Button> : <Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button>}
           </Paper>)}
         </Box>
         <Typography variant="caption" component="p" color="text.secondary" sx={{ mt: 4 }}>EventApp · Made for experiences that bring us together.</Typography>

@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, pool
 from app.settings import Settings
 from app.database import Base
 from app.auth import models  # noqa: F401 -- register every foundation table
+from app.programme import models as programme_models  # noqa: F401 -- register programme tables
 
 
 config = context.config

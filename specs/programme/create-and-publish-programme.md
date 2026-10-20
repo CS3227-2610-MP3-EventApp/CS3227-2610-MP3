@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | create-and-publish-programme |
 | Covered stories | [F01-US01, F01-US02, F01-US03, F04-US03](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 6 / Ready; successor path of `specs/F01-published-programme.md` revision 4 |
+| Specification revision / status | 6 / In progress; successor path of `specs/F01-published-programme.md` revision 4 |
 | Product roles / roadmap | Organiser and attendee; [phase 1](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Dylan approved exact written revision 6, including API shapes, validation bounds and pagination/filter rules, by replying “yes” on 2026-10-20; see linked run/session records |
-| Review / run record | [Draft reviews, scenarios and handoffs](../../workflow/agents/runs/2026-10-20-organiser-programme.md); no implementation baseline |
+| Review / run record | [Reviews, protected baseline and implementation handoffs](../../workflow/agents/runs/2026-10-20-organiser-programme.md) |
 
 Follow the [specification standard](../README.md). Sources: current catalogue and roadmap, accepted RD01–RD07, [security rules](../../docs/security.md), [architecture](../../docs/architecture.md) updated 2026-10-19, [access revision 3](../shared/access-authorised-workspaces.md), legacy F01 revision 4 and Dylan's 2026-10-20 programme implementation plan. Dylan subsequently approved the exact written revision 6, including its wire shapes and bounds. No implementation or verification is claimed by that approval.
 
