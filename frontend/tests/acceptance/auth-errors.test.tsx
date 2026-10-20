@@ -41,6 +41,33 @@ function associated(input: HTMLElement, pattern: RegExp) {
 }
 
 describe("Access r4 AC20/21 and shared UI r4 clear, safe reasons", () => {
+  test("REQ-REG-B uncertain password reconciliation preserves same-actor uncertainty then purges for a different authoritative actor", async () => {
+    const original = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const path = new URL(typeof input === "object" && "url" in input ? input.url : String(input), window.location.origin).pathname;
+      if (path === "/api/v1/auth/change-password") {
+        auth.requests.push({ path, method: "POST", body: JSON.parse(String(init?.body)), credentials: init?.credentials });
+        throw new TypeError("Synthetic response lost");
+      }
+      return original(input, init);
+    }));
+    await changeForm(); fill(); await submit();
+    expect(await screen.findByText(/outcome not confirmed/i)).toBeVisible();
+    await userEvent.setup().click(screen.getByRole("button", { name: /^check session$/i }));
+    await waitFor(() => expect(auth.requests.filter((request) => request.path.endsWith("/me")).length).toBeGreaterThan(1));
+    expect(screen.getByLabelText(/^current password$/i)).toHaveValue(CURRENT);
+    expect(screen.getByLabelText(/^new password$/i)).toHaveValue(REPLACEMENT);
+    expect(document.body).toHaveTextContent(/outcome not confirmed/i);
+    const replacement = { ...actor("business", "Different authoritative Business Owner"), id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" };
+    auth.current = replacement;
+    await userEvent.setup().click(screen.getByRole("button", { name: /^check session$/i }));
+    expect(await screen.findByText(replacement.displayName)).toBeVisible();
+    await waitFor(() => expect(window.location.pathname).toBe("/business"));
+    expect(screen.queryByLabelText(/^current password$|^new password$|^confirm new password$/i)).not.toBeInTheDocument();
+    expect(document.querySelector("input[type='password']")).toBeNull();
+    expect(document.body).not.toHaveTextContent("Synthetic organiser");
+    expect(passwordWrites()).toHaveLength(1); noPrivateStorage();
+  });
   test("same current and new password has a specific associated error before any write", async () => {
     await changeForm(); fill(CURRENT, CURRENT); await submit();
     expect(await screen.findByText("The new password must be different from your current password.")).toBeVisible();

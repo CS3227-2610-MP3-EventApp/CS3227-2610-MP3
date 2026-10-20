@@ -59,6 +59,78 @@ function expectCredentialedWrites() {
 }
 afterEach(() => { vi.useRealTimers(); });
 
+describe("REQ-TCR-04 approved Unicode and organiser draft lifecycle regressions", () => {
+  test.each(["accepted", "rejected"] as const)("REQ-REG-A valid1000-codepoint %s reason remains readable", async (outcome) => {
+    const reason = String.fromCodePoint(0x1f680).repeat(1000);
+    expect(Array.from(reason)).toHaveLength(1000);
+    applications.install();
+    applications.records = [submitted({ status: outcome, revision: 3, decision: { outcome, reason, decidedAt: "2026-10-21T03:00:00Z" } })];
+    await renderPrototype(savedRoute); await heading();
+    expect(await screen.findByText(reason)).toBeVisible();
+    expect(screen.getByRole("heading", { name: new RegExp(`^${outcome}$`, "i") })).toBeVisible();
+    expect(document.body).not.toHaveTextContent(/invalid response|temporarily unavailable/i);
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage(reason, content.contactEmail);
+  });
+  test("REQ-REG-C1 unsaved organiser reason is concealed then restored after same-scope focus validation", async () => {
+    applications.install("organiser"); applications.records = [submitted()];
+    await renderPrototype(`${organiserRoute}&applicationId=${A1}`); await screen.findByText(content.description);
+    await userEvent.setup().click(screen.getByRole("button", { name: /^reject application$/i }));
+    const marker = "PRIVATE-SAME-SCOPE-UNSAVED-REASON";
+    fireEvent.change(await screen.findByLabelText(/^decision reason$/i), { target: { value: marker } });
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(screen.queryByDisplayValue(marker)).not.toBeInTheDocument());
+    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    await act(async () => { release(); });
+    await waitFor(() => expect(screen.getAllByText(content.description).length).toBeGreaterThan(0));
+    if (!screen.queryByLabelText(/^decision reason$/i)) await userEvent.setup().click(screen.getByRole("button", { name: /^reject application$/i }));
+    expect(await screen.findByLabelText(/^decision reason$/i)).toHaveValue(marker);
+    expect(applications.records[0].decision).toBeNull();
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage(marker, content.contactEmail);
+  });
+  test("REQ-REG-C2 unsaved organiser setting survives same-scope pageshow validation", async () => {
+    applications.install("organiser"); await renderPrototype(organiserRoute);
+    const toggle = await screen.findByRole("checkbox", { name: /^accepting applications$/i });
+    expect(toggle).toBeChecked(); await userEvent.setup().click(toggle);
+    expect(toggle).not.toBeChecked();
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("pageshow")); });
+    await waitFor(() => expect(screen.queryByRole("checkbox", { name: /^accepting applications$/i })).not.toBeInTheDocument());
+    await act(async () => { release(); });
+    expect(await screen.findByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked();
+    expect(applications.events[0].applicationsOpen).toBe(true);
+    expect(applications.writes()).toHaveLength(0);
+  });
+  test("REQ-REG-D unsaved settings warn, survive same-event Overview return and purge on confirmed event departure", async () => {
+    applications.install("organiser", true); await renderPrototype(organiserRoute);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("checkbox", { name: /^accepting applications$/i }));
+    await user.click(screen.getByRole("link", { name: /workspace|overview/i }));
+    const warning = await screen.findByRole("dialog", { name: /unsaved/i });
+    await user.click(within(warning).getByRole("button", { name: /stay|cancel/i }));
+    expect(window.location.pathname).toBe("/organiser/applications");
+    expect(screen.getByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked();
+    await user.click(screen.getByRole("link", { name: /workspace|overview/i }));
+    const leaving = await screen.findByRole("dialog", { name: /unsaved/i });
+    await user.click(within(leaving).getByRole("button", { name: /leave|continue|keep.*memory/i }));
+    await waitFor(() => expect(window.location.pathname).toBe("/organiser"));
+    await user.click(await screen.findByRole("link", { name: /^review applications$/i }));
+    expect(await screen.findByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked();
+    await choose(/^event$/i, "Synthetic Winter Market");
+    const change = await screen.findByRole("dialog", { name: /unsaved/i });
+    await user.click(within(change).getByRole("button", { name: /leave|continue|discard|change|switch/i }));
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("eventId")).toBe(E2));
+    await choose(/^event$/i, "Synthetic Autumn Fair");
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("eventId")).toBe(E1));
+    expect(await screen.findByRole("checkbox", { name: /^accepting applications$/i })).toBeChecked();
+    expect(applications.events[0].applicationsOpen).toBe(true);
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage(content.contactEmail);
+  });
+});
+
 describe("Approved request evolution: open settings, one decision and clear recovery", () => {
   async function organiserApplication() {
     applications.install("organiser"); applications.records = [submitted()];
