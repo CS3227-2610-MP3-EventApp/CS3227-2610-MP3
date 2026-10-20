@@ -20,4 +20,12 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout are real backend operations. Programme, application, itinerary and AI cards remain labelled previews with disabled actions until their own capabilities are delivered. Published-programme browsing will require attendee login.
+Account registration, login, session restoration, password changes and logout are real backend operations. This branch adds the attendee programme browser described below; its publication backend and real data integration are still pending. Other application, itinerary and AI actions remain previews with disabled controls.
+
+## Browse the programme (frontend awaiting programme backend)
+
+Sign in as an attendee and choose **Browse Programme**. Select an event, then an activity to see its times, venue/room, SGD price, declared capacity and separate activity/room/venue accessibility notes. Times use the event timezone. “Free” means zero price; capacity is not a remaining-ticket count. Missing accessibility information remains unknown.
+
+Search activity titles, combine a type and event-local date, and apply the filters. Use Previous/Next for paged lists. Overnight activities are intended to match every local date they overlap when the programme backend enforces the agreed contract. Retry failed loads; an empty list is distinct from an error. A session-expiry response returns you to login. Activity links support direct navigation once the producer endpoints are available.
+
+This branch does not create or publish events/activities. Against the current backend, the new programme APIs are unavailable, so the browser shows a load error rather than inventing programme data. Automated frontend acceptance checks use synthetic network responses only in tests; they do not establish real publication, server permissions or persistence.

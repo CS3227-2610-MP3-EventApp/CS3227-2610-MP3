@@ -1,6 +1,7 @@
 import { Alert, Box, Button, Chip, Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Brand } from "./components";
 import { roleNames } from "./Entry";
 import { type CurrentActor, type Role } from "./session";
@@ -8,6 +9,7 @@ import { api } from "./api";
 import { useAuth } from "./Auth";
 import { AppearanceControl } from "./Appearance";
 import { appearanceColors } from "./theme";
+import { Programme } from "./Programme";
 
 const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [string, string, string][] }> = {
   attendee: {
@@ -41,6 +43,7 @@ const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [
 
 export function Workspace({ session }: { session: CurrentActor }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setActor } = useAuth();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -52,6 +55,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
     finally { setPending(false); }
   }
   const content = workspaceContent[session.role];
+  const browsingProgramme = session.role === "attendee" && location.pathname.startsWith("/attendee/programme");
   const colors = appearanceColors(useTheme().palette.mode);
   return <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "272px minmax(0, 1fr)" }, minHeight: "100dvh" }}>
     <Box component="aside" sx={{ bgcolor: colors.aside, color: colors.asideText, p: 3, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -73,6 +77,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
       </Stack>
       <Box component="main" sx={{ p: { xs: 2.5, md: 4, lg: 5 }, maxWidth: 1500, mx: "auto" }}>
         {error && <Alert severity="error">{error}</Alert>}
+        {browsingProgramme ? <Programme /> : <>
         <Box sx={{ mt: 5, mb: 4 }}>
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}><Box aria-hidden="true" sx={{ width: 7, height: 7, bgcolor: "secondary.main", borderRadius: "50%" }} /><Typography variant="overline" color="secondary.main" sx={{ fontWeight: 700, letterSpacing: 1.6 }}>A SPACE FOR WHAT’S NEXT</Typography></Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Welcome,</Typography>
@@ -93,10 +98,13 @@ export function Workspace({ session }: { session: CurrentActor }) {
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: "100%", mb: 3 }}><Box aria-hidden="true" sx={{ display: "grid", placeItems: "center", width: 54, height: 54, fontSize: 37.5, color: index === 2 ? colors.lavenderText : "secondary.main", bgcolor: index === 2 ? colors.lavender : colors.tint, borderRadius: 2 }}>{glyph}</Box><Typography variant="caption" color="text.secondary">0{index + 1}</Typography></Stack>
             <Typography component="h3" variant="h2" sx={{ fontSize: 27, mb: 1 }}>{title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>{description}</Typography>
-            <Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button>
+            {session.role === "attendee" && title === "Browse Programme"
+              ? <Button component={Link} to="/attendee/programme" variant="outlined" size="small" sx={{ mt: "auto" }}>Explore programme</Button>
+              : <Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button>}
           </Paper>)}
         </Box>
         <Typography variant="caption" component="p" color="text.secondary" sx={{ mt: 4 }}>EventApp · Made for experiences that bring us together.</Typography>
+        </>}
       </Box>
     </Box>
   </Box>;

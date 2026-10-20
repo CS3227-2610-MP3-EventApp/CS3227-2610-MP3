@@ -16,7 +16,7 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. Programme, application, itinerary and AI actions remain previews or later capabilities; online deployment is separate.
+The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. The attendee programme consumer is implemented against the proposed API and verified with test-only network fixtures; its publication producer and real integration remain pending. Application, itinerary and AI actions remain previews or later capabilities; online deployment is separate.
 
 Use Node.js `^20.19.0` or `>=22.12.0`, then run:
 
@@ -90,8 +90,16 @@ Manual flows after launching both servers:
 4. Log in as the seeded organiser, replace the initial password, refresh and verify access to the organiser workspace. The initial password must no longer work.
 5. Inspect browser cookies: `eventapp_session` is HttpOnly/SameSite=Lax; browser storage contains no identity or token. Appearance preference remains in local storage.
 
-Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Domain cards remain previews until their own capabilities are implemented.
+Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. The attendee programme consumer is described below; other domain cards remain previews until their own capabilities are implemented.
 
 ## Delivery evidence to maintain
 
 Document deployment/recovery steps and the online application URL when hosting is implemented. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific evidence to the release gates in project context. This slice does not provide password recovery, email verification, rate limiting or a production deployment.
+
+## Attendee programme consumer
+
+The attendee UI uses real same-origin GET requests under `/api/v1/programme`; it has no synthetic production fallback. The proposed producer read API is in [programme contract revision 7, approval recorded in revision 8](../specs/programme/create-and-publish-programme.md). Publication/backend ownership and integration remain pending; current CLI events are not published programmes. To exercise end-to-end browsing, the producer must implement the agreed event list, event item list and item detail interfaces plus server authorization/visibility.
+
+`frontend/src/programmeTypes.ts` holds explicitly interim frontend response types while producer OpenAPI is unavailable. It is not generated schema evidence. Once the real API contract is agreed and implemented, export OpenAPI, regenerate types through the existing process, migrate this consumer to them, and verify the real network/database journey. Do not fabricate server schema or ship the acceptance fixture as application data.
+
+For local frontend verification, preserve the immutable protected tests, exact runtime/commands and separate baseline seal in [test-first run](../workflow/agents/runs/2026-10-20-browsing-test-first.md). [Implementation run](../workflow/agents/runs/2026-10-20-browsing-implementation.md) records actual code/review/test evidence. Backend privacy/filtering/date queries, publication integration, storage lifecycle, deployed delivery and real-browser visual checks remain distinct obligations.
