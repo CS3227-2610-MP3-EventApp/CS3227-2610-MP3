@@ -27,7 +27,7 @@ def test_empty_database_upgrade_creates_authentication_tables() -> None:
         connection.execute("CREATE SCHEMA public")
 
     result = subprocess.run(
-        ["uv", "run", "alembic", "upgrade", "head"],
+        ["uv", "run", "alembic", "upgrade", "20261019_0002"],
         cwd=BACKEND,
         env={**os.environ, "DATABASE_URL": os.environ["TEST_DATABASE_URL"]},
         capture_output=True,
