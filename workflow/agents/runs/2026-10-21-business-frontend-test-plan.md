@@ -69,6 +69,7 @@ workflow/agents/runs/2026-10-20-business-applications-test-change-02.md
 workflow/agents/runs/2026-10-21-business-frontend-test-plan.md
 workflow/agents/runs/2026-10-21-business-frontend-test-change.md
 workflow/agents/runs/2026-10-21-business-frontend-test-change-02.md
+workflow/agents/runs/2026-10-21-business-frontend-test-change-03.md
 ```
 
 ## Post-implementation test-budget investigation
@@ -76,6 +77,12 @@ workflow/agents/runs/2026-10-21-business-frontend-test-change-02.md
 APP-UI-TCR-02 records developer-observed isolated default5000ms keyboard-journey timeouts and an isolated diagnostic completing all unchanged assertions in5.83s. The whole keyboard journey has no5000ms product SLA; shared200ms/10s feedback targets remain independently protected. After independent verifier classification and root authorization, the test owner added a10000ms timeout argument to that single keyboard test; no actions/assertions/inputs/tablimits or global runner/configuration changed. Original reviewed executable SHA/evidence above remain historical. Saved minimal-diff approval and replacement freeze are recorded in TCR02/root run before final default checks; no passing whole-suite result is claimed here. TCR02 extends the full protected set from15 to16 paths.
 
 Both behaviour and security reviewers independently approved the exact saved one-argument diff, test SHA-256 `92B9D85F7B3E6C54483CB56CBED864717BC39A23FA82A03668746779EEE5E81A`, with all actions/assertions and the separate timing case unchanged. Replacement baseline commit is root-owned and recorded externally; subsequent source fixes and normal default-suite passing evidence remain required.
+
+## Reviewer-discovered scope lifecycle coverage
+
+APP-UI-TCR-03 strengthens already-approved AC13/15/shared AC08 and adds no policy. APP-UI18 has two executable history/popstate transitions from dirty saved B1/E1 to owned B2 with empty approved discovery or B1/unapproved E2, then back: departed private marker must be purged and canonical saved content restored, with no writes/private storage. This deliberately bypasses selector handlers and preserves the existing same-scope Overview-retention case. APP-UI19 reverses only unrelated membership ordering on focus revalidation, retaining exact actor/current B1/E1 authority: input is concealed while pending, then the same unsaved value must restore. No existing action/assertion changed.
+
+Before source fixes, owner ran these three cases against root-held44-file fingerprint `6ef2f0861972c72c857251925915da17050b9aedbfea681e83a90da531b33a31`: **3 meaningful failures**,49 intentionally filtered,52 discovered overall,5.82s total. History paths restored a departed marker; unrelated reorder discarded a still-authorized marker. These distinguish two implementation defects from harness failures. New saved test SHA-256 `CF220363557C902B9D8265806CE6D4FA24421016E4A5492866F9B46F7CF5BA08`. Both named independent reviewers approved the saved additions and verified no prior assertions/fixture/configuration changed; neither claims own runtime. Standalone TypeScript check passed. Root replacement freeze remains pending; TCR03 extends the full protected set from16 to17 paths.
 
 Readiness feedback from actual behaviour verifier `/root/f06_frontend_readiness`: record complete URLs including search selectors in the new fixture; preserve existing `auth` fixture/configuration; test late 401 after newer sign-in as well as late successful data. The orchestrator reports isolated Chrome 156/CDP is available for real browser follow-up without installing browser dependencies. This is harness availability, not a passed browser or NVDA check.
 

@@ -485,6 +485,45 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
     expect(applications.writes()).toHaveLength(0);
   });
 
+  test.each([
+    ["owned business with no approved events", `/business/applications?businessId=${B2}`, /no results/i],
+    ["unapproved event", `/business/applications?businessId=${B1}&eventId=${E2}`, /access denied/i],
+  ] as const)("AC13/15 history context change to %s purges the departed private draft", async (_context, destination, feedback) => {
+    await business(true, true);
+    fill({ description: "PRIVATE-DEPARTED-SCOPE-MARKER" });
+    await act(async () => {
+      window.history.pushState({}, "", destination);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(await screen.findByText(feedback)).toBeVisible();
+    expect(screen.queryByDisplayValue("PRIVATE-DEPARTED-SCOPE-MARKER")).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    await act(async () => {
+      window.history.pushState({}, "", savedRoute);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    await screen.findByLabelText(/^description$/i);
+    await waitFor(() => expect(description()).toHaveValue(content.description));
+    expect(description()).not.toHaveValue("PRIVATE-DEPARTED-SCOPE-MARKER");
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("PRIVATE-DEPARTED-SCOPE-MARKER", content.contactEmail);
+  });
+
+  test("AC13/15 unrelated membership reorder during focus revalidation preserves the same authorised scope", async () => {
+    await business(true, true);
+    fill({ description: "Same actor and B1 E1 private input" });
+    auth.current = { ...auth.current!, businessMemberships: [...auth.current!.businessMemberships].reverse() };
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(screen.queryByDisplayValue("Same actor and B1 E1 private input")).not.toBeInTheDocument());
+    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    await act(async () => { release(); });
+    await screen.findByLabelText(/^description$/i);
+    await waitFor(() => expect(description()).toHaveValue("Same actor and B1 E1 private input"));
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("Same actor and B1 E1 private input", content.contactEmail);
+  });
+
   test("AC16 supports keyboard validation, correction, saved review and confirmation", async () => {
     await business();
     const user = userEvent.setup();
