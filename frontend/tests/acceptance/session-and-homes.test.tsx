@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { homes } from "../fixtures/roles";
@@ -114,8 +114,20 @@ describe("role homes preserve presentation and accessibility", () => {
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
     const unavailable = screen.getAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(3);
+    expect(unavailable).toHaveLength(role === "attendee" ? 2 : 3);
     for (const button of unavailable) expect(button).toBeDisabled();
+    if (role === "attendee") {
+      // BROWSE-TCR-01: only Browse Programme progresses beyond the prototype.
+      for (const title of ["My Itinerary", "Event Assistant"]) {
+        const card = screen.getByRole("heading", { name: title }).closest("article")!;
+        expect(within(card).getByRole("button", { name: /coming later/i })).toBeDisabled();
+      }
+      const browseCard = screen.getByRole("heading", { name: "Browse Programme" }).closest("article")!;
+      const browse = screen.queryByRole("link", { name: /browse programme/i })
+        ?? screen.queryByRole("button", { name: /browse programme/i })
+        ?? within(browseCard).queryByRole("link") ?? within(browseCard).getByRole("button");
+      expect(browse).toBeEnabled();
+    }
     expect(screen.queryByText(/credentials are not authenticated/i)).not.toBeInTheDocument();
   });
 
