@@ -20,4 +20,12 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout are real backend operations. Programme, application, itinerary and AI cards remain labelled previews with disabled actions until their own capabilities are delivered. Published-programme browsing will require attendee login.
+Account registration, login, session restoration, password changes and logout are real backend operations. Organiser Programme Management now uses the real backend and database. Application, itinerary and AI cards remain previews. Authenticated attendee programme reads are available through the API; attendee browsing screens remain a teammate-owned follow-up.
+
+## Organiser programme management
+
+Open **Programme Management** and select an assigned event. Create a venue with its address, add a room and capacity, then create a complete programme draft. Enter times in the displayed event timezone, choose a room/type and set capacity and whole SGD cents. Blank accessibility notes mean unknown. Activities may overlap in one room; each item's capacity must still fit that room.
+
+Save the draft before validating or publishing. **Validate** checks the saved revision without publishing. **Publish** requires confirmation and makes the stored revision visible to authenticated attendee API consumers. Published items are read-only, and their venues/rooms are locked against editing. Drafts and unused locations can be deleted after confirmation; referenced locations cannot.
+
+If another tab saves first, reload and review its revision before retrying. Publication never silently includes unsaved edits. Detailed walkthroughs and API handoff are in [programme testing](ProgrammeTesting.md).

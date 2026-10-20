@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | create-and-publish-programme |
 | Covered stories | [F01-US01, F01-US02, F01-US03, F04-US03](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 6 / In progress; successor path of `specs/F01-published-programme.md` revision 4 |
+| Specification revision / status | 6 / In review; successor path of `specs/F01-published-programme.md` revision 4 |
 | Product roles / roadmap | Organiser and attendee; [phase 1](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Dylan approved exact written revision 6, including API shapes, validation bounds and pagination/filter rules, by replying “yes” on 2026-10-20; see linked run/session records |
 | Review / run record | [Reviews, protected baseline and implementation handoffs](../../workflow/agents/runs/2026-10-20-organiser-programme.md) |
@@ -117,7 +117,7 @@ The publication endpoint above is the only new audit-read surface, organiser/eve
 
 ## Verification and evidence
 
-Exact written revision 6 is human-approved. Executable test adequacy review, baseline and implementation snapshot are separate gates under the [agent workflow](../../workflow/agents/README.md). All revision-6 criteria remain unverified. AC06 requires lifecycle evidence; AC09 and attendee UI completion remain deferred to integration/deployment, not counted as passing. Legacy reviews apply only to their original revisions. Revision 6 was drafted by the delegated analyst, with independent planned-scenario analysis and behaviour/security Draft reviews finding no blocking written contradiction. See the linked run record for test design, reviews, baseline and implementation evidence as work proceeds. Human teammate review and session-summary correctness verification remain pending.
+Exact written revision 6 is human-approved. Reviewed protected tests and actual specialist handoffs preceded implementation. The linked run record identifies final implementation `ad96362755ef0cfc71cddbdc2b684ab2828378d4`, protected baseline `90b65c0fcb2529c3eed3a57a0d281ffe106b7edb`, 104 passing PostgreSQL/backend tests, 92 passing frontend tests, build and bounded independent behaviour/security reviews. AC06 has fresh real-HTTP publication and FastAPI/PostgreSQL restart evidence without reseeding. AC07 combines executed race/rollback regressions with reviewed deterministic transaction reasoning, not a claim every interleaving was executed. AC09, attendee screens, manual browser/visual accessibility and production isolation remain pending. The capability is In review, not Verified/Completed; human teammate review and summary correctness verification remain pending. Legacy reviews still apply only to their original revisions.
 
 ## Revision history
 

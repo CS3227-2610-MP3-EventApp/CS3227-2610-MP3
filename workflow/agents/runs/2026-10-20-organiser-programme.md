@@ -45,7 +45,7 @@ AC10 denotes `create-and-publish-programme-AC10`. Tests will use real PostgreSQL
 
 Handle these through the repository's test-change process and independent assessment, not developer edits to protected tests. Exact revision approval precedes executable acceptance-test authoring and baseline freezing. No baseline SHA exists for this capability yet.
 
-## Verification status
+## Initial drafting verification status (historical)
 
 Only documentation preparation is underway. No feature implementation, application tests, runtime/browser checks, migration, production build, deployment, push or merge has been performed. Human teammate review and summary correctness verification remain pending.
 
@@ -62,6 +62,8 @@ Commands: guarded `uv run pytest` in backend; `npm test` and `npm run build` in 
 Backend and frontend developers receive disjoint application-file ownership and GO only after this record is written. They cannot edit protected tests/configuration or baseline references. Root coordinates generated API artifacts and docs. No dependency additions are planned.
 
 Replacement baseline: `0c71a03f345ba15da48ea9536546eedae10c5b6b`, same protected path set and commands. The original `0fdaa08f623dc4202e51e360293affec2938928d` remains historical. Reason: the appearance test also contained the obsolete all-three-previews status text. The independent behaviour reviewer confirmed the defect; the test owner changed only role-aware expected text, retaining minimum sizing and all other assertions. The replacement commit contains only that test and its TCR record, not in-progress application code.
+
+Additive regression baseline: `90b65c0fcb2529c3eed3a57a0d281ffe106b7edb`, same protected paths plus `workflow/agents/runs/2026-10-20-programme-time-regression.md`. Independent implementation review found a real title-only edit precision defect. The separate UI test owner added a six-digit fractional timestamp boundary regression; it failed meaningfully on the current implementation, and the behaviour reviewer accepted its adequacy before this baseline was frozen. No existing assertions were weakened. The frontend developer receives precision-fix GO only after this record is written.
 
 Dylan approved the exact written revision 6 including API shapes, bounds and filters on 2026-10-20. `/root/programme_scenarios` then authored [the test plan](2026-10-20-programme-test-plan.md), [owner change requests](2026-10-20-programme-test-changes.md), PostgreSQL acceptance tests and the approved-scope migration/home expectation updates. `/root/programme_ui_test_owner` was separately assigned only the expanded frontend programme tests. Both designer roles used actual delegated agents; no production ownership.
 
@@ -82,3 +84,32 @@ The earlier preparation-only status above describes the initial gate, not the cu
 - Browser attempt: temporary Vite server started, but CUA reported IAB unavailable and no available browsers. No Safari access was attempted. The temporary server was stopped. Visual/manual browser evidence remains pending.
 
 Root is freezing the implementation snapshot for independent behaviour/security reviews. Additional race scenarios, real restart evidence, deployed attendee UI integration and human teammate/summary review remain distinct gates. No push, merge or deployment is authorised or performed.
+
+## Final implementation review and evidence
+
+Initial implementation: `fffeb68792d78b02ed7ee40267d873aa2ded726f`. Final reviewed implementation: `ad96362755ef0cfc71cddbdc2b684ab2828378d4`. Final protected baseline: `90b65c0fcb2529c3eed3a57a0d281ffe106b7edb`; use the original protected path set plus the precision-regression TCR path above.
+
+`/root/programme_draft_security` found no security blockers at the initial snapshot. `/root/programme_draft_behaviour` found the fractional timestamp defect; the independent owner wrote a meaningful failing regression, then the developer preserved original raw instants when wall time/offset is unchanged. Both reviewers assessed the same final repair commit and reported no remaining important blocker in their bounded scopes. They did not implement the reviewed source or claim exhaustive security coverage.
+
+Fresh orchestrator results:
+
+- Full backend/real PostgreSQL: **104 passed**, one existing Starlette/httpx deprecation warning, 105.50 seconds. Backend source is unchanged by the later frontend-only repair.
+- Full frontend at final repair: **92 passed** across 6 files, 18.38 seconds. One developer run timed out on the existing 5-second create journey while building concurrently; the unchanged suite passed when rerun alone, then passed again in the orchestrator run. Protected timeouts were not altered.
+- Frontend production build passes; Vite reports a roughly 556 kB JavaScript chunk advisory. No bundle threshold was weakened.
+- OpenAPI and TypeScript were generated from final backend schemas together and match committed artifacts. Latest protected-path check passes. Dependency/tooling results remain as above; no dependency/runner changes.
+- Real HTTP lifecycle check: trusted CLI provisioned fresh synthetic event/organiser; separate cookie clients created location/draft, explicitly published, and fetched exact published facts. FastAPI was terminated and only `cs3227-2610-mp3-test-db-1` restarted, retaining its data. A new API process and the original attendee cookie retrieved the identical DTO, without reseeding. Both temporary API processes were stopped. The test container remains available; no development data was touched.
+
+| Criterion | Evidence and remaining boundary |
+| --- | --- |
+| F01-AC01 | PostgreSQL authoring/read assertions and frontend location/draft interactions pass |
+| F01-AC02 | Direct role/event/current-membership mutation matrix, password-change gate, Origin/CORS and before/after preservation checks pass |
+| F01-AC03 | Strict field/integer/enum/currency/event-time/capacity/cross-event checks and permitted room overlap pass; source constraints independently reviewed |
+| F01-AC04 | Explicit publication, exact snapshot facts and separate attendee API reads pass; no attendee UI claim |
+| F01-AC05 | Published-only visibility, draft concealment, literal search, type/event-date filters and pagination pass |
+| F01-AC06 | Empty/populated-auth migrations and actual API/database restart check pass |
+| F01-AC07 | Stale/lifecycle/deletion/rollback regressions and duplicate/publication-room-edit races pass. Reviewers verified all programme writers take the same event lock before checks and retain it through commit, giving equivalent deterministic serial-order evidence for the additional designed races; not every interleaving was executed |
+| F01-AC08 | Attributable atomic success audit, protected audit read and injected failure rollback pass |
+| F01-AC09 | Pending deployed organiser-to-attendee journey, attendee UI and production isolation; local tests do not satisfy it |
+| create-and-publish-programme-AC10 | Validation-without-publication, fresh parent revalidation, field findings and explicit confirmation checks pass |
+
+Manual visual, real-browser keyboard/focus/narrow viewport and DST offset-choice checks remain pending because no browser surface was available. Runtime log inspection beyond automated assertions/static review is not claimed. Required human teammate review and human summary verification remain pending. Status: In review. No push, merge or production deployment.

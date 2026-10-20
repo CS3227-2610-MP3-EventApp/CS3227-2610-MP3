@@ -4,7 +4,7 @@
 - Feature/task: F01-US01, F01-US02, F04-US03; published read API supporting F01-US03, whose UI remains with the attendee teammate.
 - Branch/source: `feat/organiser-programme`, created from clean local `master` at `07a5666b7ebb80ef462025fbfa1798c9676f1ee8`.
 - Source coverage: visible implementation request, preceding plan and repository inspection; not a complete transcript of historical chats.
-- AI factual check: branch/source verified with Git; draft and review results recorded below when available.
+- AI factual check: branch/revisions checked against Git; delegation, commands, outcomes and limitations checked against the visible tool/agent evidence recorded below and in the run record.
 - Human summary verification: pending.
 
 ## Prompts and interactions
@@ -39,3 +39,24 @@ Finish independent Draft reviews, present revision 6 for exact-revision approval
 ## Exact-revision approval and continuation
 
 Dylan replied “yes” to the explicit request approving revision 6 including API shapes, validation bounds and pagination/filter rules. Product/contract approval is now recorded; detailed test adequacy and baseline are separate gates. The test designer was assigned executable acceptance tests and owner-controlled expectation updates. Backend and frontend developers were assigned read-only preparation only until the reviewed baseline is frozen. No application implementation was authorised to those agents before that gate.
+
+## Implementation continuation and corrections
+
+The independently reviewed test baseline was frozen at `0fdaa08`, then disjoint backend/frontend application work began. Actual developer agents were `/root/programme_backend` and `/root/programme_frontend`, both using Sol/high for migration/auth/shared-contract integration. `/root/programme_ui_test_owner` separately authored core frontend acceptance interactions and a later precision regression. Reviewer/test-owner identities and full baseline SHAs are in the run record.
+
+- Initial test review found a bad membership status fixture and missing permission/race/UI assertions. Independent test owners corrected those before development.
+- The first frontend suite exposed an obsolete appearance text assertion beyond the initial home-card correction. The behaviour reviewer confirmed it contradicted approved scope; test owner corrected only role-aware status text. Replacement baseline `0c71a03` retains all appearance sizing checks.
+- Backend's first full run failed due to nullable accessibility validation and a documentation identity marker rejected by the unchanged secret scanner. The developer corrected the validator; the orchestrator removed the credential-shaped marker from prose. No scanner/test weakening occurred.
+- Root regenerated OpenAPI and TypeScript together. Initial export failed for a missing required database setting; successful generation used a non-connected identity marker. No schema generation queried development data.
+- Fresh root verification at implementation snapshot `fffeb68`: backend 104 passed (one existing deprecation warning); frontend 91 passed; production build passed with a bundle-size advisory. Baseline/tooling/dependency checks passed; audits reported no known vulnerabilities. None of these prove production safety comprehensively.
+- Independent implementation behaviour/security reviews inspected the same `fffeb68` snapshot. Security found no blocker; behaviour found timestamp precision loss on unrelated edits. The separate test owner reproduced the failure with a six-digit fractional timestamp at the event boundary, and the reviewer approved the additive regression. New baseline `90b65c0` preceded developer repair; no existing assertions changed.
+- Actual lifecycle check used fresh synthetic event/accounts/location/item, real HTTP publication, then restarted FastAPI and only the named disposable PostgreSQL test container. The existing attendee cookie retrieved identical published facts without reseeding. Temporary API processes were stopped.
+- Browser smoke attempt could not proceed: IAB unavailable, no available browser surfaces. No Safari access was attempted. Temporary Vite server was stopped. Manual visual/keyboard checks remain pending.
+
+The test database contains synthetic lifecycle records; development data was not reset or migrated by the agent. No push, merge or production deployment occurred. Full attendee UI/online verification and human teammate/summary approval remain separate. Final precision-repair and review results are recorded in the run record when complete.
+
+## Final handoff
+
+Precision repair committed at `ad96362`; both independent reviewers assessed that final implementation with no remaining important blocker in their bounded scopes. Fresh orchestrator frontend suite passed **92/92**; unchanged backend source passed **104/104** against PostgreSQL; final production build passed. A developer's concurrent test/build run timed out once on the existing create flow; unchanged isolated reruns passed and no protected timeout changed. Final additive baseline is `90b65c0`, with earlier baseline history retained. The detailed criterion map, actual restart evidence and remaining manual/browser/deployment/human gates are in the run record.
+
+User/developer guides, project/architecture and spec status now describe real organiser Programme Management and the published read API without claiming attendee screens or AI delivery. Status remains In review. The branch is local; no push, PR, merge or deployment was performed. Human correctness verification of this summary remains pending.
