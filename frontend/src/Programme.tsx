@@ -231,13 +231,14 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
   event: EventSummary; rooms: Room[]; venues: Venue[]; item: ProgrammeItem | null; blocked: boolean; perform: Perform;
   onSaved: (item: ProgrammeItem) => void; onPublish: () => void; onDelete: () => void;
 }) {
+  const originalChoice = (instant: string) => new Date(instant).toISOString().replace(/\.\d{3}Z$/, ".000Z");
   const [title, setTitle] = useState(item?.title ?? "");
   const [type, setType] = useState<ItemFields["type"]>(item?.type ?? "talk");
   const [roomId, setRoomId] = useState(item?.roomId ?? "");
   const [startsAt, setStartsAt] = useState(item ? localTime(item.startsAt, event.timezone) : "");
   const [endsAt, setEndsAt] = useState(item ? localTime(item.endsAt, event.timezone) : "");
-  const [startChoice, setStartChoice] = useState(item?.startsAt ? new Date(item.startsAt).toISOString() : "");
-  const [endChoice, setEndChoice] = useState(item?.endsAt ? new Date(item.endsAt).toISOString() : "");
+  const [startChoice, setStartChoice] = useState(item ? originalChoice(item.startsAt) : "");
+  const [endChoice, setEndChoice] = useState(item ? originalChoice(item.endsAt) : "");
   const [capacity, setCapacity] = useState(item ? String(item.capacity) : "");
   const [price, setPrice] = useState(item ? String(item.priceMinorUnits) : "");
   const [access, setAccess] = useState(item?.accessibilityDetails ?? "");
@@ -248,13 +249,17 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
   const disabled = blocked || published;
   const startChoices = localTimeChoices(startsAt, event.timezone);
   const endChoices = localTimeChoices(endsAt, event.timezone);
-  const resolve = (choices: ReturnType<typeof localTimeChoices>, choice: string) => choices.length === 1 ? choices[0].instant : choices.find((value) => value.instant === choice)?.instant;
+  function resolve(value: string, choices: ReturnType<typeof localTimeChoices>, choice: string, original?: string) {
+    // Preserve server precision beyond the wall-clock control and JavaScript Date.
+    if (original && value === localTime(original, event.timezone) && choice === originalChoice(original)) return original;
+    return choices.length === 1 ? choices[0].instant : choices.find((candidate) => candidate.instant === choice)?.instant;
+  }
   function changed() { setDirty(true); setValidation(""); }
   function save(submit: FormEvent) {
     submit.preventDefault();
     if (published) return;
-    const start = resolve(startChoices, startChoice);
-    const end = resolve(endChoices, endChoice);
+    const start = resolve(startsAt, startChoices, startChoice, item?.startsAt);
+    const end = resolve(endsAt, endChoices, endChoice, item?.endsAt);
     const room = rooms.find((value) => value.id === roomId);
     const next = findings({
       title: textErrors("Title", title, 200), roomId: room ? [] : ["Choose a room."], type: types.includes(type) ? [] : ["Choose an activity type."],
