@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Box, Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Paper, Stack, TextField, Typography } from "@mui/material";
 import { ApiError } from "../api";
 import { analysisApi, type Job, type Report, type Rubric } from "./analysisApi";
 
@@ -23,13 +23,14 @@ const safeFailure = (error: unknown) => error instanceof ApiError && error.statu
       ? "The analysis limit has been reached. Try again later."
       : "Analysis could not be completed. Check your input or try again later.";
 
-export default function ApplicationAnalysis({ eventId, applicationId, submittedRevision }: { eventId: string; applicationId: string; submittedRevision: number }) {
+export default function ApplicationAnalysis({ eventId, applicationId, submittedRevision, onManualReview }: { eventId: string; applicationId: string; submittedRevision: number; onManualReview?: () => void }) {
   const [rubric, setRubric] = useState<Rubric | null>(null);
   const [criteria, setCriteria] = useState<Rubric["criteria"]>([]);
   const [job, setJob] = useState<Job | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [editingRubric, setEditingRubric] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [statusError, setStatusError] = useState("");
@@ -109,7 +110,7 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
     void change(async () => {
       const saved = await analysisApi.saveRubric(eventId, rubric.revision, criteria);
       if (generation !== epoch.current) return;
-      setRubric(saved); setCriteria(saved.criteria); requestId.current = null;
+      setRubric(saved); setCriteria(saved.criteria); setEditingRubric(false); requestId.current = null;
     });
   }
 
@@ -166,15 +167,18 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
     });
   }
 
-  return <Paper component="section" variant="outlined" sx={{ p: { xs: 2, md: 3 }, mt: 3, minWidth: 0 }}>
-    <Stack spacing={2}>
+  return <Paper component="section" variant="outlined" sx={{ p: { xs: 2, md: 3 }, minWidth: 0 }}>
+    <Stack spacing={3}>
       <Typography component="h2" variant="h2">Application analysis</Typography>
       <Typography color="text.secondary">Use invented applications only. AI findings support human interpretation and never change an application decision.</Typography>
-      <Button component="a" href={`/organiser/applications?eventId=${encodeURIComponent(eventId)}&applicationId=${encodeURIComponent(applicationId)}`} sx={{ alignSelf: "flex-start" }}>Continue manual review</Button>
+      <Button component="a" href={`/organiser/applications?eventId=${encodeURIComponent(eventId)}&applicationId=${encodeURIComponent(applicationId)}`} onClick={(event) => {if (onManualReview) {event.preventDefault(); onManualReview();}}} sx={{ alignSelf: "flex-start" }}>Continue manual review</Button>
       {loading && <Typography role="status">Loading analysis…</Typography>}
       {error && <Alert severity="error" role="alert">{error}</Alert>}
       {statusError && <Alert severity="warning" role="status">{statusError}</Alert>}
       {rubric && <>
+        <Accordion expanded={editingRubric || rubric.revision === 0 || dirty} onChange={(_, expanded) => setEditingRubric(expanded)} disableGutters elevation={0} sx={{border: 1, borderColor: "divider", borderRadius: 2, "&:before": {display: "none"}}}>
+        <AccordionSummary expandIcon={<span aria-hidden="true">⌄</span>}><Typography fontWeight={700}>{rubric.revision === 0 ? "Set up rubric" : "Edit rubric"} · Revision {rubric.revision}</Typography></AccordionSummary>
+        <AccordionDetails><Stack spacing={3}>
         <Typography fontWeight={700}>Rubric revision {rubric.revision}{rubric.revision === 0 ? " — save before analysing" : ""}</Typography>
         <Typography variant="body2">Assess only participant type and description, and disclose any missing facts.</Typography>
         {criteria.map((criterion, index) => <Box key={index} sx={{ border: 1, borderColor: "divider", borderRadius: 2, p: 2 }}>
@@ -185,8 +189,9 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
             <Button onClick={() => setCriteria((previous) => previous.filter((_, position) => position !== index))} disabled={busy || criteria.length === 1} sx={{ alignSelf: "flex-start" }}>Remove criterion {index + 1}</Button>
           </Stack>
         </Box>)}
+        </Stack></AccordionDetails></Accordion>
         <Stack direction="row" sx={{ flexWrap: "wrap", gap: 2 }}>
-          <Button disabled={busy || criteria.length >= 10} onClick={() => setCriteria((previous) => [...previous, { id: `criterion-${crypto.randomUUID().slice(0, 8)}`, title: "", instructions: "" }])}>Add criterion</Button>
+          <Button disabled={busy || criteria.length >= 10} onClick={() => {setEditingRubric(true); setCriteria((previous) => [...previous, { id: `criterion-${crypto.randomUUID().slice(0, 8)}`, title: "", instructions: "" }]);}}>Add criterion</Button>
           <Button variant="outlined" disabled={busy || invalidCriteria || (!dirty && rubric.revision > 0)} onClick={save}>Save rubric</Button>
           <Button disabled={busy} onClick={() => dirty ? setDialog("reload") : refresh()}>Reload latest</Button>
           <Button variant="contained" disabled={busy || dirty || rubric.revision === 0 || active(job)} onClick={() => { setConfirmed(false); setDialog("start"); }}>Analyse application</Button>

@@ -6,8 +6,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/en-gb";
 import { useNavigate } from "react-router-dom";
-import { AppearanceControl } from "./Appearance";
-import { Brand } from "./components";
+import { WorkspaceHeader } from "./WorkspaceHeader";
 import { ApiError, programmeApi, type EventSummary, type ItemFields, type ProgrammeItem, type Room, type Venue } from "./api";
 import { localTime, localTimeChoices } from "./programmeTime";
 import { useAuth } from "./Auth";
@@ -64,9 +63,7 @@ export function Programme() {
   }, [attempt]);
   const selected = events.find((event) => event.id === eventId);
   return <Box sx={{ minHeight: "100dvh" }}>
-    <Stack component="header" direction="row" alignItems="center" justifyContent="space-between" sx={{ p: { xs: 2.5, md: 3 }, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", ...actions }}>
-      <Brand /><Stack direction="row" sx={actions}><Button onClick={() => navigate("/organiser")}>Workspace overview</Button><AppearanceControl /></Stack>
-    </Stack>
+    <WorkspaceHeader />
     <Box component="main" sx={{ p: { xs: 2.5, md: 4 }, maxWidth: 1500, mx: "auto" }}>
       <Typography component="h1" variant="h1" data-page-heading tabIndex={-1} sx={{ mb: 2 }}>Programme Management</Typography>
       <Typography color="text.secondary" sx={{ mb: 3 }}>Prepare locations and complete drafts, then validate and publish each activity.</Typography>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Link, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { AppearanceControl } from "../Appearance";
+import { WorkspaceHeader } from "../WorkspaceHeader";
 import type { Application } from "./model";
 import { labels } from "./model";
 import type { ReactNode } from "react";
@@ -48,12 +49,12 @@ export function ApplicationLayout({ title, role, dirty = false, children }: { ti
     return () => { window.removeEventListener("beforeunload", reload); document.removeEventListener("click", click, true); };
   }, [dirty]);
   return <Box sx={{ minHeight: "100dvh", minWidth: 0 }}>
-    <Stack component="header" direction="row" sx={{ p: { xs: 2, md: 3 }, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
+    {role === "organiser" ? <WorkspaceHeader /> : <Stack component="header" direction="row" sx={{ p: { xs: 2, md: 3 }, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
       <Link component={RouterLink} to={`/${role}`}>{role === "business" ? "Business" : "Organiser"} workspace / Overview</Link><AppearanceControl />
-    </Stack>
-    <Box component="main" sx={{ p: { xs: 2, md: 4 }, maxWidth: 1100, mx: "auto", minWidth: 0 }}>
+    </Stack>}
+    <Box component="main" sx={{ p: { xs: 2, md: 4 }, maxWidth: role === "organiser" ? 1500 : 1100, mx: "auto", minWidth: 0 }}>
       <Typography component="h1" variant="h1" data-page-heading tabIndex={-1} sx={{ mb: 3 }}>{title}</Typography>
-      <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: "divider", minWidth: 0, "& .MuiInputBase-root": { minWidth: 0 } }}>{children}</Paper>
+      <Paper elevation={0} sx={{ p: role === "organiser" ? 0 : { xs: 2, md: 3 }, border: role === "organiser" ? 0 : 1, bgcolor: role === "organiser" ? "transparent" : "background.paper", borderColor: "divider", minWidth: 0, "& .MuiInputBase-root": { minWidth: 0 } }}>{children}</Paper>
     </Box>
     {destination !== null && <Dialog transitionDuration={0} open onClose={() => setDestination(null)} aria-labelledby="unsaved-title"><DialogTitle id="unsaved-title">Unsaved input</DialogTitle><DialogContent>Your unsaved input will stay in memory while you visit this workspace. Reloading or changing business, event or account clears it.</DialogContent><DialogActions sx={{ flexWrap: "wrap" }}><Button onClick={() => setDestination(null)}>Stay</Button><Button onClick={() => { const path = destination!; setDestination(null); navigate(path); }}>Leave and keep in memory</Button></DialogActions></Dialog>}
   </Box>;

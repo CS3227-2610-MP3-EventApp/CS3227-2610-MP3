@@ -43,6 +43,11 @@ const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [
 export function Workspace({ session }: { session: CurrentActor }) {
   const navigate = useNavigate();
   const { setActor, destinations, sessionNotice, setSessionNotice } = useAuth();
+  function organiserApplicationsPath(tab: string) {
+    const url = new URL(destinations.get("organiser") ?? "/organiser/applications", window.location.origin);
+    url.hash = tab;
+    return url.pathname + url.search + url.hash;
+  }
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const progress = useFeedback();
@@ -100,13 +105,13 @@ export function Workspace({ session }: { session: CurrentActor }) {
             <Typography variant="body2" sx={{ mt: 1.5, color: colors.tintText }}>{session.role === "organiser" ? "Prepare your event programme, manage locations and publish activities when they are ready." : session.role === "business" ? "Applications are available below. Other features remain previews." : "A first look at your EventApp workspace. Explore the direction below; feature actions are coming later."}</Typography>
           </Box>
         </Paper>
-        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 2.5, flexWrap: "wrap", gap: 1.5 }}><Typography component="h2" variant="h2">Your starting points</Typography><Typography variant="caption" color="text.secondary">{session.role === "organiser" ? "03 / AVAILABLE · 00 / PREVIEWS" : session.role === "business" ? "01 / AVAILABLE · 02 / PREVIEWS" : "03 / PREVIEWS"}</Typography></Stack>
+        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 2.5, flexWrap: "wrap", gap: 1.5 }}><Typography component="h2" variant="h2">Your starting points</Typography>{session.role !== "organiser" && <Typography variant="caption" color="text.secondary">{session.role === "business" ? "01 / AVAILABLE · 02 / PREVIEWS" : "03 / PREVIEWS"}</Typography>}</Stack>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 2.5 }}>
           {content.cards.map(([title, description, glyph], index) => <Paper component="article" key={title} elevation={0} sx={{ p: 3, border: 1, borderColor: "divider", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: "100%", mb: 3 }}><Box aria-hidden="true" sx={{ display: "grid", placeItems: "center", width: 54, height: 54, fontSize: 37.5, color: index === 2 ? colors.lavenderText : "secondary.main", bgcolor: index === 2 ? colors.lavender : colors.tint, borderRadius: 2 }}>{glyph}</Box><Typography variant="caption" color="text.secondary">0{index + 1}</Typography></Stack>
             <Typography component="h3" variant="h2" sx={{ fontSize: 27, mb: 1 }}>{title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>{description}</Typography>
-            {session.role === "organiser" && index === 0 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button variant="contained" size="small" sx={{ mt: "auto" }} onClick={() => navigate("/organiser/programme")}>Open programme</Button></> : (session.role === "business" && index === 0 || session.role === "organiser" && index >= 1) ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to={destinations.get(session.role) ?? `/${session.role}/applications`} variant="outlined" size="small" sx={{ mt: "auto" }}>{session.role === "business" ? "Open applications" : index === 2 ? "Open analysis" : "Review applications"}</Button></> : <><Chip label="Preview" size="small" sx={{ mb: 2 }} /><Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button></>}
+            {session.role === "organiser" ? <Button component={RouterLink} to={index === 0 ? "/organiser/programme" : organiserApplicationsPath(index === 1 ? "review" : "analysis")} variant="contained" size="small" sx={{ mt: "auto" }}>{index === 0 ? "Open programme" : index === 1 ? "Review applications" : "Open analysis"}</Button> : session.role === "business" && index === 0 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to={destinations.get(session.role) ?? `/${session.role}/applications`} variant="outlined" size="small" sx={{ mt: "auto" }}>Open applications</Button></> : <><Chip label="Preview" size="small" sx={{ mb: 2 }} /><Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button></>}
           </Paper>)}
         </Box>
         <Typography variant="caption" component="p" color="text.secondary" sx={{ mt: 4 }}>EventApp · Made for experiences that bring us together.</Typography>
