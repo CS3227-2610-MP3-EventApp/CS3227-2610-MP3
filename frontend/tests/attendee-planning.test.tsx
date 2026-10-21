@@ -125,9 +125,12 @@ test("F02-UI06 stale preference save reports conflict without exposing raw serve
   await user.type(screen.getByRole("textbox", { name: /^interests/i }), "Unsaved");
   respond = (method) => method === "GET" ? json(state) : problem("stale_revision");
   await user.click(button(/save preferences/i));
-  const conflict = await screen.findByRole("alert");
-  expect(conflict).toBeVisible();
-  expect(conflict).toHaveTextContent(/changed|conflict|reload|stale/i);
+  await waitFor(() => {
+    const conflicts = screen.getAllByRole("alert").filter(node => /changed|conflict|reload|stale/i.test(node.textContent ?? ""));
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0]).toBeVisible();
+    expect(conflicts[0]).toHaveTextContent(/changed|conflict|reload|stale/i);
+  });
   expect(screen.queryByText(/Synthetic raw private detail/)).not.toBeInTheDocument();
   expect(state.preferences.interests).toBe("");
 });
