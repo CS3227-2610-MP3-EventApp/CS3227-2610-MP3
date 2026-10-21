@@ -10,6 +10,7 @@ import { defaultProgrammeResponse, eveningWorkshop, eventA, freeTalk, json, page
 const base = `/api/v1/attendee/events/${eventA.id}/planning`;
 const detailRoute = `/attendee/planning/events/${eventA.id}`;
 const acceptedId = "00000000-0000-4000-8000-000000000099";
+const overlappingWorkshop = { ...eveningWorkshop, id: "00000000-0000-4000-8000-000000000024", title: "Overlapping panel", startsAt: "2026-10-20T16:00:00Z", endsAt: "2026-10-20T17:30:00Z" };
 function emptyState() {
   return { eventId: eventA.id, stateRevision: 0,
     preferences: { revision: 0, interests: "", budgetMinorUnits: null as number | null, currency: "SGD", accessibilityNeeds: "", minimumGapMinutes: 0 },
@@ -77,6 +78,30 @@ test("F02-UI02 exact SGD dollars and private text save through the revisioned pr
   expect(screen.getByRole("textbox", { name: /^interests/i })).toHaveValue("Art");
 });
 
+test("invalid preferences after a successful save clear the old success notice and keep saved values", async () => {
+  const user = userEvent.setup(); await open();
+  let saves = 0;
+  respond = (method, _path, body) => {
+    if (method === "GET") return json(state);
+    saves++;
+    state = { ...state, stateRevision: state.stateRevision + 1, preferences: { ...state.preferences, revision: state.preferences.revision + 1, interests: String(body?.interests), minimumGapMinutes: Number(body?.minimumGapMinutes) } };
+    return json(state);
+  };
+  await user.type(screen.getByRole("textbox", { name: /^interests/i }), "Testing");
+  await user.click(button(/save preferences/i));
+  expect(await screen.findByText(/Preferences saved/i)).toBeVisible();
+
+  const gap = screen.getByRole("textbox", { name: /minimum gap/i });
+  await user.clear(gap); await user.type(gap, "-4");
+  await user.click(button(/save preferences/i));
+
+  expect(await screen.findByText("Enter a minimum gap from 0 to 1440 whole minutes.")).toBeVisible();
+  expect(screen.queryByText(/Preferences saved/i)).not.toBeInTheDocument();
+  expect(state.preferences.interests).toBe("Testing");
+  expect(state.preferences.minimumGapMinutes).toBe(0);
+  expect(saves).toBe(1);
+});
+
 test("F02-UI03 unknown accessibility remains unknown and confirmation is explicit", async () => {
   state.preferences = { ...state.preferences, revision: 1, accessibilityNeeds: "Step-free" };
   state.stateRevision = 2; state.draft = { revision: 1, preferenceRevision: 1, items: [entry()], validation: { valid: false, totalMinorUnits: 1250, currency: "SGD", issues: [{ code: "accessibility_unconfirmed", itemIds: [eveningWorkshop.id] }] } };
@@ -90,9 +115,14 @@ test("F02-UI03 unknown accessibility remains unknown and confirmation is explici
 test("F02-UI04 overlapping draft shows warning and preserves the accepted version", async () => {
   state.currentAcceptedVersionId = acceptedId;
   state.acceptedVersions = [{ id: acceptedId, version: 1, acceptedAt: "2026-10-20T10:00:00Z" }];
-  state.draft = { revision: 2, preferenceRevision: 0, items: [entry()], validation: { valid: false, totalMinorUnits: 1250, currency: "SGD", issues: [{ code: "overlap", itemIds: [eveningWorkshop.id] }] } };
+  state.draft = { revision: 2, preferenceRevision: 0, items: [entry(), entry(overlappingWorkshop), entry(freeTalk)], validation: { valid: false, totalMinorUnits: 1250, currency: "SGD", issues: [{ code: "overlap", itemIds: [eveningWorkshop.id, overlappingWorkshop.id] }] } };
   await open();
-  expect(await screen.findByText(/overlap/i)).toBeVisible();
+  expect(await screen.findByText("Activities overlap. Remove one before accepting.")).toBeVisible();
+  expect(screen.getByRole("article", { name: /Evening workshop, overlaps another activity/ })).toBeVisible();
+  expect(screen.getByRole("article", { name: /Overlapping panel, overlaps another activity/ })).toBeVisible();
+  expect(screen.getByRole("article", { name: "Free community talk" })).toBeVisible();
+  expect(screen.getByText("Overlaps with: Overlapping panel")).toBeVisible();
+  expect(screen.getByText("Overlaps with: Evening workshop")).toBeVisible();
   expect(screen.getByRole("button", { name: /save draft/i })).toBeEnabled();
   const accept = button(/accept itinerary/i);
   if (!accept.hasAttribute("disabled")) {

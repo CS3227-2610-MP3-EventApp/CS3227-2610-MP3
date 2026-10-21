@@ -100,6 +100,7 @@ export function AttendeePlanning() {
   function updateForm(key: keyof FormValues, value: string) { setForm(current => ({ ...current, [key]: value })); setFormDirty(true); }
   function savePreferences() {
     if (!eventId || !state) return;
+    setError(""); setNotice("");
     try {
       const budget = budgetValue(form.budget);
       if (!/^\d+$/.test(form.gap) || Number(form.gap) > 1440) throw new Error("Enter a minimum gap from 0 to 1440 whole minutes.");
@@ -143,7 +144,21 @@ export function AttendeePlanning() {
   const blocked = pending || reloadRequired;
   const currentPage = eventId ? programme : events;
   const sortedDraft = [...draft].sort((left, right) => Date.parse(left.currentItem.startsAt) - Date.parse(right.currentItem.startsAt) || Date.parse(left.currentItem.endsAt) - Date.parse(right.currentItem.endsAt) || left.programmeItemId.localeCompare(right.programmeItemId));
-  const localOverlap = sortedDraft.some((item, index) => sortedDraft.slice(0, index).some(previous => Date.parse(previous.currentItem.endsAt) > Date.parse(item.currentItem.startsAt)));
+  const overlapNames = new Map<string, string[]>();
+  for (let index = 0; index < sortedDraft.length; index++) {
+    const item = sortedDraft[index];
+    for (let laterIndex = index + 1; laterIndex < sortedDraft.length; laterIndex++) {
+      const later = sortedDraft[laterIndex];
+      if (Date.parse(later.currentItem.startsAt) >= Date.parse(item.currentItem.endsAt)) break;
+      const itemConflicts = overlapNames.get(item.programmeItemId) ?? [];
+      itemConflicts.push(later.currentItem.title);
+      overlapNames.set(item.programmeItemId, itemConflicts);
+      const laterConflicts = overlapNames.get(later.programmeItemId) ?? [];
+      laterConflicts.push(item.currentItem.title);
+      overlapNames.set(later.programmeItemId, laterConflicts);
+    }
+  }
+  const localOverlap = overlapNames.size > 0;
   return <Box>
     <Stack direction="row" useFlexGap flexWrap="wrap" alignItems="center" justifyContent="space-between" gap={1} sx={{ mb: 3 }}>
       <Typography component="h1" variant="h1" data-page-heading tabIndex={-1} sx={{ fontSize: { xs: 32, sm: 43 } }}>My Itinerary</Typography>
@@ -191,8 +206,11 @@ export function AttendeePlanning() {
       <Paper component="section" variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
         <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Draft itinerary</Typography>
         {draft.length === 0 && <Typography>No activities in your draft yet.</Typography>}
-        <Stack gap={2}>{sortedDraft.map(item => <Box key={item.programmeItemId} sx={{ borderBottom: 1, borderColor: "divider", pb: 2 }}>
+        <Stack gap={2}>{sortedDraft.map(item => {
+          const overlappingWith = overlapNames.get(item.programmeItemId);
+          return <Paper component="article" variant="outlined" aria-label={`${item.currentItem.title}${overlappingWith ? ", overlaps another activity" : ""}`} key={item.programmeItemId} sx={{ p: 2, borderWidth: overlappingWith ? 2 : 1, borderColor: overlappingWith ? "warning.main" : "divider" }}>
           <Typography component="h3" fontWeight={700}>{item.currentItem.title}</Typography>
+          {overlappingWith && <Alert severity="warning" sx={{ my: 1 }}>Overlaps with: {overlappingWith.join(", ")}</Alert>}
           <Typography>{localTime(item.currentItem.startsAt, item.currentItem.event.timezone)} – {localTime(item.currentItem.endsAt, item.currentItem.event.timezone)} · {money(item.currentItem.priceMinorUnits)}</Typography>
           <Typography>{item.currentItem.venue.name} · {item.currentItem.room.name}</Typography>
           <Typography>Activity accessibility: {item.currentItem.accessibilityDetails ?? "Accessibility information not provided"}</Typography>
@@ -201,7 +219,8 @@ export function AttendeePlanning() {
           {state.preferences.accessibilityNeeds && <FormControlLabel control={<Checkbox checked={item.accessibilityConfirmed} disabled={blocked} onChange={(_, checked) => { setDraft(current => current.map(value => value.programmeItemId === item.programmeItemId ? { ...value, accessibilityConfirmed: checked } : value)); setDraftDirty(true); }} />} label={`I confirm suitability for my accessibility needs: ${item.currentItem.title}`} />}
           {item.changed && <Typography color="error">Programme details changed. Remove and add this activity again to review its current revision.</Typography>}
           <Button disabled={blocked} onClick={() => { setDraft(current => current.filter(value => value.programmeItemId !== item.programmeItemId)); setDraftDirty(true); }}>Remove from draft</Button>
-        </Box>)}</Stack>
+        </Paper>;
+        })}</Stack>
         {draftDirty ? <Alert severity="info" sx={{ my: 2 }}>Unsaved draft changes. Save the draft to check all constraints before accepting.</Alert> : <>
           <Typography sx={{ my: 2 }}>Activity total: {money(state.draft.validation.totalMinorUnits)}</Typography>
           {state.draft.validation.issues.map((issue, index) => <Alert severity="warning" key={`${issue.code}-${index}`} sx={{ my: 1 }}>{issueText[issue.code] ?? "This draft needs review before acceptance."}</Alert>)}
