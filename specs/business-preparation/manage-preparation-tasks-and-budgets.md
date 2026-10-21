@@ -4,9 +4,9 @@
 | --- | --- |
 | Stable capability ID | manage-preparation-tasks-and-budgets |
 | Covered stories | F06-US03; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 2 / Draft |
+| Specification revision / status | 3 / Ready |
 | Product roles / roadmap reference | Active members of a participating business. [2 - Manual journeys](../../docs/project.md#phase-priority-roadmap) |
-| Product and contract approval | Pending: human product/contract owner; revision 2 defaults are proposals, not approval |
+| Product and contract approval | Isaac approved r2 with quantity/price amendments and authorised implementing related specification amendments on 2026-10-21; r3 records that approved direction. Independent test/baseline gates remain separate. |
 | Review / run record | [Actual drafting handoffs, independent reviews and proposed scenarios](../../logs/isaac/2026-10-21-f06-phase-2-preparation.md); implementation test design/baseline pending |
 
 ## Product outcome, users and scope
@@ -27,7 +27,7 @@ Array order is retained on save/read. The UI calculates each displayed line amou
 
 Shared UI r4 governs context revalidation: conceal private content while rechecking authority on focus/history/refresh; ignore responses belonging to departed identity/participation contexts and purge on confirmed access loss. Unsaved navigation requires a warning. Same-scope recoverable errors retain input in memory only.
 
-Proposed v1 response shape (subject to human approval):
+Approved v1 response shape:
 
 ```json
 {
@@ -37,16 +37,16 @@ Proposed v1 response shape (subject to human approval):
   "budget": {
     "currency": "SGD",
     "lines": [{"id": "UUID", "description": "Print materials", "quantity": 2, "unitPriceMinorUnits": 1500, "priceBasis": "estimate", "quotationBasis": null}],
-    "totalMinorUnits": 3000,
-    "knownSubtotalMinorUnits": 3000,
+    "totalMinorUnits": "3000",
+    "knownSubtotalMinorUnits": "3000",
     "isComplete": true
   }
 }
 ```
 
-Drafted bounds/defaults: at most 200 tasks and 200 budget lines per participation; trimmed task titles 1–160 characters; status `not_started | in_progress | done`; optional `dueDate` is an ISO calendar date in the event timezone. Budget currency is `SGD`; trimmed line descriptions are 1–160 characters; quantity is an integer 1–10,000; unit price is null or an integer 0–100,000,000 minor units. Price basis is `unknown | estimate | quotation`: null price requires `unknown` and contributes no amount; a known estimate is labelled `estimate`; `quotation` requires a known price and nonempty trimmed plain-text quotation basis (1–500 characters). Non-quotation lines have null quotation basis. Tax and shipping are represented as explicit budget lines, not implicit calculations. Known line totals and `knownSubtotalMinorUnits` use integer minor-unit arithmetic; `totalMinorUnits` is null and `isComplete` false if any line is unknown, otherwise total equals the known subtotal. The proposed maxima keep the total within JavaScript's safe integer range. No price is described as a confirmed quotation beyond the user-entered basis.
+Approved bounds: at most 200 tasks and 200 budget lines per participation; trimmed task titles 1–160 characters; status `not_started | in_progress | done`; optional `dueDate` is an ISO calendar date in the event timezone. Budget currency is `SGD`; trimmed line descriptions are 1–160 characters; quantity is an integer 1–1,000,000; unit price is null or an actual JSON integer from 0 to 100,000,000,000 minor units (SGD 1,000,000,000 per unit). Price basis is `unknown | estimate | quotation`: null price requires `unknown` and contributes no amount; a known estimate is labelled `estimate`; `quotation` requires a known price and nonempty trimmed plain-text quotation basis (1–500 characters). Non-quotation lines have null quotation basis. Tax and shipping are represented as explicit budget lines, not implicit calculations. Displayed line totals use exact integer arithmetic; only server aggregate totals are represented as decimal digit strings. `knownSubtotalMinorUnits` is a decimal digit string; `totalMinorUnits` is null and `isComplete` false if any line is unknown, otherwise total equals the known subtotal. The UI uses BigInt or equivalent exact decimal-string arithmetic and never calculates money through floating point. No price is described as a confirmed quotation beyond the user-entered basis.
 
-The proposed safe problem codes are `unauthenticated` (401), `forbidden` (403), `not_found` (404), `validation_error` (422), `revision_conflict` (409), `service_unavailable` (503) and `internal_error` (500). Validation errors identify only fixed known fields and safe codes, never submitted values or arbitrary database detail. A missing or foreign participation returns the same 404 result to avoid confirming another business's records. Authorization is checked before returning any current revision on conflict; only an authorized caller receives the current revision. On conflict, no submitted change is applied and the client must reload and let the member reconcile. Persistence failure returns a safe service error and leaves the prior document intact. These wire details are proposed for human/contract-owner approval.
+The approved safe problem codes are `unauthenticated` (401), `forbidden` (403), `not_found` (404), `validation_error` (422), `revision_conflict` (409), `service_unavailable` (503) and `internal_error` (500). Validation errors identify only fixed known fields and safe codes, never submitted values or arbitrary database detail. A missing or foreign participation returns the same 404 result to avoid confirming another business's records. Authorization is checked before returning any current revision on conflict; only an authorized caller receives the current revision. On conflict, no submitted change is applied and the client must reload and let the member reconcile. Persistence failure returns a safe service error and leaves the prior document intact. Isaac authorised this bounded contract under the recorded implementation approval.
 
 ## Constraints, security and non-functional requirements
 
@@ -59,7 +59,7 @@ RD01, RD07; SEC01, SEC02, SEC08, SEC10, SEC11. Every read/write resolves current
 | manage-preparation-tasks-and-budgets-AC01 | An active member of the owning business reads and saves tasks and budget lines against any existing owned participation, whether its related application is draft, submitted, accepted or rejected; preparation access does not create or require an application/decision. | F06-US03; RD01, RD07; SEC01/02 | Own participation across decision states; no participation; application remains independent |
 | manage-preparation-tasks-and-budgets-AC02 | The member creates, edits, reopens and removes tasks; valid integer quantity/price inputs produce the stated deterministic line values and totals in SGD minor units. | F06-US03; RD01; SEC10 | Task lifecycle plus arithmetic boundaries |
 | manage-preparation-tasks-and-budgets-AC03 | Estimates are visibly labelled; a quotation requires a known price and nonempty plain-text basis; unknown prices remain distinct from zero, produce a known subtotal, and make the total explicitly incomplete. | F06-US03; SEC02 | Unknown, zero, estimate and quotation display and arithmetic |
-| manage-preparation-tasks-and-budgets-AC04 | Unauthenticated, non-business-role, inactive, unrelated-business and organiser-only callers cannot read or write the document; denied requests disclose no private preparation and leave it unchanged. PUT also enforces trusted Origin and mandatory-password-change restrictions through access r4. | F06-US03; RD01; SEC01/02 | Direct GET/PUT role, Origin and ownership matrix with before/after state |
+| manage-preparation-tasks-and-budgets-AC04 | Unauthenticated, non-business-role, inactive, unrelated-business and organiser-only callers cannot read or write the document; denied requests disclose no private preparation and leave it unchanged. Both routes enforce the mandatory-password-change restriction; PUT also enforces trusted Origin through access r4. | F06-US03; RD01; SEC01/02 | Direct GET/PUT role, Origin and ownership matrix with before/after state |
 | manage-preparation-tasks-and-budgets-AC05 | Invalid fields, unsupported currencies, booleans/floats in integer fields, out-of-range values, over-limit collections, invalid quotation combinations, foreign/duplicate IDs and stale revisions return safe errors and do not change any task, line, total or revision. The client cannot submit server-owned totals, revision or participation identity. | F06-US03; SEC01/02/10 | Boundary/error matrix and state preservation |
 | manage-preparation-tasks-and-budgets-AC06 | Manual checklist and budget reads/edits remain available without any AI provider, AI job, booth/setup assignment or external service. | F06-US03; SEC10 | Manual journey with AI/external services unavailable |
 | manage-preparation-tasks-and-budgets-AC07 | GET returns a read-only empty revision-1 document before the first save; full-document PUT requires the expected preparation revision and advances it once on success, while stale writes return conflict and cannot overwrite concurrent edits. | F06-US03; SEC01/10 | Initial read, first save, concurrent CAS and lost-response reconciliation |
@@ -75,9 +75,9 @@ Requires CurrentActor v1 and BusinessContext v1 plus an existing EventParticipat
 
 | Decision | Owner | Blocking scope | Resolution |
 | --- | --- | --- | --- |
-| manage-preparation-tasks-and-budgets-D01: Confirm or replace proposed defaults: SGD only; task/line caps 200; quantity 1–10,000; unit price null or 0–100,000,000 minor units; status values; title/basis bounds; tax/shipping as explicit lines; quotation requires known price and plain-text basis; date-only due date uses event timezone. | Human product/contract owner | Blocks Ready | Pending; proposals only |
-| manage-preparation-tasks-and-budgets-D02: Approve route/DTO/error contract, virtual empty revision 1, independent per-participation CAS, whole-document replacement/deletion semantics, and coordination with BusinessContext v1. | Human product/contract owners for Business and Identity | Ready | Pending |
-| manage-preparation-tasks-and-budgets-D03: Confirm scope excludes accepted-budget state/versioning and that saved manual records remain editable live source data; decide any future replacement/approval semantics before US04 can adopt AI drafts. | Human product owner | Blocks Ready for this contract; US04 adoption semantics remain separately blocked | Pending |
+| manage-preparation-tasks-and-budgets-D01: SGD only; task/line caps 200; quantity 1–1,000,000; unit price null or 0–100,000,000,000 minor units; approved status/text/date bounds; explicit tax/shipping lines; quotation requires known price and plain-text basis; exact decimal-string totals. | Isaac | Resolved; approved for Ready | Approved 2026-10-21 with revision 3 |
+| manage-preparation-tasks-and-budgets-D02: GET/PUT route and DTO/error contract, virtual empty revision 1, independent per-participation CAS, atomic full replacement/deletion, and BusinessContext dependency. | Isaac (implementation/contract authority for this task) | Resolved; approved for Ready | Approved 2026-10-21 with revision 3 |
+| manage-preparation-tasks-and-budgets-D03: Manual records remain editable source data; no accepted-budget workflow in US03; AI suggestions stay separate drafts and cannot replace these records without the agreed user action. | Isaac | Resolved for US03; no remaining Ready blocker | Approved 2026-10-21 with revision 3 |
 
 ## Verification and evidence
 
@@ -93,3 +93,4 @@ Independent test design, adequacy review, protected baseline, implementation sna
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial bounded Draft from F06-US03 and current RD/SEC rules | Product approval and verification pending |
 | 2 / 2026-10-21 | Added proposed manual API/UI contract, strict bounds and DTO, per-participation CAS/atomicity, independent application state, safe recovery and persisted evidence criteria; retained Draft | Defaults and interfaces remain unapproved; scenario design/review and implementation evidence pending |
+| 3 / 2026-10-21 | Recorded Isaac's r2 approval plus quantity 1,000,000 and price SGD 1,000,000,000/unit amendments; JSON integer unit prices through 100,000,000,000 cents, aggregate totals as decimal strings, exact UI arithmetic | Ready for independent test/baseline gates under the authorised amendment; no runtime or completion claim |
