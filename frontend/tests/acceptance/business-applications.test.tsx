@@ -32,7 +32,7 @@ async function choose(label: RegExp, name: string) {
   const user = userEvent.setup();
   const input = screen.getByRole("combobox", { name: label });
   if (input instanceof HTMLSelectElement) {
-    const option = within(input).getByRole("option", { name });
+    const option = await within(input).findByRole("option", { name });
     await user.selectOptions(input, option);
   } else {
     await user.click(input); await user.click(await screen.findByRole("option", { name }));

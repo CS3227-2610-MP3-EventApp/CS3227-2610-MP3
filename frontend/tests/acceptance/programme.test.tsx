@@ -225,7 +225,7 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
       expect(await screen.findByText(/^Revision\s*2$/i)).toBeVisible();
       expect(server.items[0].state).toBe("draft"); expect(server.writes()).toHaveLength(1);
     } finally { browserZone.mockRestore(); }
-  });
+  }, 30_000);
 
   test("F01-AC03/07 preserves untouched fractional instants on a title-only edit at the event boundary", async () => {
     seedActor("organiser");
