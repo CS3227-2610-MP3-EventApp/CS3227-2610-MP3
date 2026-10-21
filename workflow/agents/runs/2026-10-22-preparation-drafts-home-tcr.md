@@ -1,0 +1,11 @@
+# DRAFTS-TCR-02: business home availability
+
+Requester:root; test owner:/root/draft_ui_scenarios; date2026-10-22. Prior baseline5faf21ccc094ac46a7e16f7252398ff0f5cb7d86; Phase4 delivery31b9fdd.
+
+Approved capability makes AI Preparation Draft a live business destination, keeping Applications and Preparation & Budget available. Existing business-home assertions still expect one Coming later action and02available/01preview. Prospective correction only: no disabled preview for business, positive enabled AI preparation link,03available/00previews. Preserve all attendee/organiser, typography/styling, sign-out alert and other behavior assertions. New UI acceptance independently asserts destination and manual fallback.
+
+Affected protected files: frontend/tests/acceptance/session-and-homes.test.tsx and frontend/tests/acceptance/appearance.test.tsx, business-only expectations. Actual first-run failure evidence may remain missing route; do not claim obsolete home assertions executed if not run.
+
+Status: Reviewed. Actual independent reviewers `/root/phase2_final_behaviour` and `/root/phase2_final_security` approved final UI adequacy and this exact home-only delta; root relayed approval2026-10-22. Reviews were read-only, not test execution. Replacement combined immutable baseline commit remains root-owned and pending. Existing acceptance corrections and the25-case new test file remain unchanged after review.
+
+Independent prospective verifier assessment: root reported bounded correction approved before edits. Exact human approval received2026-10-22: "Approve these home-availability test updates" (root relayed trusted user reply). Actual test owner `/root/draft_ui_scenarios` applied only business Coming later1→0, positive enabled AI preparation link destination, available/preview02/01→03/00. Since the business Coming later action no longer exists, root additionally approved the necessary selector-only typography branch measuring the enabled AI preparation link instead, preserving the exact21px minimum; attendee Coming later and organiser analysis branches stay unchanged. Sign-out alert, other roles, presentation thresholds and all other assertions remain unchanged. Independent exact-diff review approved as recorded above; replacement immutable baseline pending. No production/runner/discovery edits.
