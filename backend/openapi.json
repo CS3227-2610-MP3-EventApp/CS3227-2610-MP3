@@ -719,6 +719,203 @@
         "title": "AuthFieldError",
         "type": "object"
       },
+      "BudgetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetLineInput"
+            },
+            "maxItems": 200,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currency",
+          "lines"
+        ],
+        "title": "BudgetInput",
+        "type": "object"
+      },
+      "BudgetLineInput": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "priceBasis": {
+            "enum": [
+              "unknown",
+              "estimate",
+              "quotation"
+            ],
+            "title": "Pricebasis",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "quotationBasis": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotationbasis"
+          },
+          "unitPriceMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 100000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitpriceminorunits"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unitPriceMinorUnits",
+          "priceBasis"
+        ],
+        "title": "BudgetLineInput",
+        "type": "object"
+      },
+      "BudgetLineView": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "priceBasis": {
+            "enum": [
+              "unknown",
+              "estimate",
+              "quotation"
+            ],
+            "title": "Pricebasis",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "quotationBasis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotationbasis"
+          },
+          "unitPriceMinorUnits": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitpriceminorunits"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "quantity",
+          "unitPriceMinorUnits",
+          "priceBasis",
+          "quotationBasis"
+        ],
+        "title": "BudgetLineView",
+        "type": "object"
+      },
+      "BudgetView": {
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "isComplete": {
+            "title": "Iscomplete",
+            "type": "boolean"
+          },
+          "knownSubtotalMinorUnits": {
+            "title": "Knownsubtotalminorunits",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetLineView"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "totalMinorUnits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totalminorunits"
+          }
+        },
+        "required": [
+          "currency",
+          "lines",
+          "totalMinorUnits",
+          "knownSubtotalMinorUnits",
+          "isComplete"
+        ],
+        "title": "BudgetView",
+        "type": "object"
+      },
       "BusinessApplication": {
         "properties": {
           "businessId": {
@@ -1658,6 +1855,105 @@
         "title": "PasswordChangeRequest",
         "type": "object"
       },
+      "PreparationProblem": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "currentRevision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentrevision"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "PreparationProblem",
+        "type": "object"
+      },
+      "PreparationView": {
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/BudgetView"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskView"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "participationId",
+          "revision",
+          "tasks",
+          "budget"
+        ],
+        "title": "PreparationView",
+        "type": "object"
+      },
       "Problem": {
         "properties": {
           "code": {
@@ -2129,6 +2425,34 @@
         "title": "ReplaceApplication",
         "type": "object"
       },
+      "ReplacePreparation": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/BudgetInput"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskInput"
+            },
+            "maxItems": 200,
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "tasks",
+          "budget"
+        ],
+        "title": "ReplacePreparation",
+        "type": "object"
+      },
       "RevisionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2334,6 +2658,98 @@
           "expectedRevision"
         ],
         "title": "SubmitApplication",
+        "type": "object"
+      },
+      "TaskInput": {
+        "additionalProperties": false,
+        "properties": {
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status"
+        ],
+        "title": "TaskInput",
+        "type": "object"
+      },
+      "TaskView": {
+        "properties": {
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "dueDate"
+        ],
+        "title": "TaskView",
         "type": "object"
       },
       "UpdateApplicationSettings": {
@@ -4891,6 +5307,244 @@
         "summary": "Submit",
         "tags": [
           "Business applications"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/preparation": {
+      "get": {
+        "operationId": "get_api_v1_business_participations__participationId__preparation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "Business preparation"
+        ]
+      },
+      "put": {
+        "operationId": "replace_api_v1_business_participations__participationId__preparation_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePreparation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace",
+        "tags": [
+          "Business preparation"
         ]
       }
     },

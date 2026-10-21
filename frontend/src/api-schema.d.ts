@@ -261,6 +261,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/business/participations/{participationId}/preparation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_api_v1_business_participations__participationId__preparation_get"];
+        /** Replace */
+        put: operations["replace_api_v1_business_participations__participationId__preparation_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/live": {
         parameters: {
             query?: never;
@@ -930,6 +948,71 @@ export interface components {
              */
             field: "username" | "email" | "displayName" | "password" | "businessName" | "identifier" | "role" | "currentPassword" | "newPassword" | "request";
         };
+        /** BudgetInput */
+        BudgetInput: {
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "SGD";
+            /** Lines */
+            lines: components["schemas"]["BudgetLineInput"][];
+        };
+        /** BudgetLineInput */
+        BudgetLineInput: {
+            /** Description */
+            description: string;
+            /** Id */
+            id?: string | null;
+            /**
+             * Pricebasis
+             * @enum {string}
+             */
+            priceBasis: "unknown" | "estimate" | "quotation";
+            /** Quantity */
+            quantity: number;
+            /** Quotationbasis */
+            quotationBasis?: string | null;
+            /** Unitpriceminorunits */
+            unitPriceMinorUnits: number | null;
+        };
+        /** BudgetLineView */
+        BudgetLineView: {
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pricebasis
+             * @enum {string}
+             */
+            priceBasis: "unknown" | "estimate" | "quotation";
+            /** Quantity */
+            quantity: number;
+            /** Quotationbasis */
+            quotationBasis: string | null;
+            /** Unitpriceminorunits */
+            unitPriceMinorUnits: number | null;
+        };
+        /** BudgetView */
+        BudgetView: {
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "SGD";
+            /** Iscomplete */
+            isComplete: boolean;
+            /** Knownsubtotalminorunits */
+            knownSubtotalMinorUnits: string;
+            /** Lines */
+            lines: components["schemas"]["BudgetLineView"][];
+            /** Totalminorunits */
+            totalMinorUnits: string | null;
+        };
         /** BusinessApplication */
         BusinessApplication: {
             /**
@@ -1363,6 +1446,44 @@ export interface components {
              */
             newPassword: string;
         };
+        /** PreparationProblem */
+        PreparationProblem: {
+            /** Code */
+            code: string;
+            /** Currentrevision */
+            currentRevision?: number | null;
+            /** Detail */
+            detail: string;
+            /** Fielderrors */
+            fieldErrors?: {
+                [key: string]: string;
+            }[] | null;
+            /** Instance */
+            instance: string;
+            /** Status */
+            status: number;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @default about:blank
+             * @constant
+             */
+            type: "about:blank";
+        };
+        /** PreparationView */
+        PreparationView: {
+            budget: components["schemas"]["BudgetView"];
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Revision */
+            revision: number;
+            /** Tasks */
+            tasks: components["schemas"]["TaskView"][];
+        };
         /** Problem */
         Problem: {
             /** Code */
@@ -1587,6 +1708,14 @@ export interface components {
             /** Requestedspace */
             requestedSpace: string;
         };
+        /** ReplacePreparation */
+        ReplacePreparation: {
+            budget: components["schemas"]["BudgetInput"];
+            /** Expectedrevision */
+            expectedRevision: number;
+            /** Tasks */
+            tasks: components["schemas"]["TaskInput"][];
+        };
         /** RevisionRequest */
         RevisionRequest: {
             /** Expectedrevision */
@@ -1666,6 +1795,37 @@ export interface components {
         SubmitApplication: {
             /** Expectedrevision */
             expectedRevision: number;
+        };
+        /** TaskInput */
+        TaskInput: {
+            /** Duedate */
+            dueDate?: string | null;
+            /** Id */
+            id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "done";
+            /** Title */
+            title: string;
+        };
+        /** TaskView */
+        TaskView: {
+            /** Duedate */
+            dueDate: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "done";
+            /** Title */
+            title: string;
         };
         /** UpdateApplicationSettings */
         UpdateApplicationSettings: {
@@ -3403,6 +3563,194 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    get_api_v1_business_participations__participationId__preparation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    replace_api_v1_business_participations__participationId__preparation_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplacePreparation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationProblem"];
                     "application/problem+json": unknown;
                 };
             };

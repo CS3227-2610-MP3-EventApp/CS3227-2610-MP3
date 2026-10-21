@@ -22,6 +22,7 @@ function GuardedWorkspace({ role, children }: { role: Role; children?: ReactNode
 
 import { BusinessApplications } from "./applications/BusinessApplications";
 import { OrganiserApplications } from "./applications/OrganiserApplications";
+import { Preparation } from "./preparation/Preparation";
 function ApplicationRoutes() {
   const location = useLocation();
   useEffect(() => {
@@ -39,6 +40,7 @@ function ApplicationRoutes() {
     <Route path="/organiser/programme" element={<GuardedWorkspace role="organiser"><Programme /></GuardedWorkspace>} />
     {roles.map((role) => <Route key={role} path={`/${role}`} element={<GuardedWorkspace role={role} />} />)}
     <Route path="/business/applications" element={<GuardedWorkspace role="business"><BusinessApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
+    <Route path="/business/preparation" element={<GuardedWorkspace role="business"><Preparation key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/organiser/applications" element={<GuardedWorkspace role="organiser"><OrganiserApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>;

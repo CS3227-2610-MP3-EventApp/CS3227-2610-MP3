@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | manage-preparation-tasks-and-budgets |
 | Covered stories | F06-US03; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 4 / In progress |
+| Specification revision / status | 4 / In review |
 | Product roles / roadmap reference | Active members of a participating business. [2 - Manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved r2 with quantity/price amendments and authorised implementing related specification amendments on 2026-10-21; r3 records that approved direction. Independent test/baseline gates remain separate. |
-| Review / run record | [Actual drafting handoffs, independent reviews and proposed scenarios](../../logs/isaac/2026-10-21-f06-phase-2-preparation.md); implementation test design/baseline pending |
+| Review / run record | [Implementation, independent reviews and protected baselines](../../workflow/agents/runs/2026-10-21-f06-implementation.md); human gates pending |
 
 ## Product outcome, users and scope
 
@@ -32,7 +32,7 @@ Approved v1 response shape:
 ```json
 {
   "participationId": "UUID",
-  "revision": 1,
+  "revision": 2,
   "tasks": [{"id": "UUID", "title": "Prepare display", "status": "not_started", "dueDate": null}],
   "budget": {
     "currency": "SGD",
@@ -46,7 +46,7 @@ Approved v1 response shape:
 
 Approved bounds: at most 200 tasks and 200 budget lines per participation; trimmed task titles 1–160 characters; status `not_started | in_progress | done`; optional `dueDate` is an ISO calendar date in the event timezone. Budget currency is `SGD`; trimmed line descriptions are 1–160 characters; quantity is an integer 1–1,000,000; unit price is null or an actual JSON integer from 0 to 100,000,000,000 minor units (SGD 1,000,000,000 per unit). Price basis is `unknown | estimate | quotation`: null price requires `unknown` and contributes no amount; a known estimate is labelled `estimate`; `quotation` requires a known price and nonempty trimmed plain-text quotation basis (1–500 characters). Non-quotation lines have null quotation basis. Tax and shipping are represented as explicit budget lines, not implicit calculations. Displayed line totals use exact integer arithmetic; only server aggregate totals are represented as decimal digit strings. `knownSubtotalMinorUnits` is a decimal digit string; `totalMinorUnits` is null and `isComplete` false if any line is unknown, otherwise total equals the known subtotal. The UI uses BigInt or equivalent exact decimal-string arithmetic and never calculates money through floating point. No price is described as a confirmed quotation beyond the user-entered basis.
 
-The approved safe problem codes are `unauthenticated` (401), `forbidden` (403), `not_found` (404), `validation_error` (422), `revision_conflict` (409), `service_unavailable` (503) and `internal_error` (500). Validation errors identify only fixed known fields and safe codes, never submitted values or arbitrary database detail. A missing or foreign participation returns the same 404 result to avoid confirming another business's records. Authorization is checked before returning any current revision on conflict; only an authorized caller receives the current revision. On conflict, no submitted change is applied and the client must reload and let the member reconcile. Persistence failure returns a safe service error and leaves the prior document intact. Isaac authorised this bounded contract under the recorded implementation approval.
+The approved safe problem codes are `unauthenticated` (401), `forbidden` (403), `not_found` (404), `validation_error` (422), `revision_conflict` (409), `service_unavailable` (503) and `internal_error` (500). Validation errors identify only fixed known fields and safe codes, never submitted values or arbitrary database detail. A missing or foreign participation returns the same 404 result to avoid confirming another business's records. Authorization is checked before returning any current revision on conflict; only an authorized caller receives `currentRevision` (positive integer) on a revision conflict; other errors omit it. On conflict, no submitted change is applied and the client must reload and let the member reconcile. Persistence failure returns a safe service error and leaves the prior document intact. Isaac authorised this bounded contract under the recorded implementation approval.
 
 ## Constraints, security and non-functional requirements
 
@@ -70,7 +70,7 @@ RD01, RD07; SEC01, SEC02, SEC08, SEC10, SEC11. Every read/write resolves current
 
 ## External interfaces and dependencies
 
-Requires CurrentActor v1 and BusinessContext v1 plus an existing EventParticipation owned by the caller's business; BusinessContext must expose the caller's participation IDs/types without decision-state filtering. The output is the manual source record consumed by F06-US04; AI-generated content must be a separate draft and cannot silently replace it. The preparation revision is owned by this capability and is independent of application, participation and programme revisions. Architecture lists the logical PreparationTask/Budget/BudgetLine entities and business ownership boundary; the route and DTO contract above is proposed for coordination with those producers/consumers. Implementation readiness requires agreement on these shapes and compatibility. No architecture file is edited by this Draft refinement.
+Requires CurrentActor v1 and BusinessContext v1 plus an existing EventParticipation owned by the caller's business; BusinessContext must expose the caller's participation IDs/types without decision-state filtering. The output is the manual source record consumed by F06-US04; AI-generated content must be a separate draft and cannot silently replace it. The preparation revision is owned by this capability and is independent of application, participation and programme revisions. Architecture lists the logical PreparationTask/Budget/BudgetLine entities and business ownership boundary; the route and DTO contract above records Isaac's authorised bounded amendment. Producer/consumer runtime integration remains a verification requirement. The implementation design is recorded in architecture without creating another specification.
 
 ## Decisions and approval
 
@@ -84,12 +84,14 @@ Requires CurrentActor v1 and BusinessContext v1 plus an existing EventParticipat
 
 Revision4 makes the approved Phase2 home availability explicit under Isaac's specification-amendment/implementation authority; it does not introduce a new product policy or change quantity/price/API rules. Initial independent protected baseline remains historical at b5600c03968bc23cc1d3cc69c47144fca90dcbc2 (r3). First implementation reviews found focus/failed-revalidation/private-state gaps plus omitted authorized currentRevision on conflicts; fixes and test-owner regressions/replacement baseline are recorded in the phase run. Human teammate/accessibility/summary verification is still pending.
 
-Independent test design, adequacy review, protected baseline, implementation snapshot, integration and security checks are pending under the [agent workflow](../../workflow/agents/README.md). No application behaviour, persistence, provider integration or deployment has been verified. AI role coverage and environment separation remain release gates where applicable.
+Independent design and adequacy reviews established the replacement protected baseline `bd6dcef7fce2027074b95b284ae5965e3c578feb`. Backend31 affected cases passed after the409 correction; prior full backend302 passed against the earlier collected baseline. Frontend14 focused and278 full cases plus production build passed. Final independent behaviour/security review assessed the frozen production diff; a low-year date-validation edge was returned for bounded correction. Real HTTP/isolated Chrome and actual API/database restart preserved invented saved records without reseeding. See the run for precise snapshots, correction results and limitations. Human accessibility/teammate/summary verification and deployment remain pending; manual implementation is not AI role coverage.
 
 | Criterion | Evidence | Status |
 | --- | --- | --- |
-| manage-preparation-tasks-and-budgets-AC01–AC10 | Pending scenario design, review, baseline and implementation evidence | Not verified |
-| manage-preparation-tasks-and-budgets-AC11 | Test-owner home compatibility correction and independent replacement-baseline review pending | Not verified |
+| manage-preparation-tasks-and-budgets-AC01–AC08 | Protected backend31 and UI14 scenarios; independent source reviews; atomic persistence, scope/CAS and exact arithmetic checks | Automated evidence passing; final date correction independently confirmed |
+| manage-preparation-tasks-and-budgets-AC09 | Focus/pageshow, private-state/revalidation, validation and uncertain-write regressions; real Chrome320px reflow | Automated evidence passing; human keyboard/NVDA/400% pending |
+| manage-preparation-tasks-and-budgets-AC10 | Real PostgreSQL/API restart without reseeding, retained canonical document; minimal audit tests/source review | Local evidence passing; delivery/human review pending |
+| manage-preparation-tasks-and-budgets-AC11 | Positive enabled navigation and truthful home count in protected UI tests; full278 pass | Automated evidence passing |
 
 ## Revision history
 

@@ -4,11 +4,13 @@ import { useLocation } from "react-router-dom";
 import { api, ApiError } from "./api";
 import type { CurrentActor } from "./session";
 import type { DraftMemory, OrganiserDraftMemory } from "./applications/model";
+import type { PreparationMemory } from "./preparation/api";
 interface AuthValue {
   actor: CurrentActor | null; setActor: (actor: CurrentActor | null) => void;
   sessionNotice: string; setSessionNotice: (notice: string) => void;
   revalidate: () => void; memory: Map<string, DraftMemory>; destinations: Map<string, string>;
   organiserMemory: Map<string, OrganiserDraftMemory>;
+  preparationMemory: Map<string, PreparationMemory>;
 }
 const AuthContext = createContext<AuthValue | null>(null);
 function identity(actor: CurrentActor | null) { return actor ? JSON.stringify([actor.id, actor.role, actor.mustChangePassword]) : ""; }
@@ -17,6 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const actorRef = useRef(actor);
   const memory = useRef(new Map<string, DraftMemory>());
   const organiserMemory = useRef(new Map<string, OrganiserDraftMemory>());
+  const preparationMemory = useRef(new Map<string, PreparationMemory>());
   const destinations = useRef(new Map<string, string>());
   const [loading, setLoading] = useState(true), [error, setError] = useState("");
   const [stillLoading, setStillLoading] = useState(false);
@@ -27,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function setActor(value: CurrentActor | null) {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
-      memory.current.clear(); organiserMemory.current.clear(); destinations.current.clear();
+      memory.current.clear(); organiserMemory.current.clear(); preparationMemory.current.clear(); destinations.current.clear();
       if (identity(value) !== identity(actorRef.current)) setSessionNotice("");
     } else {
       const owns = (businessId: string) => value.businessMemberships.some((membership) => membership.businessId === businessId && membership.status === "active" && membership.role === "owner");
@@ -43,6 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const [actorId, role, businessId, eventId] = key.split(":");
         if (actorId !== value.id || role !== value.role || role === "business" && !owns(businessId) || role === "organiser" && !assigned(eventId)) {
           memory.current.delete(key); lostScope = true;
+        }
+      }
+      for (const key of preparationMemory.current.keys()) {
+        const [actorId, role, businessId] = key.split(":");
+        if (actorId !== value.id || value.role !== "business" || role !== "business" || !owns(businessId) || value.mustChangePassword) {
+          preparationMemory.current.delete(key); lostScope = true;
         }
       }
       for (const [role, destination] of destinations.current) {
@@ -76,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).finally(() => { if (active && epoch.current === completionEpoch) { clearTimeout(timer); setStillLoading(false); setLoading(false); } });
     return () => { active = false; clearTimeout(timer); epoch.current++; };
   }, [attempt, location.pathname, location.search]);
-  const value = { actor, setActor, sessionNotice, setSessionNotice, revalidate, memory: memory.current, organiserMemory: organiserMemory.current, destinations: destinations.current };
+  const value = { actor, setActor, sessionNotice, setSessionNotice, revalidate, memory: memory.current, organiserMemory: organiserMemory.current, preparationMemory: preparationMemory.current, destinations: destinations.current };
   return <AuthContext.Provider value={value}>{loading ? <Box component="main" sx={{ p: 4 }}><Typography role="status">{stillLoading ? "Still in progress — checking your session…" : "In progress — checking your session…"}</Typography></Box> : error ? <Box component="main" sx={{ p: 4 }}><Typography component="h1" variant="h2">Check EventApp access</Typography><Alert severity="error" sx={{ my: 2 }}>{error}</Alert><Button onClick={revalidate}>Try again</Button></Box> : children}</AuthContext.Provider>;
 }
 export function useAuth() { const auth = useContext(AuthContext); if (!auth) throw new Error("Authentication context is unavailable."); return auth; }
