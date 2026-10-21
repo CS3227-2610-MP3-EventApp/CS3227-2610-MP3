@@ -1,40 +1,63 @@
 import { ApiError } from "./api";
 import type { EventSummary, ProgrammePage, PublishedProgrammeItem } from "./programmeTypes";
 
-const root = "/api/v1/programme";
+const root = "/api/v1/attendee";
+const integerMax = 2147483647;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function validPage<T>(value: unknown, isItem: (item: unknown) => boolean): value is ProgrammePage<T> {
+function integer(value: unknown, minimum: number, maximum = integerMax): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= minimum && value <= maximum;
+}
+
+function text(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function accessibility(value: unknown): value is string | null {
+  return value === null || typeof value === "string";
+}
+
+function instant(value: unknown): value is string {
+  return typeof value === "string" && /T.*(?:Z|[+-]\d{2}:\d{2})$/i.test(value) && Number.isFinite(Date.parse(value));
+}
+
+function timezone(value: unknown): value is string {
+  if (!text(value)) return false;
+  try { new Intl.DateTimeFormat("en", { timeZone: value }); return true; }
+  catch { return false; }
+}
+
+function validPage<T>(value: unknown, isItem: (item: unknown) => item is T): value is ProgrammePage<T> {
   return isRecord(value) && Array.isArray(value.items) && value.items.every(isItem)
-    && Number.isInteger(value.limit) && Number.isInteger(value.offset) && typeof value.hasMore === "boolean";
+    && integer(value.limit, 1, 100) && integer(value.offset, 0)
+    && integer(value.total, 0, Number.MAX_SAFE_INTEGER) && value.items.length <= value.limit;
+}
+
+function validEventFacts(value: unknown): boolean {
+  return isRecord(value) && text(value.id) && text(value.title) && timezone(value.timezone)
+    && instant(value.startsAt) && instant(value.endsAt);
 }
 
 function validEvent(value: unknown): value is EventSummary {
-  return isRecord(value) && typeof value.id === "string" && typeof value.title === "string"
-    && typeof value.timezone === "string" && typeof value.startsAt === "string" && typeof value.endsAt === "string"
-    && Number.isInteger(value.revision);
+  return isRecord(value) && validEventFacts(value) && integer(value.revision, 1);
 }
 
 function validProgrammeItem(value: unknown): value is PublishedProgrammeItem {
-  if (!isRecord(value) || !isRecord(value.room) || !isRecord(value.room.venue)) return false;
-  const venue = value.room.venue;
-  const room = value.room;
-  return typeof value.id === "string" && typeof value.eventId === "string" && typeof value.eventTimezone === "string"
-    && typeof value.title === "string" && ["talk", "workshop", "booth", "performance", "other"].includes(String(value.type))
-    && typeof value.startsAt === "string" && typeof value.endsAt === "string" && value.state === "published"
-    && Number.isInteger(value.revision) && Number.isSafeInteger(value.priceMinorUnits) && Number(value.priceMinorUnits) >= 0
-    && value.currency === "SGD" && Number.isInteger(value.capacity) && Number(value.capacity) > 0
-    && (value.accessibilityDetails === null || typeof value.accessibilityDetails === "string")
-    && typeof room.id === "string" && typeof room.name === "string"
-    && (room.accessibilityDetails === null || typeof room.accessibilityDetails === "string")
-    && typeof venue.id === "string" && typeof venue.name === "string" && typeof venue.address === "string"
-    && (venue.accessibilityDetails === null || typeof venue.accessibilityDetails === "string");
+  if (!isRecord(value) || !isRecord(value.event) || !isRecord(value.room) || !isRecord(value.venue)) return false;
+  const { event, room, venue } = value;
+  return text(value.id) && text(value.eventId) && validEventFacts(event) && event.id === value.eventId
+    && text(value.title) && typeof value.type === "string" && ["talk", "workshop", "panel", "booth", "performance", "other"].includes(value.type)
+    && instant(value.startsAt) && instant(value.endsAt) && instant(value.publishedAt) && value.state === "published"
+    && integer(value.revision, 1) && integer(value.priceMinorUnits, 0, Number.MAX_SAFE_INTEGER)
+    && value.currency === "SGD" && integer(value.capacity, 1) && accessibility(value.accessibilityDetails)
+    && text(room.id) && text(room.name) && integer(room.maxCapacity, 1) && accessibility(room.accessibilityDetails)
+    && text(venue.id) && text(venue.name) && text(venue.address) && accessibility(venue.accessibilityDetails);
 }
 
-async function get<T>(path: string, signal: AbortSignal): Promise<T> {
+async function get<T>(path: string, signal: AbortSignal, validate: (value: unknown) => value is T): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${root}${path}`, { method: "GET", credentials: "same-origin", signal });
@@ -43,7 +66,6 @@ async function get<T>(path: string, signal: AbortSignal): Promise<T> {
     throw new ApiError(0, "Unable to load the programme. Please try again.");
   }
   if (!response.ok) {
-    try { await response.json(); } catch { /* Keep the safe fallback. */ }
     const messages: Record<number, string> = {
       401: "Authentication required. Please log in again.",
       403: "Access is not permitted for this account.",
@@ -56,22 +78,22 @@ async function get<T>(path: string, signal: AbortSignal): Promise<T> {
   let body: unknown;
   try { body = await response.json(); }
   catch { throw new ApiError(0, "The programme response could not be read. Please try again."); }
-  const route = path.split("?", 1)[0];
-  const valid = route === "/events" ? validPage<EventSummary>(body, validEvent)
-    : route.endsWith("/items") ? validPage<PublishedProgrammeItem>(body, validProgrammeItem)
-      : validProgrammeItem(body);
-  if (!valid) throw new ApiError(0, "The programme response was incomplete. Please try again.");
-  return body as T;
+  if (!validate(body)) throw new ApiError(0, "The programme response was incomplete. Please try again.");
+  return body;
 }
 
 export const programmeApi = {
-  events: (offset: number, signal: AbortSignal) => get<ProgrammePage<EventSummary>>(`/events?${new URLSearchParams({ limit: "20", offset: String(offset) })}`, signal),
+  events: (offset: number, signal: AbortSignal) => get(`/events?${new URLSearchParams({ limit: "20", offset: String(offset) })}`, signal,
+    (value): value is ProgrammePage<EventSummary> => validPage(value, validEvent)),
   items: (eventId: string, filters: { q: string; type: string; date: string }, offset: number, signal: AbortSignal) => {
     const query = new URLSearchParams({ limit: "20", offset: String(offset) });
     if (filters.q.trim()) query.set("q", filters.q.trim());
     if (filters.type) query.set("type", filters.type);
     if (filters.date) query.set("date", filters.date);
-    return get<ProgrammePage<PublishedProgrammeItem>>(`/events/${encodeURIComponent(eventId)}/items?${query}`, signal);
+    return get(`/events/${encodeURIComponent(eventId)}/programme?${query}`, signal,
+      (value): value is ProgrammePage<PublishedProgrammeItem> => validPage(value,
+        (item): item is PublishedProgrammeItem => validProgrammeItem(item) && item.eventId === eventId));
   },
-  item: (eventId: string, itemId: string, signal: AbortSignal) => get<PublishedProgrammeItem>(`/events/${encodeURIComponent(eventId)}/items/${encodeURIComponent(itemId)}`, signal),
+  item: (eventId: string, itemId: string, signal: AbortSignal) => get(`/events/${encodeURIComponent(eventId)}/programme/${encodeURIComponent(itemId)}`, signal,
+    (value): value is PublishedProgrammeItem => validProgrammeItem(value) && value.eventId === eventId && value.id === itemId),
 };

@@ -1,0 +1,36 @@
+{
+  "mode": "setup",
+  "startedAt": "2026-10-21T11:56:44.394Z",
+  "checks": [
+    {
+      "name": "private event/item concealed before publication",
+      "passed": true,
+      "evidence": {
+        "eventId": "dae5f7bd-64b7-4d98-bfaf-c1d95f15c835"
+      }
+    },
+    {
+      "name": "real producer projection and total pagination",
+      "passed": true,
+      "evidence": {
+        "total": 21,
+        "lastPageSize": 1,
+        "itemId": "eeb125f3-f339-4d1c-a40d-9de0a8436abd"
+      }
+    },
+    {
+      "name": "literal combined filters/start-date-only/draft concealment/role denial/no-store",
+      "passed": true,
+      "evidence": {
+        "dateIncluded": "2026-10-20",
+        "nextDateExcluded": "2026-10-21"
+      }
+    }
+  ],
+  "browserErrors": [],
+  "limitations": [
+    "Local isolated synthetic environment only; keyboard/overflow smoke checks are not a full accessibility audit."
+  ],
+  "passed": false,
+  "failure": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: 'Attendee', exact: true })\u001b[22m\n\n    at main (C:\\Users\\yikbi\\.codex\\.chatgpt-projects\\g-p-6ac48159cdf4819188a5ad8460d068cd\\output\\f01-live\\verify.cjs:73:68)"
+}

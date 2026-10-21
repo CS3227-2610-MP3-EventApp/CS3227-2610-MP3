@@ -6,8 +6,7 @@ import { useAuth } from "./Auth";
 import { programmeApi } from "./programmeApi";
 import type { EventSummary, ProgrammePage, PublishedProgrammeItem } from "./programmeTypes";
 
-const types = [["Talk", "talk"], ["Workshop", "workshop"], ["Booth", "booth"], ["Performance", "performance"], ["Other", "other"]] as const;
-const pageSize = 20;
+const types = [["Talk", "talk"], ["Workshop", "workshop"], ["Panel", "panel"], ["Booth", "booth"], ["Performance", "performance"], ["Other", "other"]] as const;
 const cataloguePath = "/attendee/programme";
 const eventPath = (eventId: string) => `${cataloguePath}/events/${encodeURIComponent(eventId)}`;
 const itemPath = (eventId: string, itemId: string) => `${eventPath(eventId)}/items/${encodeURIComponent(itemId)}`;
@@ -35,7 +34,7 @@ function EventCard({ event }: { event: EventSummary }) {
 function ItemCard({ eventId, item }: { eventId: string; item: PublishedProgrammeItem }) {
   return <Paper component="article" variant="outlined" sx={{ p: 2.5 }}>
     <Typography component="h3" variant="h2" sx={{ fontSize: 24 }}><MuiLink component={Link} underline="hover" color="inherit" to={itemPath(eventId, item.id)}>{item.title}</MuiLink></Typography>
-    <Typography color="text.secondary" sx={{ mt: 1 }}>{types.find(([, token]) => token === item.type)?.[0] ?? "Activity"} · {localTime(item.startsAt, item.eventTimezone)} – {localTime(item.endsAt, item.eventTimezone)}</Typography>
+    <Typography color="text.secondary" sx={{ mt: 1 }}>{types.find(([, token]) => token === item.type)?.[0] ?? "Activity"} · {localTime(item.startsAt, item.event.timezone)} – {localTime(item.endsAt, item.event.timezone)}</Typography>
     <Typography sx={{ mt: 1 }}><span>{price(item.priceMinorUnits)}</span> · Capacity: {item.capacity}</Typography>
   </Paper>;
 }
@@ -46,8 +45,8 @@ function AccessibilityLine({ label, value }: { label: string; value: string | nu
 
 function Pager({ page, offset, onPage }: { page: ProgrammePage<unknown> | null; offset: number; onPage: (offset: number) => void }) {
   return <Stack direction="row" spacing={1} justifyContent="space-between" sx={{ mt: 2 }}>
-    <Button disabled={offset === 0} onClick={() => onPage(Math.max(0, offset - pageSize))}>Previous</Button>
-    <Button disabled={!page?.hasMore} onClick={() => onPage(offset + pageSize)}>Next</Button>
+    <Button disabled={offset === 0} onClick={() => onPage(Math.max(0, offset - (page?.limit ?? 20)))}>Previous</Button>
+    <Button disabled={!page || page.offset + page.limit >= page.total} onClick={() => page && onPage(page.offset + page.limit)}>Next</Button>
   </Stack>;
 }
 
@@ -123,7 +122,7 @@ export function AttendeeProgramme() {
     {view === "items" && <Box component="form" onSubmit={(event) => { event.preventDefault(); applyFilters(); }} sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 1fr 1fr auto" }, gap: 1.5, mb: 2.5, alignItems: "center" }}>
       <TextField label="Search activity titles" value={titleDraft} onChange={(event) => setTitleDraft(event.target.value)} />
       <FormControl fullWidth><InputLabel id="programme-type-label">Type</InputLabel><Select labelId="programme-type-label" label="Type" value={typeDraft} onChange={(event) => setTypeDraft(event.target.value)}><MenuItem value="">All types</MenuItem>{types.map(([label, token]) => <MenuItem key={token} value={token}>{label}</MenuItem>)}</Select></FormControl>
-      <TextField label="Date" type="date" value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} InputLabelProps={{ shrink: true }} />
+      <TextField label="Date" type="date" value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} InputLabelProps={{ shrink: true }} helperText="Matches the activity start date in the event timezone." />
       <Button type="submit" variant="contained">Apply filters</Button>
     </Box>}
     {loading && <Typography role="status" sx={{ my: 2 }}>Loading programme…</Typography>}
@@ -133,13 +132,13 @@ export function AttendeeProgramme() {
     {!loading && !error && view === "events" && <Stack spacing={1.5}>{events.map((event) => <EventCard key={event.id} event={event} />)}</Stack>}
     {!loading && !error && view === "items" && <Stack spacing={1.5}>{items.map((item) => <ItemCard key={item.id} eventId={eventId ?? item.eventId} item={item} />)}</Stack>}
     {!loading && !error && view === "detail" && detail && <Paper component="article" variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
-      <Typography color="text.secondary">{types.find(([, token]) => token === detail.type)?.[0] ?? "Activity"} · {detail.eventTimezone}</Typography>
-      <Typography sx={{ mt: 1 }}>{localTime(detail.startsAt, detail.eventTimezone)} – {localTime(detail.endsAt, detail.eventTimezone)}</Typography>
+      <Typography color="text.secondary">{types.find(([, token]) => token === detail.type)?.[0] ?? "Activity"} · {detail.event.timezone}</Typography>
+      <Typography sx={{ mt: 1 }}>{localTime(detail.startsAt, detail.event.timezone)} – {localTime(detail.endsAt, detail.event.timezone)}</Typography>
       <Typography sx={{ mt: 1 }}>{price(detail.priceMinorUnits)} · Capacity: {detail.capacity}</Typography>
       <Typography component="h2" variant="h2" sx={{ mt: 3 }}>Location</Typography>
-      <Typography>{detail.room.name}</Typography><Typography>{detail.room.venue.name}</Typography><Typography>{detail.room.venue.address}</Typography>
+      <Typography>{detail.room.name}</Typography><Typography>{detail.venue.name}</Typography><Typography>{detail.venue.address}</Typography>
       <Typography component="h2" variant="h2" sx={{ mt: 3 }}>Accessibility information</Typography>
-      <Stack spacing={0.5} sx={{ mt: 1 }}><AccessibilityLine label="Activity" value={detail.accessibilityDetails} /><AccessibilityLine label="Room" value={detail.room.accessibilityDetails} /><AccessibilityLine label="Venue" value={detail.room.venue.accessibilityDetails} /></Stack>
+      <Stack spacing={0.5} sx={{ mt: 1 }}><AccessibilityLine label="Activity" value={detail.accessibilityDetails} /><AccessibilityLine label="Room" value={detail.room.accessibilityDetails} /><AccessibilityLine label="Venue" value={detail.venue.accessibilityDetails} /></Stack>
     </Paper>}
     {view === "events" && !loading && !error && <Pager page={eventPage} offset={offset} onPage={setCurrentOffset} />}
     {view === "items" && !loading && !error && <Pager page={itemPage} offset={offset} onPage={setCurrentOffset} />}
