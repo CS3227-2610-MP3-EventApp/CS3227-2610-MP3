@@ -104,7 +104,9 @@ def change_password(body: PasswordChangeRequest, request: Request, response: Res
     if not verify(credential.password_hash, body.currentPassword.get_secret_value()):
         audit(db, "password_change", context.user.id, "denied", context.user.id)
         db.commit()
-        raise AuthProblem("invalid_credentials")
+        raise AuthProblem("current_password_incorrect")
+    if body.currentPassword.get_secret_value() == body.newPassword.get_secret_value():
+        raise AuthProblem("password_unchanged")
     now = utcnow()
     credential.password_hash = hasher.hash(body.newPassword.get_secret_value())
     credential.must_change_password = False

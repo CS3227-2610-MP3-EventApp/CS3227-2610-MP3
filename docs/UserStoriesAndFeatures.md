@@ -10,7 +10,7 @@ Across the 31 stories, the attendee, organiser and business interfaces share a [
 
 ## Story-to-spec links
 
-These links identify the proposed authoritative capability contract for each of the 31 stories. All linked contracts are Drafts; a link does not approve their behaviour or implementation. The [spec index](../specs/README.md#story-to-spec-index) records revision-specific criterion mappings.
+These links identify the proposed authoritative capability contract for each of the 31 stories. Revision-specific status and approval are recorded in the spec index; a link alone does not approve implementation. The [spec index](../specs/README.md#story-to-spec-index) records revision-specific criterion mappings.
 
 | Story IDs | Related capability spec |
 | --- | --- |
@@ -43,7 +43,7 @@ These links identify the proposed authoritative capability contract for each of 
 
 ### Shared foundation
 
-F10 identity verifies sign-in; server permissions restrict attendees to their private records, organisers to assigned events, and business members to their business across events. Changing screens grants no authority. The requesting teammate authorised application-owned auth on 2026-10-19: one product role, attendee/new-business-owner registration, trusted runtime-password organiser/event CLI with mandatory password replacement, and cookie sessions. Email/username and normalized business names are globally unique. Attendee browsing requires sign-in; additional invitations/members/transfer/recovery are excluded. [Access revision 3](../specs/shared/access-authorised-workspaces.md) defines the exact slice; downstream real-domain access checks remain pending. Prototype storage is presentation state only.
+F10 identity verifies sign-in; server permissions restrict attendees to their private records, organisers to assigned events, and business members to their business across events. Changing screens grants no authority. The requesting teammate authorised application-owned auth on 2026-10-19: one product role, attendee/new-business-owner registration, trusted runtime-password organiser/event CLI with mandatory password replacement, and cookie sessions. Email/username and normalized business names are globally unique. Attendee browsing requires sign-in; additional invitations/members/transfer/recovery are excluded. [Access revision 4](../specs/shared/access-authorised-workspaces.md) defines the exact slice; downstream real-domain access checks remain pending. Prototype storage is presentation state only.
 
 F10 bounded AI jobs persist owner, progress and failure state, enforce time/usage/tool limits, cancel between steps, minimise outbound data and validate results before display. Jobs may create authorised drafts but cannot approve applications, publish announcements or execute external actions autonomously. Build identity/permissions with the first F01 slice, business checks with F06, and job controls before role AI features. Exact-action approval precedes any external send or execution.
 
@@ -81,6 +81,15 @@ F10 bounded AI jobs persist owner, progress and failure state, enforce time/usag
 | F10-US02 | As a user, I can monitor my AI jobs so that I understand progress and can continue when a job fails. | <ul><li>View status of my concierge jobs</li><li>View validated results or failure messages</li><li>Cancel a running job between steps</li><li>Continue itinerary planning manually after failure</li></ul> | <ul><li>View status of my submission-analysis and announcement-draft jobs</li><li>View validated results or failure messages</li><li>Cancel a running job between steps</li><li>Review applications and publish announcements manually after failure</li></ul> | <ul><li>View status of my preparation-plan jobs</li><li>View validated results or failure messages</li><li>Cancel a running job between steps</li><li>Continue checklist and budget work manually after failure</li></ul> | server-authorised job access, persisted state, bounded tools, timeouts, cancellation between steps, quotas, minimal outbound data and validation before display; failure preserves accepted data and manual operation (RD07). |
 | F10-US03 | As an authorised user, I can approve an exact external action so that it runs once within my permissions. | — | <ul><li>Review and approve the quotation email recipient and text</li><li>See whether sending succeeded, failed, or needs reconciliation</li></ul> | <ul><li>Review and approve the recipient, items, and amount for a future request or proposal</li><li>See whether execution succeeded, failed, or needs reconciliation</li></ul> | payload-bound approval, expiry, revalidation and audit. Pending or uncertain provider outcomes require reconciliation rather than blind retries. |
 
+## F05-US01 cancellation implementation note
+
+Recorded with Dylan on 2026-10-20 for future specification refinement; this is not implemented by the first organiser programme slice.
+
+- Use a lifecycle status such as `cancelled`, not a generic `deleted` boolean. Retain every published activity's stable ID and published history, even when no attendee currently references it; do not conditionally hard-delete published records based on a reference count. Unpublished drafts retain their existing confirmed hard-delete behaviour.
+- Store cancellation time and the responsible organiser's ID. Require explicit confirmation, current event-scoped authority and the expected item revision. Increment the revision and commit the status transition, immutable old/new change facts and attributable audit record atomically, following RD04/RD05.
+- Existing itinerary references must remain valid and show “This activity has been cancelled”; cancellation must not silently remove or replace an accepted plan entry. Hide cancelled activities from normal discovery by default, while authorised detail/reference reads retain their facts and cancellation status. Cancelling an activity does not cancel its parent event.
+- Do not overwrite immutable published snapshots or cascade-delete plan/history references. Final column names, migration, read projections, notification integration and retry/repeated-cancellation semantics must be agreed in the linked [change-published-activities specification](../specs/programme/change-published-activities.md) before implementation. Physical cleanup and restoring cancelled activities are outside this note's scope.
+
 ## Readiness and shared constraints
 
 - Refine stories into approved specifications before implementation; use the [agent workflow](../workflow/agents/README.md) for independent test design/review, protected baselines, actual handoffs and verification.
@@ -91,3 +100,5 @@ F10 bounded AI jobs persist owner, progress and failure state, enforce time/usag
 - All three workspaces retain core manual workflows when AI fails or another role is offline. AI cannot silently replace accepted records.
 - Use authorised data, validated schemas and factual references; test injection, privacy, stale output, limits, failures and approval bypasses under [security rules](security.md). Research requires sources/timestamps/uncertainty; screened links do not guarantee supplier safety.
 - Module boundaries, relationship constraints, missing booth/setup and participation-projection contracts, migrations and integration checkpoints remain in the [schema plan](architecture.md). Accepted plans remain domain records rather than generic AI artifacts. Meal/route entries, wishlists and optional image/export designs require explicit refinement.
+
+2026-10-21 approved scope: F06-US01 includes named open-event discovery, private drafts and explicit frozen submission without a known-ID eligibility step. F04-US01 and the status/reason portion of F06-US02 add one organiser acceptance/rejection and applicant-visible outcome. Booth/setup remains deferred; see the existing submit and decision specs for precise criteria.

@@ -1,0 +1,22 @@
+{
+  "implementation": "a9b755d3120f94b9bf85278d7753eec7ff2fa9944ca9531ade46a5c5bc4508e6",
+  "browser": "Chrome156 production build index-DFyGvM-Q.js",
+  "checks": [
+    "final production bundle loaded",
+    "organiser unsaved reason survives controlled focus revalidation",
+    "intended settings changed without write",
+    "intended settings survive controlled pageshow",
+    "settings navigation warning cancel keeps choice",
+    "same-scope Overview return restores intended setting",
+    "unsaved setting checks sent no write",
+    "1000-code-point emoji reason accepted and parsed",
+    "Unicode decision preserves exact frozen submission",
+    "organiser reload displays full Unicode reason",
+    "business reload displays full Unicode reason",
+    "Unicode outcome reflows at320 CSS pixels",
+    "private organiser memory never reaches web storage"
+  ],
+  "priorNormalJourney": "browser-results.json records36normal/restart/keyboard checks at pre-repair snapshot; final focused browser checks cover changed Unicode and organiser revalidation paths.",
+  "focusDiagnostic": "Controlled window focus/pageshow events drive real API revalidation. Rapid headless bring-to-front alone was inconclusive, not claimed as native tab-switch evidence.",
+  "humanNVDAActual400Zoom": "Pending"
+}

@@ -1,6 +1,6 @@
 # EventApp project context
 
-EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python/FastAPI, TypeScript/React and three teammates. All three approved RD01–RD07 on 2026-10-15. The frontend prototype and FastAPI/PostgreSQL foundation are implemented and In review. The requesting teammate authorised the shared-authentication implementation plan on 2026-10-19; its exact revision/readiness, protected tests and implementation evidence are recorded separately. Other domain features, AI and deployment remain subject to their own gates.
+EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python/FastAPI, TypeScript/React and three teammates. All three approved RD01–RD07 on 2026-10-15. Shared authentication and the frontend/backend foundations are merged. Dylan approved exact programme revision 6 on 2026-10-20; the organiser UI and published attendee read API are implemented for review, with evidence in the [programme run record](../workflow/agents/runs/2026-10-20-organiser-programme.md). Attendee screens, other domain features, AI and deployment remain subject to their own gates.
 
 ## Shared UI direction
 
@@ -9,6 +9,10 @@ The requesting teammate specified on 2026-10-18 that EventApp should have a prof
 The proposed [shared UI capability Draft](../specs/shared/navigate-eventapp-workspaces.md) will define the observable experience: consistent orientation and navigation, a clear hierarchy for key actions and evidence, responsive layouts, accessible interaction, visible pending/progress/success/failure states, and preservation of user work during delayed or failed operations. Domain specs retain authority over permissions, validation, AI jobs, approvals and data changes; the UI contract must display those outcomes accurately without inventing success. Visual tokens, breakpoints, motion timing and performance targets remain decisions for human product/design approval in that Draft.
 
 Accessibility and performance references for the Draft are [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [W3C navigation guidance](https://www.w3.org/WAI/tutorials/menus/structure/) and [web.dev Core Web Vitals](https://web.dev/articles/vitals). These references guide proposed, testable requirements; no conformance or measured performance is claimed.
+
+## Approved Business request amendment (2026-10-21)
+
+Isaac approved access/shared UI r4, submit r4 and bounded decision r2 before edits. Businesses browse named open events and submit one frozen application as the participation request; organisers open/close applications and decide submitted requests without exchanging business IDs. Settings default closed; closure blocks new drafts/submission while preserving editable own drafts and reviewable submissions. Rejection reason is required (1-1000 trimmed characters), acceptance reason optional (maximum1000). Legacy grants remain history only. No automatic date cutoff, resubmission, reconsideration or booth/setup assignment is included. RD01-RD07 remain authoritative. See [current evidence](../workflow/agents/runs/2026-10-21-open-participation-requests.md); implementation and required human verification remain separately tracked.
 
 ## Accepted review decisions
 
@@ -140,6 +144,7 @@ Use the confirmed FastAPI backend and React frontend. Recommended first architec
 | D06 | Model provider, retention, consent, data minimisation | AI privacy and integration | Open before F03 |
 | D07 | Maps, search, email and commerce providers and budget | External integration scope | Open before relevant extension |
 | D08 | Preference semantics and measurable limits | Constraint correctness, latency, quotas and accessibility | Open before affected features |
+| D09 | First organiser programme contract | F01-US01/02, F04-US03; F01-US03 read API only | Dylan approved exact revision 6 on 2026-10-20: complete drafts, six types, SGD integer cents, optional unknown accessibility, event bounds, permitted overlap, immutable publication/parent locks, safe deletion and versioned API. Dylan owns this organiser task; attendee UI remains teammate-owned. No other roadmap/allocation change. |
 
 When a decision is made, record the choice, approver, date, reasoning, and affected feature IDs here. Do not treat a draft recommendation as approval.
 
@@ -153,7 +158,7 @@ Map every mandatory rubric item to a feature and acceptance criterion before fin
 
 Use one shared Git repository containing backend, frontend and this SDD folder. PostgreSQL is the accepted database planning baseline. SQLAlchemy and Alembic for persistence and migrations, and Pydantic models for API/tool validation remain recommendations. Use a separate local development database per developer with common migrations and fixtures. Use local containers to keep setup repeatable. Derive frontend API types from the reviewed FastAPI OpenAPI contract.
 
-The requesting teammate selected application-owned authentication on 2026-10-19, superseding the earlier managed-OIDC recommendation: Argon2id 8–128-character passwords, seven-day opaque cookie sessions with SHA-256 token digests, Origin validation and generated React OpenAPI types. Exact contract: [access revision 3](../specs/shared/access-authorised-workspaces.md) and [foundation architecture](architecture.md#shared-authentication-foundation-contract). Static React/container backend/managed PostgreSQL deployment remains a recommendation; vendors/paid tiers are open.
+The requesting teammate selected application-owned authentication on 2026-10-19, superseding the earlier managed-OIDC recommendation: Argon2id 8–128-character passwords, seven-day opaque cookie sessions with SHA-256 token digests, Origin validation and generated React OpenAPI types. Exact contract: [access revision 4](../specs/shared/access-authorised-workspaces.md) and [foundation architecture](architecture.md#shared-authentication-foundation-contract). Static React/container backend/managed PostgreSQL deployment remains a recommendation; vendors/paid tiers are open.
 
 ### D03 Phase commitments
 

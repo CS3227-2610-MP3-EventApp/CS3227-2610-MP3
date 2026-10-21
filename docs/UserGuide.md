@@ -20,12 +20,18 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout are real backend operations. This branch adds the attendee programme browser described below; its publication backend and real data integration are still pending. Other application, itinerary and AI actions remain previews with disabled controls.
+Account registration, login, session restoration, password changes and logout are real backend operations. Organiser Programme Management now uses the real backend and database. Application, itinerary and AI cards remain previews. Authenticated attendee programme reads are available through the API; attendee browsing screens remain a teammate-owned follow-up.
 
-## Browse the programme (frontend awaiting programme backend)
+## Organiser programme management
 
-Sign in as an attendee and choose **Browse Programme**. Select an event, then an activity to see its times, venue/room, SGD price, declared capacity and separate activity/room/venue accessibility notes. Times use the event timezone. “Free” means zero price; capacity is not a remaining-ticket count. Missing accessibility information remains unknown.
+Open **Programme Management** and select an assigned event. Create a venue with its address, add a room and capacity, then create a complete programme draft. Use the calendar/time controls in the displayed event timezone, choose a room/type and set capacity and a price in SGD dollars (for example, `12.50`). Prices allow zero and at most two decimal places; the backend still stores integer cents. Blank accessibility notes mean unknown. Activities may overlap in one room; each item's capacity must still fit that room.
 
-Search activity titles, combine a type and event-local date, and apply the filters. Use Previous/Next for paged lists. Overnight activities are intended to match every local date they overlap when the programme backend enforces the agreed contract. Retry failed loads; an empty list is distinct from an error. A session-expiry response returns you to login. Activity links support direct navigation once the producer endpoints are available.
+Save the draft before validating or publishing. **Validate** checks the saved revision without publishing. **Publish** requires confirmation and makes the stored revision visible to authenticated attendee API consumers. Published items are read-only, and their venues/rooms are locked against editing. Drafts and unused locations can be deleted after confirmation; referenced locations cannot.
 
-This branch does not create or publish events/activities. Against the current backend, the new programme APIs are unavailable, so the browser shows a load error rather than inventing programme data. Automated frontend acceptance checks use synthetic network responses only in tests; they do not establish real publication, server permissions or persistence.
+If another tab saves first, reload and review its revision before retrying. Publication never silently includes unsaved edits. Detailed walkthroughs and API handoff are in [programme testing](ProgrammeTesting.md).
+
+Venue/room pencil icons open editing; trash icons open deletion confirmation. A room cannot be deleted while any activity references it, and a venue cannot be deleted while it has rooms. For an activity, select its title and use **Delete** in its saved draft details. Published activities cannot be deleted: future cancellation will preserve their IDs/history rather than silently remove public facts. Cancellation is not implemented in this slice.
+
+## Attendee programme browser integration status
+
+Sign in as an attendee and choose **Explore programme** in Browse Programme. The frontend has event/activity lists, title/type/date filters, pagination and activity details including event-local times, SGD/free pricing, declared capacity and separate accessibility notes. Missing notes mean unknown; capacity is not remaining inventory. The current API adapter is not yet aligned with the merged programme backend, so this screen may report load errors. Successful fixture tests do not establish a working live journey. Retry and session-expiry handling are present.

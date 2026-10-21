@@ -16,32 +16,36 @@ Maintain [logs/](../logs/README.md) for summaries of all development prompts/int
 
 ## Current implementation status
 
-The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. The attendee programme consumer is implemented against the proposed API and verified with test-only network fixtures; its publication producer and real integration remain pending. Application, itinerary and AI actions remain previews or later capabilities; online deployment is separate.
+The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL authentication: attendee/business registration, shared login/logout, cookie sessions, password replacement, CLI organiser/event provisioning and reusable role/membership guards. F06-US01 now connects Business draft/create/edit/review/submit and organiser open-application/submitted review screens, once-only approval/rejection and business outcomes to the approved backend. Application workspace cards are available; programme, preparation, itinerary, AI and online deployment remain separate. See [Business application website and API testing](BusinessApplicationsTesting.md) for Git Bash startup and synthetic local flows, plus the [frontend delivery evidence](../workflow/agents/runs/2026-10-21-complete-business-applications.md). Human/NVDA review remains pending. Apply additive migrations with `alembic upgrade head`; never reset retained development data to enable this feature.
 
-Use Node.js `^20.19.0` or `>=22.12.0`, then run:
+## Run locally
 
-```sh
-cd frontend
-npm ci
-npm run dev
-```
+Prerequisites: Python 3.12, [uv](https://docs.astral.sh/uv/), Docker Desktop, and Node.js `^20.19.0` or `>=22.12.0`. Use separate terminals. The Docker commands below work in PowerShell, bash and zsh. Start the database and backend first; Vite proxies API requests to `127.0.0.1:8000` and will report proxy errors until the backend is running.
 
-The local URL is printed by Vite. Verify the frontend with:
+### 1. Start PostgreSQL and the backend
 
-```sh
-npm test
-npm run build
-npm audit
-```
+In Terminal 1, from the repository root, start PostgreSQL. Repeat the readiness command until it reports that PostgreSQL is accepting connections:
 
-Historical presentation evidence is recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). The [authentication run record](../workflow/agents/runs/2026-10-19-shared-authentication.md) records the current contract, protected tests, implementation and remaining review limitations. Shared guards require integration into each future domain endpoint.
-
-## Backend foundation
-
-Install Python 3.12, [uv](https://docs.astral.sh/uv/) and Docker Desktop. From the repository root, start the development database:
-
-```sh
+```powershell
 docker compose up -d db
+docker compose exec db pg_isready -U eventapp -d eventapp
+```
+
+Then, in the same terminal, use the commands for your shell.
+
+PowerShell:
+
+```powershell
+Set-Location backend
+uv sync
+$env:DATABASE_URL = "postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp"
+uv run alembic upgrade head
+uv run uvicorn app.main:app --reload --host 127.0.0.1
+```
+
+macOS/Linux (bash/zsh):
+
+```sh
 cd backend
 uv sync
 export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
@@ -49,12 +53,105 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --host 127.0.0.1
 ```
 
-The API is available only on the local machine. Check liveness at `http://127.0.0.1:8000/api/v1/health/live`, database readiness at `http://127.0.0.1:8000/api/v1/health/ready`, and OpenAPI at `http://127.0.0.1:8000/api/v1/openapi.json`.
+Keep this terminal open. In Terminal 2, wait until Uvicorn reports that startup is complete, then check API and database readiness.
 
-Tests use a separate synthetic PostgreSQL database. From the repository root:
+PowerShell:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/api/v1/health/ready
+```
+
+macOS/Linux (bash/zsh):
 
 ```sh
+curl --fail --silent --show-error http://127.0.0.1:8000/api/v1/health/ready
+```
+
+Continue in Terminal 2 only after the response reports `status: ready`. From the repository root, start the frontend.
+
+PowerShell:
+
+```powershell
+Set-Location frontend
+npm ci
+npm run dev
+```
+
+macOS/Linux (bash/zsh):
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Open the local URL printed by Vite, usually `http://localhost:5173/`. Once the backend is running, these complete API URLs can be opened directly:
+
+- Liveness: `http://127.0.0.1:8000/api/v1/health/live`
+- Database readiness: `http://127.0.0.1:8000/api/v1/health/ready`
+- OpenAPI document: `http://127.0.0.1:8000/api/v1/openapi.json`
+
+The default trusted origins are `http://localhost:5173` and `http://127.0.0.1:5173`. If Vite uses a different port, configure that exact origin in `TRUSTED_ORIGINS` before starting the backend.
+
+To stop the app, press Ctrl+C in the frontend and backend terminals, then run `docker compose stop db` from the repository root if you also want to stop PostgreSQL. Stopping the container preserves its named development data volume.
+
+### Provision an organiser for manual testing
+
+Attendees and business owners can register through the frontend. Organisers cannot self-register; provision one with the trusted CLI after PostgreSQL is running and the migrations are applied. Use a third terminal from the repository root. The CLI connects directly to PostgreSQL, so set the same development `DATABASE_URL` used by FastAPI in this terminal too; shell environment variables do not carry over between terminals.
+
+PowerShell:
+
+```powershell
+Set-Location backend
+$env:DATABASE_URL = "postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp"
+uv run python -m app.auth.bootstrap event --id 22222222-2222-4222-8222-222222222222 --title "Development Event" --timezone Asia/Singapore --starts-at 2027-01-01T09:00:00+08:00 --ends-at 2027-01-01T18:00:00+08:00
+uv run python -m app.auth.bootstrap organiser --username dev-organiser --email organiser@example.test --display-name "Development Organiser" --event-id 22222222-2222-4222-8222-222222222222
+```
+
+macOS/Linux (bash/zsh):
+
+```sh
+cd backend
+export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
+uv run python -m app.auth.bootstrap event --id 22222222-2222-4222-8222-222222222222 --title 'Development Event' --timezone Asia/Singapore --starts-at 2027-01-01T09:00:00+08:00 --ends-at 2027-01-01T18:00:00+08:00
+uv run python -m app.auth.bootstrap organiser --username dev-organiser --email organiser@example.test --display-name 'Development Organiser' --event-id 22222222-2222-4222-8222-222222222222
+```
+
+What the commands do:
+
+- **Project folder and runtime:** `Set-Location backend` (PowerShell) or `cd backend` (bash/zsh) enters the backend project. `uv run` uses its Python environment to run the provisioning tool.
+- **Database connection:** `DATABASE_URL` tells the CLI to use your local development database on port 5432, not the disposable test database on port 5433.
+- **Event seed:** The `event` command creates a sample event. `--id` gives it a unique ID; `--title`, `--timezone`, `--starts-at`, and `--ends-at` set its name, timezone, and start/end times. The timestamps include the UTC offset.
+- **Organiser seed:** The `organiser` command creates an organiser account and grants it access to the event named by `--event-id`. That value must match the event's `--id`. The username, email, and display name identify the account.
+- **Password and repeats:** For a new account, the CLI asks for an initial password twice in hidden prompts. The organiser must change it at first sign-in. Repeating a matching command does not reset the password or reactivate an inactive membership. Use synthetic details only.
+
+After provisioning succeeds, make sure the backend is running with the same development database URL on port 5432, and open the frontend URL printed by Vite. Select the **Organiser** tab, enter `dev-organiser` or `organiser@example.test` as the username/email, enter the initial password you just set, and select **Log in**. On the required password-change page, enter that initial password as the current password, then enter and confirm a different new password (8–128 characters). After a successful change, the app opens the organiser workspace. Application Reviews provides named assigned events, explicitly confirmed open/closed settings and one-time submitted-application approval/rejection; programme management and other feature cards remain previews.
+
+### Run automated tests
+
+Backend tests use a separate synthetic database on port 5433. Do not run the backend test suite while manually using this test database: the suite resets its schema. From the repository root, start the test database:
+
+```powershell
 docker compose --profile test up -d test-db
+docker compose --profile test exec test-db pg_isready -U eventapp_test -d eventapp_test
+```
+
+Repeat the readiness command until PostgreSQL reports that it is accepting connections. Then, in the same terminal, use the commands for your shell.
+
+PowerShell:
+
+```powershell
+Set-Location backend
+uv sync
+$env:DATABASE_URL = "postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp"
+$env:TEST_DATABASE_URL = "postgresql+psycopg://eventapp_test:eventapp_test@127.0.0.1:5433/eventapp_test"
+$env:EVENTAPP_ALLOW_TEST_DB_RESET = "true"
+uv run pytest
+```
+
+macOS/Linux (bash/zsh):
+
+```sh
 cd backend
 uv sync
 export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
@@ -63,43 +160,101 @@ export EVENTAPP_ALLOW_TEST_DB_RESET=true
 uv run pytest
 ```
 
-The reset flag permits the migration test to recreate only the synthetic local `eventapp_test` schema. Never point `TEST_DATABASE_URL` at development or production data.
+`DATABASE_URL` identifies the development database; the test harness validates that it differs from `TEST_DATABASE_URL`, then directs application connections to the test target. The reset flag permits migration tests to recreate only the synthetic local `eventapp_test` schema. Never point `TEST_DATABASE_URL` at development or production data.
 
-## Shared authentication development
+For frontend checks, use another terminal from the repository root. PowerShell:
 
-For the current workstation's existing port-5433 test database and detailed role-by-role flows, use [authentication manual testing](AuthenticationTesting.md). Its database is disposable and must not be used concurrently with the automated backend suite.
-
-On the shared-authentication branch, apply migrations using `uv run alembic upgrade head` before starting FastAPI. Start the frontend separately with `npm run dev` in `frontend/`; Vite proxies `/api` to `http://127.0.0.1:8000` so the browser uses same-origin cookies. Use the frontend on `http://localhost:5173` or `http://127.0.0.1:5173` with the default development trusted origins. The database, backend and frontend remain separate processes.
-
-Configuration adds `ENVIRONMENT` (`development`, `test`, `production`) and `TRUSTED_ORIGINS` (a JSON array of exact frontend origins). Outside development cookies require HTTPS; production requires explicit HTTPS trusted origins. Keep environment files, credentials and database URLs out of Git. Do not reuse the disposable test database for normal accounts.
-
-Create an event and its organiser from `backend/`, replacing the example identifiers and dates with your synthetic development data:
-
-```sh
-uv run python -m app.auth.bootstrap event --id 22222222-2222-4222-8222-222222222222 --title 'Development Event' --timezone Asia/Singapore --starts-at 2027-01-01T09:00:00+08:00 --ends-at 2027-01-01T18:00:00+08:00
-uv run python -m app.auth.bootstrap organiser --username dev-organiser --email organiser@example.test --display-name 'Development Organiser' --event-id 22222222-2222-4222-8222-222222222222
+```powershell
+Set-Location frontend
+npm ci
+npm test
+npm run build
+npm audit
 ```
 
-The organiser command prompts for a password rather than taking it in shell arguments. Repeating a matching seed does not reset its password or reactivate an inactive membership. Organisers must change the initial password after login. Attendees and business owners register through the frontend; business registration creates a new business and initial owner together. An email and username each identify one account across all roles.
+### One-command automated verification (PowerShell)
 
-Manual flows after launching both servers:
+With Docker Desktop running and dependencies already installed, run this from the repository root:
 
-1. Register an attendee, refresh its workspace, sign out and verify a direct workspace URL requires login.
-2. Register a business owner and verify the business workspace opens; a duplicate email/username/business name is rejected.
-3. Use an account under the wrong role tab and verify the same generic rejection as an incorrect password.
-4. Log in as the seeded organiser, replace the initial password, refresh and verify access to the organiser workspace. The initial password must no longer work.
-5. Inspect browser cookies: `eventapp_session` is HttpOnly/SameSite=Lax; browser storage contains no identity or token. Appearance preference remains in local storage.
+```powershell
+.\tools\verify.ps1
+```
 
-Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. The attendee programme consumer is described below; other domain cards remain previews until their own capabilities are implemented.
+It starts the disposable test database, runs every backend test, then runs every frontend test and the production frontend build. It sets the documented Node 26 compatibility option only for the test process and restores your environment variables afterwards. The test database on port 5433 may be reset; it never uses the development database on port 5432. To run only the frontend checks, use `./tools/verify.ps1 -FrontendOnly`.
+
+The verifier checks each command's exit code and reports failure if any test suite or the build fails, even when later stages pass. It restores the original terminal directory and environment afterwards. The storage compatibility flag is enabled only when the installed Node version supports it. Avoid running multiple backend suites against the same disposable database at once: their reset fixtures intentionally recreate and truncate synthetic tables.
+
+#### PowerShell execution-policy guidance
+
+If PowerShell says that script execution is disabled, use this one-time invocation:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\verify.ps1
+```
+
+**Benefit:** it permits this single PowerShell process to run the checked-out verifier without changing the machine or user execution policy. **Risk:** `Bypass` does not isolate or restrict the script; it can do anything your current Windows account can do. Review `tools/verify.ps1`, use it only from a trusted repository revision, and do not paste an untrusted script path into this command.
+
+The verifier itself starts Docker's disposable `test-db` service and resets its synthetic `eventapp_test` schema on port 5433. This is intentional for repeatable tests, but any data in that database can be removed. It is safe for the documented test container; never point `TEST_DATABASE_URL` at a development, shared, or production database. Docker Desktop must be running. The script runs tests and a frontend build but does not commit, push, deploy, or change the development database on port 5432.
+
+For a persistent, per-user setting that permits locally created or downloaded-and-unblocked scripts, use `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. **Trade-off:** this is more convenient, but it broadens the set of scripts your user account may execute. It still does not make unreviewed repository scripts safe, so the one-time invocation above is the recommended default for this verifier.
+
+macOS/Linux (bash/zsh):
+
+```sh
+cd frontend
+npm ci
+npm test
+npm run build
+npm audit
+```
+
+Historical presentation evidence is recorded in the [role-entry run record](../workflow/agents/runs/2026-10-18-preview-role-entry.md). The [authentication run record](../workflow/agents/runs/2026-10-19-shared-authentication.md) records the current contract, protected tests, implementation and remaining review limitations. Shared guards require integration into each future domain endpoint. For detailed role-by-role manual flows, see [authentication manual testing](AuthenticationTesting.md).
+
+Configuration supports `ENVIRONMENT` (`development`, `test`, `production`) and `TRUSTED_ORIGINS` (a JSON array of exact frontend origins). Outside development, cookies require HTTPS; production requires explicit HTTPS trusted origins. Keep environment files, credentials and database URLs out of Git. Do not reuse the disposable test database for normal accounts.
+
+Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Only delivered application cards are enabled for Business/organiser; other domain cards remain previews until their own capabilities are implemented.
+
+The first organiser programme slice is governed by [programme revision 6](../specs/programme/create-and-publish-programme.md). Apply its additive migration before using Programme Management; existing authentication records must be preserved. See [programme testing and attendee API handoff](ProgrammeTesting.md) for local flows, publication boundaries and consumer integration. The [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md) records actual implementation/verification status; this guide is not a passing-test claim.
 
 ## Delivery evidence to maintain
 
 Document deployment/recovery steps and the online application URL when hosting is implemented. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific evidence to the release gates in project context. This slice does not provide password recovery, email verification, rate limiting or a production deployment.
 
-## Attendee programme consumer
+### Run all automated tests in Git Bash (Windows)
 
-The attendee UI uses real same-origin GET requests under `/api/v1/programme`; it has no synthetic production fallback. The proposed producer read API is in [programme contract revision 7, approval recorded in revision 8](../specs/programme/create-and-publish-programme.md). Publication/backend ownership and integration remain pending; current CLI events are not published programmes. To exercise end-to-end browsing, the producer must implement the agreed event list, event item list and item detail interfaces plus server authorization/visibility.
+With Docker Desktop running, execute this block from the repository root. Dependencies must already be installed (`uv sync` in `backend/` and `npm ci` in `frontend/` for first-time setup).
 
-`frontend/src/programmeTypes.ts` holds explicitly interim frontend response types while producer OpenAPI is unavailable. It is not generated schema evidence. Once the real API contract is agreed and implemented, export OpenAPI, regenerate types through the existing process, migrate this consumer to them, and verify the real network/database journey. Do not fabricate server schema or ship the acceptance fixture as application data.
+```bash
+docker compose --profile test up -d test-db
 
-For local frontend verification, preserve the immutable protected tests, exact runtime/commands and separate baseline seal in [test-first run](../workflow/agents/runs/2026-10-20-browsing-test-first.md). [Implementation run](../workflow/agents/runs/2026-10-20-browsing-implementation.md) records actual code/review/test evidence. Backend privacy/filtering/date queries, publication integration, storage lifecycle, deployed delivery and real-browser visual checks remain distinct obligations.
+until docker compose --profile test exec -T test-db pg_isready \
+  -U eventapp_test -d eventapp_test; do sleep 1; done
+
+# All backend tests
+(
+  cd backend
+  export DATABASE_URL='postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp'
+  export TEST_DATABASE_URL='postgresql+psycopg://eventapp_test:eventapp_test@127.0.0.1:5433/eventapp_test'
+  export EVENTAPP_ALLOW_TEST_DB_RESET=true
+  export PYTHONPATH="$(pwd -W)/.venv/Lib/site-packages"
+  uv run pytest -q
+)
+
+# All frontend tests
+(
+  cd frontend
+  NODE_OPTIONS=--no-experimental-webstorage npm test
+)
+```
+
+At the 2026-10-21 request-flow baseline, these suites contain195 backend and173 frontend cases; counts may increase with future changes. The suites run separately so frontend tests still run if backend tests fail. Subshells keep directory/environment changes local. Only the disposable test database on5433 is reset; development data on5432 is not used by tests. The PYTHONPATH and Node26 settings address the Windows runtime issues noted below. Automated suites do not execute the separate Chrome/NVDA/manual accessibility checks.
+
+### Windows test runtime notes
+
+If the legacy migration subprocess uses a base Python without the virtual environment packages, set `$env:PYTHONPATH = (Resolve-Path '.venv/Lib/site-packages').Path` from `backend/` before `uv run pytest`. For Node 26 jsdom tests, set `$env:NODE_OPTIONS = '--no-experimental-webstorage'` in the frontend test terminal. These are process-local compatibility settings, not changes to the protected test runner.
+
+Approved request-flow amendment: [submit r4](../specs/applications/submit-business-applications.md), [decision r2](../specs/applications/decide-applications-and-show-outcomes.md), auth/UI r4 replace known-ID grants with open-event applications and actionable safe errors. See [current checks and limitations](../workflow/agents/runs/2026-10-21-open-participation-requests.md) before treating the amendment as verified.
+
+## Attendee frontend integration after master merge
+
+The attendee browser is preserved in `frontend/src/AttendeeProgramme.tsx`; organiser management remains in `Programme.tsx`. The attendee routes, search/filter/detail UI and fixture tests remain present. Its API adapter and interim types still target a different contract: `/api/v1/programme`, `hasMore`, `eventTimezone`, nested `room.venue`, and five activity types. The backend uses `/api/v1/attendee`, `total`, sibling `event`/`venue`/`room`, and also supports `panel`. Align these contracts and verify real publication-to-browsing before claiming F01-US03 complete. See [attendee implementation evidence](../workflow/agents/runs/2026-10-20-browsing-implementation.md) for the historical 105-test result, not current integration evidence.

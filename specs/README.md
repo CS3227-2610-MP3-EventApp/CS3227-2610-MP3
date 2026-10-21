@@ -39,15 +39,15 @@ This index maps all **31** catalogue stories to domain capabilities and shared t
 
 | Roadmap order | Story IDs | Authoritative Draft and criterion IDs | Status |
 | --- | --- | --- | --- |
-| 1 | N/A: backend technical foundation | [run-backend-with-postgresql](shared/run-backend-with-postgresql.md): run-backend-with-postgresql-AC01–09 | In review revision 2; automated and independent implementation reviews pass, clean development-database workflow and human review pending |
-| 1a | Cross-cutting presentation of all 31 stories | [navigate-eventapp-workspaces](shared/navigate-eventapp-workspaces.md): navigate-eventapp-workspaces-AC01–10; domain criteria remain authoritative | Draft; approval and verification pending |
+| 1 | N/A: backend technical foundation | [run-backend-with-postgresql](shared/run-backend-with-postgresql.md): run-backend-with-postgresql-AC01–09 | In review revision 2; automated and independent implementation reviews pass, isolated clean development-database workflow verified; human review and fresh-machine setup pending |
+| 1a | Cross-cutting presentation | [navigate-eventapp-workspaces](shared/navigate-eventapp-workspaces.md): AC01-12 | In review revision 4 for delivered auth/F06 scope;173 UI tests/build and browser checks pass; human accessibility pending |
 | 1b | Presentation preview for F10-US01; does not satisfy real identity/authorisation | [preview-role-entry-and-workspaces](shared/preview-role-entry-and-workspaces.md): preview-role-entry-and-workspaces-AC01–12 | In review revision 2; automated and independent reviews pass, manual browser and human review pending |
-| 2 | F10-US01 | [access-authorised-workspaces](shared/access-authorised-workspaces.md): access-authorised-workspaces-AC01–19; legacy domain checks retained/deferred explicitly | In review revision 3; authentication implementation and protected automated checks delivered; human review, manual and downstream-domain checks remain tracked in the run record |
-| 3 | F01-US01–03; F04-US03 | [create-and-publish-programme](programme/create-and-publish-programme.md): F01-AC01–09; create-and-publish-programme-AC10–16 | Draft revision 8; attendee read contract accepted, producer agreement/full approval and verification pending |
+| 2 | F10-US01 | [access-authorised-workspaces](shared/access-authorised-workspaces.md): AC01-21 | In review revision 4; safe actionable errors implemented/tested; human review and other downstream domains remain separate |
+| 3 | F01-US01–03; F04-US03 | [create-and-publish-programme](programme/create-and-publish-programme.md): F01-AC01–09; create-and-publish-programme-AC10 | In review revision 7; merge integration separates programme discovery from application summaries and retains historical revision-6 evidence. Attendee UI, deployed/manual browser evidence and human review remain pending |
 | 4 | F02-US01–02 | [manage-preferences-and-itineraries](attendee-planning/manage-preferences-and-itineraries.md): manage-preferences-and-itineraries-AC01–07 | Draft; approval and verification pending |
-| 5 | F06-US01 | [submit-business-applications](applications/submit-business-applications.md): submit-business-applications-AC01–05 | Draft; approval and verification pending |
+| 5 | F06-US01 | [submit-business-applications](applications/submit-business-applications.md): AC01-19, AC06/12 retired | In review revision 4; open-event request journey, named settings and private/frozen lifecycle pass automated/browser checks; human/NVDA/actual400% pending |
 | 5 | F06-US03 | [manage-preparation-tasks-and-budgets](business-preparation/manage-preparation-tasks-and-budgets.md): manage-preparation-tasks-and-budgets-AC01–06 | Draft; approval and verification pending |
-| 6 | F04-US01; F06-US02 | [decide-applications-and-show-outcomes](applications/decide-applications-and-show-outcomes.md): decide-applications-and-show-outcomes-AC01–06 | Draft; approval and verification pending |
+| 6 | F04-US01; F06-US02 (status/reason only) | [decide-applications-and-show-outcomes](applications/decide-applications-and-show-outcomes.md): AC01-09, AC06 retired | In review revision 2; once-only decision/outcome implemented and independently reviewed; booth/setup deferred, human gates pending |
 | 7 | F10-US02 | [monitor-and-recover-ai-tasks](shared/monitor-and-recover-ai-tasks.md): monitor-and-recover-ai-tasks-AC01–07 | Draft; approval and verification pending |
 | 8 | F03-US01 | [generate-feasible-itineraries](attendee-planning/generate-feasible-itineraries.md): generate-feasible-itineraries-AC01–06 | Draft; approval and verification pending |
 | 8 | F03-US02 | [answer-event-questions](attendee-planning/answer-event-questions.md): answer-event-questions-AC01–06 | Draft; approval and verification pending |
@@ -72,3 +72,7 @@ This index maps all **31** catalogue stories to domain capabilities and shared t
 ## Drafting assistance
 
 Use the repository-local [draft-spec skill](../.agents/skills/draft-spec/SKILL.md) to create a new Draft specification or refine an existing Draft. Its scope stops before auditing finalized specifications, checking their implementation or synchronizing them with code. Finalized specifications may be read as reference only. Human product approval and later implementation gates remain separate.
+
+### Attendee merge evidence boundary (2026-10-21)
+
+The master programme producer contract remains the integration reference. The previously approved attendee consumer proposal and fixture-tested implementation are preserved but wire-incompatible; shared contract reconciliation remains pending. See the [attendee contract snapshot](../workflow/agents/runs/2026-10-21-attendee-contract-before-master-merge.md) and [merge session](../logs/yikbing/2026-10-21-master-merge.md). No full F01 completion or new product approval is claimed.

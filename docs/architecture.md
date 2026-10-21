@@ -1,7 +1,7 @@
 # EventApp architecture and shared contracts
 
-Status: Domain design draft; backend foundation implemented and In review. Shared-authentication foundation contract below is selected; implementation/verification pending.
-Updated: 2026-10-19. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Remaining domain schemas stay proposed.
+Status: Remaining domain design is draft. Approved authentication, organiser programme revision 6, submit r4 and bounded decision r2 are implemented and in review with passing automated/browser evidence; human/accessibility review remains pending.
+Updated: 2026-10-21. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Remaining domain schemas stay proposed.
 
 Accepted direction: one FastAPI/PostgreSQL foundation, module-owned data and stable contracts. Application-owned authentication is selected for the authorised slice below; hosting and remaining domain schemas stay unresolved where recorded.
 
@@ -12,10 +12,10 @@ Use one database and one FastAPI application. A module is a code and data owners
 | Module | Tables it owns | Responsibility | Consumers |
 | --- | --- | --- | --- |
 | Identity | users, password_credentials, sessions, event_memberships, business_memberships | Verified identity, credentials, sessions and membership access | All modules |
-| Programme | events, venues, rooms, programme_items, programme_changes | Authoritative event and programme facts | Attendee planning, submissions, business preparation, AI |
+| Programme | events, venues, rooms, programme_items, programme_item_revisions, programme_changes | Authoritative event and programme facts | Attendee planning, submissions, business preparation, AI |
 | Business preparation | businesses, event_participations, preparation_tasks, budgets, budget_lines | Private business and event-preparation records | Identity, submissions, AI |
 | Attendee planning | attendee_preferences, bookmarks, itineraries, itinerary_revisions, itinerary_items | Private preferences and versioned attendee plans | AI and notifications |
-| Submissions | submissions, rubric_versions, submission_decisions | Frozen applications, rubrics and decisions | Business status view, organiser analysis |
+| Submissions | application_approvals (legacy), application_settings, submissions, application_decisions, rubric_versions | Frozen applications, rubrics and decisions | Business status view, organiser analysis |
 | Notifications | announcements, notifications | Announcements and fixed-recipient delivery | All role workspaces |
 | AI and actions | ai_jobs, ai_artifacts, source_references, action_proposals, action_approvals, action_executions | Bounded jobs, validated artifacts and approved actions | AI workflows in all roles |
 | Audit | audit_events | Attributable protected action records | Protected audit views |
@@ -41,9 +41,17 @@ Accepted access scope: business membership is business-wide, with event-specific
 
 The approved 2026-10-19 auth plan uses a trusted operator CLI for organiser/event provisioning with runtime passwords requiring replacement before workspace access. It supersedes provider selection, a stored super-organiser role and the earlier separate temporary-password expiry proposal. No public organiser registration, admin UI or default/shared password exists.
 
+## Approved organiser programme extension
+
+[Programme revision 6](../specs/programme/create-and-publish-programme.md) owns the approved programme API/DTOs, bounds, filtering, revision and lifecycle semantics. Dylan owns this organiser delivery task and coordinates the published read API; attendee screens remain teammate-owned. The task [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md) separates preparation, implementation and evidence.
+
+Reuse the existing `events` and identity tables. Add programme-owned venues, rooms, items and immutable publication revisions through an additive migration, preserving authentication data and previous migrations. Published snapshots include event/location facts; the first publication makes an event attendee-visible. There is no event-creation UI or new event store. Published item changes remain a later capability.
+
+Mutations must coordinate item and location changes so publication cannot race past parent-capacity validation or published-location locks. A publication state transition, immutable snapshot and attributable success audit are one transaction. Reuse existing cookie/current-membership dependencies; extend trusted-Origin checks and CORS methods to programme mutations. Preserve exact existing auth response bodies. Generated OpenAPI/TypeScript artifacts are shared integration ownership, not parallel hand-edited contracts.
+
 ## Shared authentication foundation contract
 
-[Access specification revision 3](../specs/shared/access-authorised-workspaces.md) owns exact normalization, HTTP/cookie/errors and CurrentActor v1. All foundation IDs are UUIDs; stored instants are timezone-aware. Physical fields supplement the tables above:
+[Access specification revision 4](../specs/shared/access-authorised-workspaces.md) owns exact normalization, HTTP/cookie/errors and CurrentActor v1. All foundation IDs are UUIDs; stored instants are timezone-aware. Physical fields supplement the tables above:
 
 | Table | Required columns / constraints |
 | --- | --- |
@@ -111,10 +119,10 @@ The source reference on BudgetLine is optional and added only when AI/research i
 - Use composite uniqueness for bookmark user/item and itinerary revision itinerary/version. An accepted revision must belong to its itinerary. Resolve the parent/revision reference ordering in the F02 migration design.
 - Business membership authorises the business's workspaces across all its events; unrelated businesses, inactive members and event organisers without business membership cannot access private preparation data. Apply this scope to list/detail/write and AI-context retrieval.
 - Submission visibility follows stored participation and membership. Organisers see submitted applications for their event, never private drafts or preparation budgets. Draft content is editable; submitted content and submitted_content_revision are frozen. Initial transitions: draft → submitted → accepted or rejected; post-submit editing, withdrawal, resubmission and reconsideration are excluded (RD02).
-- A decision requires the expected submitted content revision and current submitted/undecided state. Concurrent or repeated decisions cannot produce another outcome; conflicting requests return the current state without a write. The stored outcome/reason, state transition and audit record are atomic.
+- A decision requires the expected submitted record revision and current submitted/undecided state; frozen submitted_content_revision remains immutable. Concurrent or repeated decisions cannot produce another outcome; conflicting requests return the current state without a write. The stored outcome/reason, state transition and audit record are atomic.
 - Rubric versions are immutable. Review artifacts bind submission ID/submitted_content_revision and rubric ID/version. A newer applicable rubric makes the report visibly stale; regenerate before presenting it as a current assessment. Manual decisions do not require AI reports.
 - Duplicate comparisons are limited to permitted submitted records in the same event. Comparison evidence stays organiser-only; applicant-facing reasons cannot expose other submissions (RD06).
-- Accepting a submission does not publish a programme item. If acceptance establishes participation status, update it through the business module's command in the same transaction; define this contract before F04/F06 integration.
+- Accepting a submission records the one-time application decision as participation approval. It does not publish a programme item or write Business preparation/booth tables; those extensions require their own approved contract.
 - Prices use integer minor units for supported currencies; Initial currency choice remains open. Validate quantity and price bounds and calculate totals deterministically.
 - Conflicting manual itinerary drafts can be stored with warnings; acceptance requires current facts and all hard constraints to pass. Accepted versions are retained, and a later change can flag them as needing attention without silently accepting a replacement (RD03/RD04).
 - Published programme records referenced by plans are cancelled or retired rather than cascade-deleted. ProgrammeChange preserves immutable old/new facts, not just counters. Plan reads show current facts with change indicators; cancelled items remain visible until removed/replaced. Privacy deletion and retention policies are designed separately.
@@ -179,3 +187,13 @@ Checks performed on this design: local links and consistency with feature scope 
 2026-10-18: Recorded the bounded direction for atomic new-business/initial-owner registration and controlled event-scoped organiser provisioning. Kept identity-provider, credential-delivery and broader membership details unresolved; no schema or implementation is claimed.
 
 2026-10-19: Specified authorised application-owned auth foundation tables, CurrentActor/dependency/OpenAPI interfaces and trusted CLI idempotence; prior provider/super-organiser/temporary-expiry proposals superseded. Runtime evidence pending.
+
+## Approved application request boundary
+
+[Submit r4](../specs/applications/submit-business-applications.md) replaces manual eligibility with explicit event application settings and a single application as the participation request. [Decision r2](../specs/applications/decide-applications-and-show-outcomes.md) adds one immutable accepted/rejected outcome. Implementation and verification for these revisions are tracked in [the current run](../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior r2/r3 results remain historical evidence only.
+
+Submissions owns application_settings and application_decisions. Settings have an independent positive revision, virtual false/revision1 default without read-time writes, and strict CAS updates; they never change Programme eventRevision. Open checks serialize with create/submit. Business discovery is open events UNION events with that business's existing application; closed own drafts remain editable. No automatic date cutoff or programme-publication requirement is implied. Organiser event summaries provide assigned names/dates/timezone through a scoped API while CurrentActor v1 remains unchanged.
+
+BusinessApplication v2 carries current authorized businessName/eventTitle and a nullable applicant-visible Decision v1. Decision CAS expects submitted record revision n+1, advances it to n+2, and preserves frozen content revision n and submittedAt. Exactly one decision, application state and minimal audit commit atomically. Decision/status is the participation approval projection; it writes no Business preparation or booth/setup tables. Reasons are explicit plain applicant-visible text, never automatic competitor evidence.
+
+Additive migration after 20261020_0003 preserves all existing credentials, grants, participations, applications, frozen content and audits. Legacy grants are history only, confer no acceptance, and scoped legacy endpoints return410 without writes. No destructive migration or production retention policy is authorized.
