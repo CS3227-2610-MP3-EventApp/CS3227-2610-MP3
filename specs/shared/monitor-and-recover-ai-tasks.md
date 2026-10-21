@@ -75,7 +75,7 @@ Consumes [workspace access](access-authorised-workspaces.md) and `CurrentActor v
 
 ## Verification and evidence
 
-Independent test design/review, protected baseline, a live synthetic SoCLaaS call for this organiser workflow, restart/recovery, adversarial security checks and online environment checks are pending. All criteria are unverified. Fake-provider tests alone do not prove the selected-provider integration. The shared story's attendee/business workflows are outside this revision and remain pending in their own specifications. Human teammate review and summary verification remain pending.
+Independent test design/review, protected baselines, implementation and behaviour/security reviews are recorded in the [run record](../../workflow/agents/runs/2026-10-21-organiser-ai-analysis.md). Combined automated verification passed 271 backend and 225 frontend tests plus the production build. Supplemental recovery checks cover expired potentially billed dispatch without replay, inclusive retention, late deadlines, concurrent report reads and transaction rollback. Full criteria remain unverified: actual process restart/pending-job survival, broad multiprocess stress, live synthetic SoCLaaS integration, manual browser and online deployment checks are pending. Fake-provider tests do not prove selected-provider integration. This Draft still requires exact-written-revision human signoff. Attendee/business workflows, human teammate review and summary verification remain pending.
 
 ## Revision history
 

@@ -41,6 +41,14 @@ Accepted access scope: business membership is business-wide, with event-specific
 
 The approved 2026-10-19 auth plan uses a trusted operator CLI for organiser/event provisioning with runtime passwords requiring replacement before workspace access. It supersedes provider selection, a stored super-organiser role and the earlier separate temporary-password expiry proposal. No public organiser registration, admin UI or default/shared password exists.
 
+## Organiser analysis extension
+
+The [analysis r2 contract](../specs/applications/analyse-applications-with-ai.md) and [organiser job r2 contract](../specs/shared/monitor-and-recover-ai-tasks.md) define the user-authorised AI slice. A typed AI module reads frozen submissions through their existing event participation and never writes application decisions. Its additive tables are `analysis_rubric_versions` (immutable event-scoped criteria), `ai_jobs` (owner, request ID, exact frozen-source/rubric/comparison references, state/lease/dispatch metadata), `ai_reports` (validated typed report, one per successful job), and `ai_provider_attempts` (content-free provider dispatch accounting). Shared User/Event/Submission records remain authoritative.
+
+The API persists jobs; a separate Python process claims them with PostgreSQL locks. Provider I/O occurs outside long database transactions. A serialized dispatch point and a final locked job/current-membership transaction prevent late cancellation/revocation from publishing results. A PostgreSQL provider gate limits attempts across workers; owner locking enforces daily/active quotas and request deduplication. Failed/expired running work is not automatically replayed because provider processing may already have occurred. Exact guarantees, retention and boundary cases are recorded in the task contract and [run record](../workflow/agents/runs/2026-10-21-organiser-ai-analysis.md).
+
+The only provider destination is the fixed SoCLaaS HTTPS API. Backend-only secrets, explicit model selection, bounded messages/output, schema and exact evidence validation, synthetic-event allowlisting and a production-off gate apply. The React client uses generated OpenAPI types; a history response supplies the owner's latest job so refresh restores progress without browser identity/job storage. This extension covers organiser application analysis only; the shared job story's attendee/business workflows remain separate.
+
 ## Approved organiser programme extension
 
 [Programme revision 6](../specs/programme/create-and-publish-programme.md) owns the approved programme API/DTOs, bounds, filtering, revision and lifecycle semantics. Dylan owns this organiser delivery task and coordinates the published read API; attendee screens remain teammate-owned. The task [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md) separates preparation, implementation and evidence.

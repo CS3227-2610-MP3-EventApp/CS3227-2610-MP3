@@ -5,6 +5,7 @@ import { useAuth } from "../Auth";
 import { applicationApi, ApiError } from "../api";
 import { application, events, feedback, settings, uncertain, type Application, type ApplicationSettings, type OrganiserDraftMemory, type OrganiserEvent } from "./model";
 import { ApplicationLayout, ContentSummary, Feedback, Frozen, useFeedback } from "./shared";
+import ApplicationAnalysis from "./ApplicationAnalysis";
 export function OrganiserApplications() {
   const { actor, revalidate, destinations, organiserMemory } = useAuth();
   const location = useLocation(), navigate = useNavigate();
@@ -157,7 +158,7 @@ export function OrganiserApplications() {
     {unknown && <Button disabled={busy} onClick={() => readOutcome(unknown)}>Check outcome</Button>}
     {savedSettings && <Box><FormControlLabel control={<Checkbox checked={open} disabled={busy || !!unknown} onChange={(e) => changeOpen(e.target.checked)} />} label="Accepting applications" /><Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button disabled={busy || !!unknown} onClick={() => setConfirmation("settings")}>Save application settings</Button>{/settings.*changed/i.test(status) && <Button disabled={busy} onClick={() => readOutcome("settings")}>Refresh application settings</Button>}</Stack></Box>}
     {savedSettings && <Box><Typography component="h2" variant="h2">Submitted applications</Typography><Stack spacing={2}>{records.map((record) => <Box key={record.id} sx={{border: 1, borderColor: "divider", p: 2, overflowWrap: "anywhere"}}><Typography>{record.businessName} - {record.eventTitle}</Typography><Typography>{record.status}</Typography><Button onClick={() => changeContext(`/organiser/applications?eventId=${encodeURIComponent(eventId)}&applicationId=${encodeURIComponent(record.id)}`)}>View application</Button></Box>)}</Stack></Box>}
-    {selected && <><Frozen value={selected} /><Typography>Record revision: {selected.revision}</Typography>{selected.status === "submitted" && <Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button disabled={busy || !!unknown} onClick={() => {setConfirmation("accepted"); setReasonError("");}}>Approve application</Button><Button disabled={busy || !!unknown} onClick={() => {setConfirmation("rejected"); setReasonError("");}}>Reject application</Button></Stack>}</>}
+    {selected && <><Frozen value={selected} /><Typography>Record revision: {selected.revision}</Typography>{selected.status === "submitted" && <Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button disabled={busy || !!unknown} onClick={() => {setConfirmation("accepted"); setReasonError("");}}>Approve application</Button><Button disabled={busy || !!unknown} onClick={() => {setConfirmation("rejected"); setReasonError("");}}>Reject application</Button></Stack>}<ApplicationAnalysis key={`${eventId}:${selected.id}`} eventId={eventId} applicationId={selected.id} submittedRevision={selected.frozenSubmittedContentRevision!} /></>}
   </Stack>
   {confirmation && <Dialog open transitionDuration={0} onClose={() => !busy && setConfirmation(null)} aria-labelledby="confirmation-title" fullWidth maxWidth="sm"><DialogTitle id="confirmation-title">{confirmation === "settings" ? "Confirm application settings" : "Confirm decision"}</DialogTitle><DialogContent sx={{overflowWrap: "anywhere"}}>
     <Typography>Event: {event?.title}</Typography>

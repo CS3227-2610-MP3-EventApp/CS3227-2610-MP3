@@ -86,7 +86,7 @@ Requires the frozen submission contract in [submit-business-applications](submit
 
 ## Verification and evidence
 
-Independent test design, adequacy review, protected baseline, implementation snapshot, selected-model live synthetic integration, restart, security review and deployment checks are pending under the [agent workflow](../../workflow/agents/README.md). No application behavior, persistence or provider integration has been verified. The live course evidence gate and production real-data approval remain unresolved.
+Implementation and independent test/behaviour/security reviews are recorded in the [run record](../../workflow/agents/runs/2026-10-21-organiser-ai-analysis.md), including protected baseline commits and the reviewed application snapshot. Combined verification passed 271 backend and 225 frontend tests plus the production build. The criteria below remain conservatively unverified as complete: automated fake-provider checks are partial evidence, not selected-model live synthetic integration, manual browser, actual process restart or deployed evidence. Exact-written-revision human signoff, the live course evidence gate and production real-data approval remain unresolved; this specification remains Draft.
 
 | Criterion | Evidence | Status |
 | --- | --- | --- |

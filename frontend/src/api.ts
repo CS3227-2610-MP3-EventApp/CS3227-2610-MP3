@@ -33,7 +33,7 @@ export function errorCategory(error: unknown) {
   return "Temporarily unavailable";
 }
 export const errorFeedback = (error: unknown) => `${errorCategory(error)} — ${error instanceof ApiError ? error.message : "The request could not be completed."} ${errorAction(error)}`;
-async function request<T>(path: string, method = "GET", body?: unknown, scope: "auth" | "domain" | "organiser" = "auth", withStatus = false): Promise<T> {
+export async function request<T>(path: string, method = "GET", body?: unknown, scope: "auth" | "domain" | "organiser" = "auth", withStatus = false): Promise<T> {
   let response: Response;
   try { response = await fetch(`/api/v1${scope === "domain" ? "" : `/${scope}`}${path}`, { method, credentials: "same-origin", cache: "no-store", ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }) }); }
   catch { throw new ApiError(0, "Unable to reach EventApp. Please try again."); }

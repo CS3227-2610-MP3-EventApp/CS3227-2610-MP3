@@ -20,7 +20,17 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout are real backend operations. Organiser Programme Management now uses the real backend and database. Application, itinerary and AI cards remain previews. Authenticated attendee programme reads are available through the API; attendee browsing screens remain a teammate-owned follow-up.
+Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Attendee itinerary and business preparation AI remain previews. Authenticated attendee programme reads are available through the API; attendee browsing screens remain a teammate-owned follow-up.
+
+## Organiser AI application analysis
+
+Open **AI Application Analysis** or **Application Reviews**, select an assigned event and open a submitted application. Edit and save the event's assessment criteria before starting analysis. Each save creates an immutable rubric revision; a conflict preserves your unsaved edits until you choose to reload.
+
+Choose **Analyse application**, confirm the event contains only invented data, and start. A background worker processes the job. Follow pending/running status, cancel if needed, or continue manual review. Cancellation after dispatch may still use provider quota; later output is discarded. Refresh restores the latest owned job.
+
+Reports show criterion findings, exact evidence quotes, source/rubric revisions and bounded possible text matches. Their interpretation requires your judgment. Saving a newer rubric marks old reports stale; **View criteria used** shows the saved version behind a report. Analysis never records an application decision. Reports remain private to their requesting organiser with current event access.
+
+Live analysis requires local SoCLaaS setup and a dedicated allowlisted event containing invented descriptions and assessment instructions. Production analysis is disabled. The [AI testing guide](AIAnalysisTesting.md) explains setup and limits; when AI is unavailable, use the existing manual decision controls.
 
 ## Organiser programme management
 
