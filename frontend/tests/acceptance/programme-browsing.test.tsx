@@ -113,7 +113,7 @@ describe("programme browsing producer-contract acceptance (start-date-only; netw
     await user.click(screen.getByText(eveningWorkshop.title, { exact: true }));
     await waitFor(() => expect(network.requests.some(({ url }) => url.pathname === detailPath())).toBe(true));
     // The jsdom runtime is run with TZ=UTC: these are Singapore-local 23:30 / 01:00.
-    expect(screen.getByText(/23:30|11:30\s*p\.?m\.?/i)).toBeVisible();
+    expect(await screen.findByText(/23:30|11:30\s*p\.?m\.?/i)).toBeVisible();
     expect(screen.getByText(/01:00|1:00\s*a\.?m\.?/i)).toBeVisible();
     expect(screen.getByText(/20.*oct|oct.*20|2026-10-20/i)).toBeVisible();
     expect(screen.getByText(/21.*oct|oct.*21|2026-10-21/i)).toBeVisible();
