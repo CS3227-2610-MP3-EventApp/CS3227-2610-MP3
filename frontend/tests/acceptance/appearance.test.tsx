@@ -412,7 +412,11 @@ describe("revision 2 AC09 representative typography and palette", () => {
     expectMinimumTextSize(appearanceControl(), 21);
     expectMinimumTextSize(screen.getByText(cardTitle), 27);
     expectMinimumTextSize(screen.getByText(description), 21);
-    expectMinimumTextSize(screen.getByText(role === "organiser" ? "03 / AVAILABLE · 00 / PREVIEWS" : role === "business" ? "01 / AVAILABLE · 02 / PREVIEWS" : "03 / PREVIEWS"), 18);
+    if (role === "organiser") {
+      expect(screen.queryByText("03 / AVAILABLE · 00 / PREVIEWS")).not.toBeInTheDocument();
+    } else {
+      expectMinimumTextSize(screen.getByText(role === "business" ? "01 / AVAILABLE · 02 / PREVIEWS" : "03 / PREVIEWS"), 18);
+    }
     expectMinimumTextSize(role === "organiser" ? screen.getByRole("link", { name: /analysis/i }) : screen.getAllByRole("button", { name: /coming later/i })[0], 21);
     const actorBeforeFailure = auth.current;
     auth.failure = { status: 500, detail: "Request could not be completed." };

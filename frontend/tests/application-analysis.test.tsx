@@ -111,7 +111,7 @@ describe("organiser application analysis acceptance", () => {
     fireEvent.change(instructions, { target: { value: "Assess relevance and concrete fit for the event." } });
     await userEvent.setup().click(screen.getByRole("button", { name: /save rubric/i }));
 
-    await waitFor(() => expect(screen.getByText(/revision\s*5/i)).toBeVisible());
+    await waitFor(() => expect(screen.getByRole("button", { name: /edit rubric · revision 5/i })).toBeVisible());
     const write = requests.find((request) => request.url === rubricPath && request.method === "PUT");
     expect(write?.body).toEqual({
       expectedRevision: 4,
@@ -251,6 +251,7 @@ describe("organiser application analysis acceptance", () => {
     await renderPrototype(`/organiser/applications?eventId=${eventId}&applicationId=${applicationId}`);
 
     expect(await screen.findByText(content.description)).toBeVisible();
+    await userEvent.setup().click(screen.getByRole("tab", { name: "AI Analysis" }));
     expect(await screen.findByRole("heading", { name: /application analysis/i })).toBeVisible();
     expect(applications.records[0].decision).toBeNull();
     expect(applications.writes()).toHaveLength(0);
