@@ -1,39 +1,43 @@
 import { vi } from "vitest";
+import type { components } from "../../src/api-schema";
+
+type EventSummary = components["schemas"]["EventSummary"];
+type PublishedProgramme = components["schemas"]["PublishedProgramme"];
 
 // Synthetic wire examples only: this fixture deliberately does not implement filtering,
 // publication, cookie validation, access control or persistence.
-export const programmeRoot = "/api/v1/programme";
-export const eventA = {
+export const programmeRoot = "/api/v1/attendee";
+export const eventA: EventSummary = {
   id: "00000000-0000-4000-8000-000000000011", title: "Synthetic Singapore Festival",
   timezone: "Asia/Singapore", startsAt: "2026-10-20T00:00:00Z", endsAt: "2026-10-22T00:00:00Z", revision: 2,
 };
 export const eventB = {
   ...eventA, id: "00000000-0000-4000-8000-000000000012", title: "Synthetic Second Festival",
 };
-export const eveningWorkshop = {
-  id: "00000000-0000-4000-8000-000000000021", eventId: eventA.id, eventTimezone: "Asia/Singapore",
+export const eveningWorkshop: PublishedProgramme = {
+  id: "00000000-0000-4000-8000-000000000021", eventId: eventA.id, event: eventA, publishedAt: "2026-10-19T09:00:00Z",
   title: "Evening workshop", type: "workshop", startsAt: "2026-10-20T15:30:00Z", endsAt: "2026-10-20T17:00:00Z",
   revision: 3, state: "published", priceMinorUnits: 1250, currency: "SGD", capacity: 30,
   accessibilityDetails: null as string | null,
   room: {
-    id: "00000000-0000-4000-8000-000000000031", name: "Room A", accessibilityDetails: "Lift to room",
-    venue: {
-      id: "00000000-0000-4000-8000-000000000041", name: "Demo Hall", address: "1 Example Road",
-      accessibilityDetails: "Step-free main entrance",
-    },
+    id: "00000000-0000-4000-8000-000000000031", name: "Room A", maxCapacity: 30, accessibilityDetails: "Lift to room",
+  },
+  venue: {
+    id: "00000000-0000-4000-8000-000000000041", name: "Demo Hall", address: "1 Example Road",
+    accessibilityDetails: "Step-free main entrance",
   },
 };
-export const freeTalk = {
+export const freeTalk: PublishedProgramme = {
   ...eveningWorkshop, id: "00000000-0000-4000-8000-000000000022", title: "Free community talk",
   type: "talk", priceMinorUnits: 0, startsAt: "2026-10-21T02:00:00Z", endsAt: "2026-10-21T03:00:00Z",
 };
-export const secondEventItem = {
-  ...freeTalk, id: "00000000-0000-4000-8000-000000000023", eventId: eventB.id, title: "Second event performance", type: "performance",
+export const secondEventItem: PublishedProgramme = {
+  ...freeTalk, id: "00000000-0000-4000-8000-000000000023", eventId: eventB.id, event: eventB, title: "Second event performance", type: "performance",
 };
 export const literalTitleItem = { ...eveningWorkshop, title: "Straße 100%_Ready \\ 'workshop'" };
 
-export function page<T>(items: T[], offset = 0, hasMore = false, limit = 20) {
-  return { items, limit, offset, hasMore };
+export function page<T>(items: T[], offset = 0, total = offset + items.length, limit = 20) {
+  return { items, total, limit, offset };
 }
 export function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -60,7 +64,7 @@ export function deferred<T>() {
 }
 export interface ProgrammeRequest { url: URL; method: string; credentials?: RequestCredentials }
 export type ProgrammeResponder = (request: ProgrammeRequest) => Response | Promise<Response>;
-export const itemsPath = (eventId = eventA.id) => `${programmeRoot}/events/${eventId}/items`;
+export const itemsPath = (eventId = eventA.id) => `${programmeRoot}/events/${eventId}/programme`;
 export const detailPath = (itemId = eveningWorkshop.id, eventId = eventA.id) => `${itemsPath(eventId)}/${itemId}`;
 
 export function defaultProgrammeResponse({ url }: ProgrammeRequest): Response {

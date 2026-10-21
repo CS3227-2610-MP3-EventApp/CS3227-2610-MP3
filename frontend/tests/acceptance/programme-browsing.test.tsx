@@ -73,7 +73,7 @@ async function nextPage(user: User) { await user.click(screen.getByRole("button"
 async function retry(user: User) { await user.click(screen.getByRole("button", { name: /retry|try again/i })); }
 async function settle(action: () => void) { await act(async () => { action(); await Promise.resolve(); }); }
 
-describe("programme browsing consumer acceptance (rev7; network fixtures, not a server)", () => {
+describe("programme browsing producer-contract acceptance (start-date-only; network fixtures, not a server)", () => {
   test("PB01 opens visible events with keyboard and credentialed read requests", async () => {
     const user = userEvent.setup();
     await renderPrototype("/attendee");
@@ -127,9 +127,9 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
       ? json(page([literalTitleItem])) : defaultProgrammeResponse(request);
     await user.type(titleSearch(), query);
     await chooseType(user, "Workshop", "workshop");
-    fireEvent.change(dateFilter(), { target: { value: "2026-10-21" } });
+    fireEvent.change(dateFilter(), { target: { value: "2026-10-20" } });
     await applyFilters(user);
-    await waitFor(() => expect(matchingRequest(itemsPath(), { q: query, type: "workshop", date: "2026-10-21" })).toBeDefined());
+    await waitFor(() => expect(matchingRequest(itemsPath(), { q: query, type: "workshop", date: "2026-10-20" })).toBeDefined());
     expect(await screen.findByText(literalTitleItem.title, { exact: true })).toBeVisible();
     expect(screen.queryByText(freeTalk.title, { exact: true })).not.toBeInTheDocument();
     // We assert transport + rendering only; the fixture does not implement casefold/AND.
@@ -138,7 +138,7 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
   test("PB05 clearing title search removes the title restriction and resets a later item page", async () => {
     const user = userEvent.setup();
     network.respond = (request) => request.url.pathname === itemsPath()
-      ? json(page(effectiveOffset(request.url) === 0 ? twentyItems : [freeTalk], effectiveOffset(request.url), effectiveOffset(request.url) === 0)) : defaultProgrammeResponse(request);
+      ? json(page(effectiveOffset(request.url) === 0 ? twentyItems : [freeTalk], effectiveOffset(request.url), 21)) : defaultProgrammeResponse(request);
     await openItems(user);
     await nextPage(user);
     await waitFor(() => expect(matchingRequest(itemsPath(), { offset: "20" })).toBeDefined());
@@ -155,13 +155,13 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
     });
   });
 
-  test("PB06 uses event-page hasMore and offset 20 without inventing totals", async () => {
+  test("PB06 uses producer total and event offset 20 through the final partial page", async () => {
     const user = userEvent.setup();
     const firstTwenty = Array.from({ length: 20 }, (_, index) => ({
       ...eventA, id: `00000000-0000-4000-8000-${String(100 + index).padStart(12, "0")}`, title: `Page one event ${index + 1}`,
     }));
     network.respond = (request) => request.url.pathname === `${programmeRoot}/events`
-      ? json(effectiveOffset(request.url) === 0 ? page(firstTwenty, 0, true) : page([{ ...eventB, id: "00000000-0000-4000-8000-000000000999" }], 20, false))
+      ? json(effectiveOffset(request.url) === 0 ? page(firstTwenty, 0, 21) : page([{ ...eventB, id: "00000000-0000-4000-8000-000000000999" }], 20, 21))
       : defaultProgrammeResponse(request);
     await openBrowse(user);
     expect(await screen.findByText("Page one event 1", { exact: true })).toBeVisible();
@@ -174,10 +174,10 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
     expectNoNextPage();
   });
 
-  test("PB07 advances item pages and stops at hasMore false", async () => {
+  test("PB07 advances item pages and stops at producer total", async () => {
     const user = userEvent.setup();
     network.respond = (request) => request.url.pathname === itemsPath()
-      ? json(effectiveOffset(request.url) === 0 ? page(twentyItems, 0, true) : page([freeTalk], 20, false))
+      ? json(effectiveOffset(request.url) === 0 ? page(twentyItems, 0, 21) : page([freeTalk], 20, 21))
       : defaultProgrammeResponse(request);
     await openItems(user);
     await nextPage(user);
@@ -229,15 +229,15 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
     const user = userEvent.setup(); await openItems(user);
     network.respond = ({ url }) => problem(503, url.pathname);
     await user.type(titleSearch(), "Evening"); await chooseType(user, "Workshop", "workshop");
-    fireEvent.change(dateFilter(), { target: { value: "2026-10-21" } }); await applyFilters(user);
+    fireEvent.change(dateFilter(), { target: { value: "2026-10-20" } }); await applyFilters(user);
     await screen.findByRole("alert");
-    expect(titleSearch()).toHaveValue("Evening"); expect(dateFilter()).toHaveValue("2026-10-21");
+    expect(titleSearch()).toHaveValue("Evening"); expect(dateFilter()).toHaveValue("2026-10-20");
     network.respond = defaultProgrammeResponse; const before = network.requests.length;
     await retry(user);
     expect(await screen.findByText(eveningWorkshop.title, { exact: true })).toBeVisible();
     expect(network.requests.slice(before).some(({ url }) => url.pathname === itemsPath()
       && url.searchParams.get("q") === "Evening" && url.searchParams.get("type") === "workshop"
-      && url.searchParams.get("date") === "2026-10-21")).toBe(true);
+      && url.searchParams.get("date") === "2026-10-20")).toBe(true);
   });
 
   test.each([403, 404] as const)("PB13 presents %s detail rejection without retaining stale item facts", async (status) => {
@@ -372,9 +372,9 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
     },
   );
 
-  test("PB23 exposes all five approved type filters and sends their exact tokens", async () => {
+  test("PB23 exposes all six approved type filters and sends their exact tokens", async () => {
     const user = userEvent.setup(); await openItems(user);
-    for (const [label, token] of [["Talk", "talk"], ["Workshop", "workshop"], ["Booth", "booth"], ["Performance", "performance"], ["Other", "other"]]) {
+    for (const [label, token] of [["Talk", "talk"], ["Workshop", "workshop"], ["Panel", "panel"], ["Booth", "booth"], ["Performance", "performance"], ["Other", "other"]]) {
       const before = network.requests.length;
       await chooseType(user, label, token); await applyFilters(user);
       await waitFor(() => expect(network.requests.slice(before).some(({ url }) => url.pathname === itemsPath()
@@ -412,4 +412,54 @@ describe("programme browsing consumer acceptance (rev7; network fixtures, not a 
     expect(window.location.pathname).toBe("/login"); expect(network.requests).toEqual([]);
     expect(screen.queryByText(eventA.title, { exact: true })).not.toBeInTheDocument();
   });
+  test.each([20, 21])("PB25 uses total=%s for exact/full and partial final pages and supports Previous", async (total) => {
+    const user = userEvent.setup();
+    network.respond = (request) => request.url.pathname === itemsPath()
+      ? json(effectiveOffset(request.url) === 0 ? page(twentyItems, 0, total) : page([freeTalk], 20, total))
+      : defaultProgrammeResponse(request);
+    await openItems(user);
+    if (total === 20) {
+      expectNoNextPage();
+      expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
+    } else {
+      await nextPage(user);
+      expect(await screen.findByText(freeTalk.title, { exact: true })).toBeVisible();
+      expectNoNextPage();
+      await user.click(screen.getByRole("button", { name: /previous/i }));
+      expect(await screen.findByText(eveningWorkshop.title, { exact: true })).toBeVisible();
+      expect(network.requests.filter(({ url }) => url.pathname === itemsPath()).at(-1)!.url.searchParams.get("offset")).toBe("0");
+    }
+  });
+
+  test("PB26 renders panel projection with sibling event timezone and venue facts", async () => {
+    const user = userEvent.setup();
+    const panel = { ...eveningWorkshop, type: "panel", title: "Synthetic panel", event: { ...eventA, timezone: "Asia/Tokyo" },
+      venue: { ...eveningWorkshop.venue, name: "Separate panel venue", address: "2 Panel Road" } };
+    network.respond = (request) => request.url.pathname === itemsPath() ? json(page([panel]))
+      : request.url.pathname === detailPath() ? json(panel) : defaultProgrammeResponse(request);
+    await openBrowse(user); await openEvent(user);
+    expect(await screen.findByText(panel.title, { exact: true })).toBeVisible();
+    expect(screen.getByText(/panel.*00:30|panel.*12:30\s*a\.?m\.?/i)).toBeVisible();
+    await user.click(screen.getByText(panel.title, { exact: true }));
+    expect(await screen.findByText("Separate panel venue", { exact: false })).toBeVisible();
+    expect(screen.getByText("2 Panel Road", { exact: false })).toBeVisible();
+    expect(screen.getByText(/00:30|12:30\s*a\.?m\.?/i)).toBeVisible();
+    expect(screen.queryByText("Demo Hall", { exact: false })).not.toBeInTheDocument();
+  });
+
+  test.each(["projection", "negative total", "fractional total"] as const)("PB27 rejects malformed %s without stale facts and retries", async (kind) => {
+    const user = userEvent.setup(); await openItems(user);
+    network.respond = () => kind === "projection"
+      ? json({ ...eveningWorkshop, event: null })
+      : json({ ...page([eveningWorkshop]), total: kind === "negative total" ? -1 : 1.5 });
+    if (kind === "projection") await user.click(screen.getByText(eveningWorkshop.title, { exact: true }));
+    else { await user.type(titleSearch(), "Malformed producer"); await applyFilters(user); }
+    expect(await screen.findByRole("alert")).toHaveTextContent(/incomplete|invalid|could not|unable|failed/i);
+    expect(screen.queryByText("Step-free main entrance", { exact: false })).not.toBeInTheDocument();
+    expect(screen.queryByText("SGD 12.50", { exact: false })).not.toBeInTheDocument();
+    network.respond = defaultProgrammeResponse;
+    await retry(user);
+    expect(await screen.findByText(eveningWorkshop.title, { exact: true })).toBeVisible();
+  });
+
 });
