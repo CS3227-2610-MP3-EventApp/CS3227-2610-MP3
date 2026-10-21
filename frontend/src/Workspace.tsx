@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Chip, Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import { Brand } from "./components";
 import { roleNames } from "./Entry";
 import { type CurrentActor, type Role } from "./session";
@@ -8,6 +8,7 @@ import { api, ApiError, errorFeedback } from "./api";
 import { useAuth } from "./Auth";
 import { AppearanceControl } from "./Appearance";
 import { appearanceColors } from "./theme";
+import { AttendeeProgramme } from "./AttendeeProgramme";
 import { useFeedback } from "./applications/shared";
 
 const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [string, string, string][] }> = {
@@ -42,6 +43,8 @@ const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [
 
 export function Workspace({ session }: { session: CurrentActor }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const browsingProgramme = session.role === "attendee" && location.pathname.startsWith("/attendee/programme");
   const { setActor, destinations, sessionNotice, setSessionNotice } = useAuth();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -86,6 +89,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
         {pending && <Alert role="status" severity="info">{progress.status}</Alert>}
         {(sessionNotice || error) && <Alert severity="error">{sessionNotice && <Typography>{sessionNotice}</Typography>}{error && <Typography>{error}</Typography>}</Alert>}
         {unknown && <Button disabled={pending} onClick={checkSession}>Check session</Button>}
+        {browsingProgramme ? <AttendeeProgramme /> : <>
         <Box sx={{ mt: 5, mb: 4 }}>
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}><Box aria-hidden="true" sx={{ width: 7, height: 7, bgcolor: "secondary.main", borderRadius: "50%" }} /><Typography variant="overline" color="secondary.main" sx={{ fontWeight: 700, letterSpacing: 1.6 }}>A SPACE FOR WHAT’S NEXT</Typography></Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Welcome,</Typography>
@@ -106,10 +110,11 @@ export function Workspace({ session }: { session: CurrentActor }) {
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: "100%", mb: 3 }}><Box aria-hidden="true" sx={{ display: "grid", placeItems: "center", width: 54, height: 54, fontSize: 37.5, color: index === 2 ? colors.lavenderText : "secondary.main", bgcolor: index === 2 ? colors.lavender : colors.tint, borderRadius: 2 }}>{glyph}</Box><Typography variant="caption" color="text.secondary">0{index + 1}</Typography></Stack>
             <Typography component="h3" variant="h2" sx={{ fontSize: 27, mb: 1 }}>{title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>{description}</Typography>
-            {session.role === "organiser" && index === 0 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button variant="contained" size="small" sx={{ mt: "auto" }} onClick={() => navigate("/organiser/programme")}>Open programme</Button></> : (session.role === "business" && index === 0 || session.role === "organiser" && index === 1) ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to={destinations.get(session.role) ?? `/${session.role}/applications`} variant="outlined" size="small" sx={{ mt: "auto" }}>{session.role === "business" ? "Open applications" : "Review applications"}</Button></> : <><Chip label="Preview" size="small" sx={{ mb: 2 }} /><Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button></>}
+            {session.role === "attendee" && index === 0 ? <Button component={RouterLink} to="/attendee/programme" variant="outlined" size="small" sx={{ mt: "auto" }}>Explore programme</Button> : session.role === "organiser" && index === 0 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button variant="contained" size="small" sx={{ mt: "auto" }} onClick={() => navigate("/organiser/programme")}>Open programme</Button></> : (session.role === "business" && index === 0 || session.role === "organiser" && index === 1) ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to={destinations.get(session.role) ?? `/${session.role}/applications`} variant="outlined" size="small" sx={{ mt: "auto" }}>{session.role === "business" ? "Open applications" : "Review applications"}</Button></> : <><Chip label="Preview" size="small" sx={{ mb: 2 }} /><Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button></>}
           </Paper>)}
         </Box>
         <Typography variant="caption" component="p" color="text.secondary" sx={{ mt: 4 }}>EventApp · Made for experiences that bring us together.</Typography>
+        </>}
       </Box>
     </Box>
   </Box>;

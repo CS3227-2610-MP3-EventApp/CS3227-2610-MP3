@@ -1,0 +1,47 @@
+{
+  "mode": "restart",
+  "startedAt": "2026-10-21T11:59:28.162Z",
+  "checks": [
+    {
+      "name": "real producer projection and total pagination",
+      "passed": true,
+      "evidence": {
+        "total": 21,
+        "lastPageSize": 1,
+        "itemId": "eeb125f3-f339-4d1c-a40d-9de0a8436abd"
+      }
+    },
+    {
+      "name": "literal combined filters/start-date-only/draft concealment/role denial/no-store",
+      "passed": true,
+      "evidence": {
+        "dateIncluded": "2026-10-20",
+        "nextDateExcluded": "2026-10-21"
+      }
+    },
+    {
+      "name": "Chrome real login/keyboard/catalogue/paging/filter/detail/narrow viewport",
+      "passed": true,
+      "evidence": {
+        "timezone": "UTC browser displays Singapore event times",
+        "overflow": {
+          "viewport": 320,
+          "scrollWidth": 320
+        }
+      }
+    },
+    {
+      "name": "logout removes protected direct-route access",
+      "passed": true,
+      "evidence": {
+        "path": "/login"
+      }
+    }
+  ],
+  "browserErrors": [],
+  "limitations": [
+    "Local isolated synthetic environment only; keyboard/overflow smoke checks are not a full accessibility audit."
+  ],
+  "completedAt": "2026-10-21T11:59:36.009Z",
+  "passed": true
+}
