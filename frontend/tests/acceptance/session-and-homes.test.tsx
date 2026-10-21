@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { homes } from "../fixtures/roles";
@@ -113,8 +113,8 @@ describe("role homes preserve presentation and accessibility", () => {
     await renderPrototype(`/${role}`);
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
-    const unavailable = screen.getAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(role === "organiser" ? 1 : role === "attendee" ? 3 : 2);
+    const unavailable = screen.queryAllByRole("button", { name: /coming later/i });
+    expect(unavailable).toHaveLength(role === "organiser" ? 0 : role === "attendee" ? 3 : 2);
     for (const button of unavailable) expect(button).toBeDisabled();
     if (role === "business") {
       const entry = screen.getByRole("link", { name: role === "business" ? /^open applications$/i : /^review applications$/i });
@@ -122,6 +122,10 @@ describe("role homes preserve presentation and accessibility", () => {
       expect(entry).not.toHaveAttribute("aria-disabled", "true");
     }
     if (role === "organiser") {
+      const analysisCard = screen.getByRole("heading", { name: "AI Application Analysis" }).closest("article");
+      expect(analysisCard).not.toBeNull();
+      expect(within(analysisCard!).getByText(/synthetic|invented/i)).toBeVisible();
+      expect(within(analysisCard!).getByRole("link", { name: /analysis/i })).toHaveAttribute("href", "/organiser/applications");
       const programmeAction = screen.queryByRole("link", { name: /programme/i }) ?? screen.getByRole("button", { name: /programme/i });
       expect(programmeAction).not.toBeDisabled();
       const applicationAction = screen.getByRole("link", { name: /^review applications$/i });
