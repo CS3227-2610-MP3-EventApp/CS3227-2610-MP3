@@ -246,3 +246,34 @@ def test_cancel_preserves_populated_setup_decision_and_preparation(world,partici
     before=witnesses()
     assert success(request(world.x,"POST",path(job)+"/cancel"))["state"] == "cancelled"
     assert witnesses() == before
+
+
+@pytest.mark.parametrize("method",["GET","POST"])
+@pytest.mark.parametrize("role,target",[("organiser","existing"),("organiser","missing"),("business","missing")])
+def test_mandatory_password_precedes_shared_job_lookup_for_both_roles(world,participation,method,role,target):
+    if role == "organiser":
+        frozen=submit(world,participation)
+        job=seed(world,frozen,workflow="analysis",business_participation_id=None,owner_id=world.oa_id,
+            application_id=frozen["id"],source_revision=frozen["frozenSubmittedContentRevision"],rubric_revision=1)
+        actor,user=world.oa,world.oa_id
+    else:
+        job=seed(world,participation)
+        actor,user=world.x,world.xuser
+    before=stored(job);domains=witnesses()
+    with connect() as connection:
+        connection.execute("UPDATE password_credentials SET must_change_password=true WHERE user_id=%s",(user,))
+    requested=job if target == "existing" else str(uuid4())
+    problem(request(actor,method,path(requested)+("/cancel" if method == "POST" else "")),403,"password_change_required")
+    assert stored(job) == before and witnesses() == domains
+
+
+def test_legacy_analysis_insert_without_workflow_defaults_to_analysis(world,participation):
+    frozen=submit(world,participation)
+    job=str(uuid4());now=datetime.now(timezone.utc)
+    with connect() as connection:
+        connection.execute("INSERT INTO ai_jobs(id,owner_id,event_id,application_id,request_id,source_revision,rubric_revision,comparison_revisions,state,failure_code,provider_may_have_run,created_at,updated_at,deadline_at) VALUES(%s,%s,%s,%s,%s,%s,1,%s,'pending',NULL,false,%s,%s,%s)",
+            (job,world.oa_id,world.a,frozen["id"],str(uuid4()),frozen["frozenSubmittedContentRevision"],Jsonb([]),now,now,now+timedelta(seconds=180)))
+    assert stored(job)["workflow"] == "analysis" and stored(job)["business_participation_id"] is None
+    value=success(world.oa.get(path(job)))
+    assert set(value) == {"id","eventId","applicationId","state","createdAt","updatedAt","completedAt","failureCode","providerMayHaveRun","report"}
+    assert value["applicationId"] == frozen["id"] and value["report"] is None
