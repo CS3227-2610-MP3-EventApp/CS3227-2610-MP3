@@ -159,7 +159,7 @@ describe("organiser application analysis acceptance", () => {
     let reads = 0;
     const requests = installApi({
       readJob: () => ++reads === 1 ? job("pending") : job("running"),
-      cancelJob: () => job("cancelled"),
+      cancelJob: () => job("cancelled", { providerMayHaveRun: true }),
     });
     await openAnalysis();
     await userEvent.setup().click(await screen.findByRole("button", { name: /analy[sz]e application/i }));
@@ -201,9 +201,13 @@ describe("organiser application analysis acceptance", () => {
     expect(await screen.findByText(/stale/i)).toBeVisible();
     expect(screen.getByText(/rubric.*3|3.*rubric/i)).toBeVisible();
     expect(screen.getByText(/revision.*1|source.*1/i)).toBeVisible();
-    expect(screen.getByText(/comparison-1|comparison 1/i)).toBeVisible();
+    const comparisonLabels = screen.getAllByText(/comparison-1|comparison 1/i);
+    expect(comparisonLabels.length).toBeGreaterThan(0);
+    comparisonLabels.forEach((element) => expect(element).toBeVisible());
     expect(screen.getByText(/revision.*7|7.*revision/i)).toBeVisible();
-    expect(screen.getByText("A community printmaking workshop")).toBeVisible();
+    const evidenceQuotes = screen.getAllByText("A community printmaking workshop");
+    expect(evidenceQuotes.length).toBeGreaterThan(0);
+    evidenceQuotes.forEach((element) => expect(element).toBeVisible());
     expect(screen.getByText(/supported/i)).toBeVisible();
     expect(screen.getByText(/concern/i)).toBeVisible();
     expect(screen.getByText(/insufficient evidence/i)).toBeVisible();
