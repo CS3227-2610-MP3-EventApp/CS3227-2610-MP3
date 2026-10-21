@@ -23,3 +23,11 @@ Architecture handoff /root/f02_contract named exactly four additive tables: atte
 ## Parent preimplementation observation
 
 Parent reported first installed backend test crossed real bootstrap/auth/publication fixture and failed on GET /planning404 before implementation (1 failed,21.48s). This is meaningful missing-feature red, not a harness import failure. One earlier installation path mistake ran no tests and was corrected; it is not evidence. UI red pending parent result. Designer has not independently executed these commands.
+
+## F02-TCR-03: UI06 scopes conflict feedback to the alert
+
+Requester/test owner: /root/f02_scenarios. Parent reported the UI06 broad findByText(/changed|conflict|reload|stale/i) matched three legitimate rendered elements: safe conflict alert, Reload saved data button, and help text. Thus the test failed on ambiguous text selection despite correct feedback. This is a test-selection defect, not a product-policy change.
+
+Proposed mirrored correction: await screen.findByRole('alert'), require it visible, and require the same changed|conflict|reload|stale text pattern inside that alert. Keep raw-server-detail absence, persisted fixture unchanged-state assertion, API setup, and all other assertions. No skip, timeout, runner, fixture, or implementation edits. A missing/invisible/wrong-text alert still fails.
+
+Independent reviewer /root/f02_draft_review explicitly approved the exact scoped alert/visible/same-regex correction after inspecting the candidate and implementation labels, relying on parent-reported ambiguous DOM; no independent execution was claimed. Raw-detail and state assertions remain intact; no product behavior changed. Parent must record the replacement immutable baseline before verification. No repository baseline was edited by the designer.
