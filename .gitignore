@@ -8,3 +8,8 @@ __pycache__/
 
 # Local Vite cache
 .vite/
+
+# Backend/provider secrets stay in local runtime files.
+.env
+.env.*
+!.env.example

@@ -206,7 +206,9 @@ describe("Approved request evolution: open settings, one decision and clear reco
     const decided = submitted({ status: "rejected", revision: 3, decision: { outcome: "rejected", reason: "Prior organiser decision", decidedAt: "2026-10-21T03:00:00Z" } });
     applications.records = [decided];
     await userEvent.setup().click(within(dialog).getByRole("button", { name: /^confirm approval$/i }));
-    expect(await screen.findByText(/already.*decision|decided.*elsewhere|already.*decided/i)).toBeVisible();
+    const conflict = await screen.findByRole("status");
+    await waitFor(() => expect(conflict).toHaveTextContent(/already.*decision|decided.*elsewhere|already.*decided/i));
+    expect(conflict).toBeVisible();
     expect(applications.writes()).toHaveLength(1);
     const check = screen.queryByRole("button", { name: /^check outcome$|refresh.*application/i });
     if (check) await userEvent.setup().click(check);
@@ -544,7 +546,7 @@ describe("F06 frontend AC12: organiser eligibility and frozen review", () => {
   test("AC12 opens a frozen application from the visible submitted list", async () => {
     applications.install("organiser"); applications.records = [submitted()];
     await renderPrototype(organiserRoute);
-    await screen.findByRole("heading", { name: /^application reviews$/i });
+    await screen.findByRole("heading", { name: /^applications$/i });
     await userEvent.setup().click(await screen.findByRole("button", { name: /view application|open application|view submitted/i }));
     expect(await screen.findByText(content.description)).toBeVisible();
     expect(document.body).toHaveTextContent(content.contactEmail);
@@ -554,7 +556,7 @@ describe("F06 frontend AC12: organiser eligibility and frozen review", () => {
   test("AC19 names assigned events and confirms event-wide opening without a Business ID", async () => {
     applications.install("organiser", true);
     await renderPrototype(organiserRoute);
-    await screen.findByRole("heading", { name: /^application reviews$/i, level: 1 });
+    await screen.findByRole("heading", { name: /^applications$/i, level: 1 });
     expect(screen.getByRole("combobox", { name: /^event$/i })).toHaveTextContent("Synthetic Autumn Fair");
     expect(screen.getByRole("combobox", { name: /^event$/i })).not.toHaveTextContent(E1);
     expect(screen.queryByLabelText(/^business id$/i)).not.toBeInTheDocument();
@@ -608,7 +610,7 @@ describe("F06 frontend AC12: organiser eligibility and frozen review", () => {
     applications.once(`/api/v1/organiser/events/${E1}/applications/${A1}`, "GET", { status: 200,
       value: draft({ content: { ...content, description: "INJECTED-PRIVATE-DRAFT" } }) });
     await renderPrototype(`${organiserRoute}&applicationId=${A1}`);
-    await screen.findByRole("heading", { name: /^application reviews$/i });
+    await screen.findByRole("heading", { name: /^applications$/i });
     expect(await screen.findByText(/temporarily unavailable|access denied|not available|invalid.*response/i)).toBeVisible();
     expect(document.body).not.toHaveTextContent("INJECTED-PRIVATE-DRAFT");
   });

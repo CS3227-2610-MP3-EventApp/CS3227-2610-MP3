@@ -113,8 +113,8 @@ describe("role homes preserve presentation and accessibility", () => {
     await renderPrototype(`/${role}`);
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
-    const unavailable = screen.getAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(role === "organiser" ? 1 : 2);
+    const unavailable = screen.queryAllByRole("button", { name: /coming later/i });
+    expect(unavailable).toHaveLength(role === "organiser" ? 0 : 2);
     for (const button of unavailable) expect(button).toBeDisabled();
     if (role === "attendee") {
       // BROWSE-TCR-01: only Browse Programme progresses beyond the prototype.
@@ -134,10 +134,14 @@ describe("role homes preserve presentation and accessibility", () => {
       expect(entry).not.toHaveAttribute("aria-disabled", "true");
     }
     if (role === "organiser") {
+      const analysisCard = screen.getByRole("heading", { name: "AI Application Analysis" }).closest("article");
+      expect(analysisCard).not.toBeNull();
+      expect(within(analysisCard!).getByText(/synthetic|invented/i)).toBeVisible();
+      expect(within(analysisCard!).getByRole("link", { name: /analysis/i })).toHaveAttribute("href", "/organiser/applications#analysis");
       const programmeAction = screen.queryByRole("link", { name: /programme/i }) ?? screen.getByRole("button", { name: /programme/i });
       expect(programmeAction).not.toBeDisabled();
       const applicationAction = screen.getByRole("link", { name: /^review applications$/i });
-      expect(applicationAction).toHaveAttribute("href", "/organiser/applications");
+      expect(applicationAction).toHaveAttribute("href", "/organiser/applications#review");
     }
     expect(screen.queryByText(/credentials are not authenticated/i)).not.toBeInTheDocument();
   });

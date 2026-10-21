@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/v1/ai/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Job */
+        get: operations["get_job_api_v1_ai_jobs__jobId__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/jobs/{jobId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Job */
+        post: operations["cancel_job_api_v1_ai_jobs__jobId__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attendee/events": {
         parameters: {
             query?: never;
@@ -295,6 +329,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/organiser/events/{eventId}/analysis-rubric": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Rubric */
+        get: operations["get_rubric_api_v1_organiser_events__eventId__analysis_rubric_get"];
+        /** Save Rubric */
+        put: operations["save_rubric_api_v1_organiser_events__eventId__analysis_rubric_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/organiser/events/{eventId}/application-settings": {
         parameters: {
             query?: never;
@@ -341,6 +393,24 @@ export interface paths {
         get: operations["review_detail_api_v1_organiser_events__eventId__applications__applicationId__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organiser/events/{eventId}/applications/{applicationId}/analyses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analysis History */
+        get: operations["analysis_history_api_v1_organiser_events__eventId__applications__applicationId__analyses_get"];
+        put?: never;
+        /** Create Analysis */
+        post: operations["create_analysis_api_v1_organiser_events__eventId__applications__applicationId__analyses_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -579,6 +649,180 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnalysisComparison */
+        AnalysisComparison: {
+            /**
+             * Applicationid
+             * Format: uuid
+             */
+            applicationId: string;
+            /** Similarity */
+            similarity: number;
+            /** Sourcelabel */
+            sourceLabel: string;
+            /** Sourcerevision */
+            sourceRevision: number;
+        };
+        /** AnalysisCriterion */
+        AnalysisCriterion: {
+            /** Id */
+            id: string;
+            /** Instructions */
+            instructions: string;
+            /** Title */
+            title: string;
+        };
+        /** AnalysisDuplicateFlag */
+        AnalysisDuplicateFlag: {
+            /** Evidence */
+            evidence: components["schemas"]["AnalysisEvidence"][];
+            /** Explanation */
+            explanation: string;
+            /** Sourcelabel */
+            sourceLabel: string;
+        };
+        /** AnalysisEvidence */
+        AnalysisEvidence: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "participantType" | "description";
+            /** Quote */
+            quote: string;
+            /** Sourcelabel */
+            sourceLabel: string;
+        };
+        /** AnalysisFinding */
+        AnalysisFinding: {
+            /** Criterionid */
+            criterionId: string;
+            /** Evidence */
+            evidence: components["schemas"]["AnalysisEvidence"][];
+            /** Explanation */
+            explanation: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "supported" | "concern" | "insufficient_evidence";
+        };
+        /** AnalysisHistory */
+        AnalysisHistory: {
+            /** Items */
+            items: components["schemas"]["AnalysisReport"][];
+            latestJob: components["schemas"]["AnalysisJob"] | null;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** AnalysisJob */
+        AnalysisJob: {
+            /**
+             * Applicationid
+             * Format: uuid
+             */
+            applicationId: string;
+            /** Completedat */
+            completedAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /** Failurecode */
+            failureCode: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Providermayhaverun */
+            providerMayHaveRun: boolean;
+            report: components["schemas"]["AnalysisReport"] | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "running" | "completed" | "failed" | "cancelled";
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** AnalysisPayload */
+        AnalysisPayload: {
+            /** Duplicateflags */
+            duplicateFlags: components["schemas"]["AnalysisDuplicateFlag"][];
+            /** Findings */
+            findings: components["schemas"]["AnalysisFinding"][];
+        };
+        /** AnalysisProblem */
+        AnalysisProblem: {
+            /** Code */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Fielderrors */
+            fieldErrors?: {
+                [key: string]: string;
+            }[] | null;
+            /** Instance */
+            instance: string;
+            /** Status */
+            status: number;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @default about:blank
+             * @constant
+             */
+            type: "about:blank";
+        };
+        /** AnalysisReport */
+        AnalysisReport: {
+            /** Comparisonrevisions */
+            comparisonRevisions: components["schemas"]["AnalysisComparison"][];
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            payload: components["schemas"]["AnalysisPayload"];
+            /** Rubricrevision */
+            rubricRevision: number;
+            /** Sourcerevision */
+            sourceRevision: number;
+            /** Stale */
+            stale: boolean;
+        };
+        /** AnalysisRubric */
+        AnalysisRubric: {
+            /** Criteria */
+            criteria: components["schemas"]["AnalysisCriterion"][];
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /** Revision */
+            revision: number;
+        };
         /** ApplicationContent */
         ApplicationContent: {
             /** Contactemail */
@@ -763,6 +1007,23 @@ export interface components {
             password: string;
             /** Username */
             username: string;
+        };
+        /** CreateAnalysis */
+        CreateAnalysis: {
+            /** Expectedrubricrevision */
+            expectedRubricRevision: number;
+            /** Expectedsubmittedrevision */
+            expectedSubmittedRevision: number;
+            /**
+             * Requestid
+             * Format: uuid
+             */
+            requestId: string;
+            /**
+             * Syntheticdataconfirmed
+             * @constant
+             */
+            syntheticDataConfirmed: true;
         };
         /** CreateApplication */
         CreateApplication: {
@@ -1301,6 +1562,13 @@ export interface components {
             type: "talk" | "workshop" | "panel" | "booth" | "performance" | "other";
             venue: components["schemas"]["VenueFacts"];
         };
+        /** ReplaceAnalysisRubric */
+        ReplaceAnalysisRubric: {
+            /** Criteria */
+            criteria: components["schemas"]["AnalysisCriterion"][];
+            /** Expectedrevision */
+            expectedRevision: number;
+        };
         /** ReplaceApplication */
         ReplaceApplication: {
             /** Contactemail */
@@ -1496,6 +1764,190 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_job_api_v1_ai_jobs__jobId__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisJob"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    cancel_job_api_v1_ai_jobs__jobId__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisJob"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
     attendee_events_api_v1_attendee_events_get: {
         parameters: {
             query?: {
@@ -3128,6 +3580,196 @@ export interface operations {
             };
         };
     };
+    get_rubric_api_v1_organiser_events__eventId__analysis_rubric_get: {
+        parameters: {
+            query?: {
+                revision?: number | null;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisRubric"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    save_rubric_api_v1_organiser_events__eventId__analysis_rubric_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceAnalysisRubric"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisRubric"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
     application_settings_api_v1_organiser_events__eventId__application_settings_get: {
         parameters: {
             query?: never;
@@ -3576,6 +4218,199 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    analysis_history_api_v1_organiser_events__eventId__applications__applicationId__analyses_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisHistory"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    create_analysis_api_v1_organiser_events__eventId__applications__applicationId__analyses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAnalysis"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisJob"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisProblem"];
                     "application/problem+json": unknown;
                 };
             };

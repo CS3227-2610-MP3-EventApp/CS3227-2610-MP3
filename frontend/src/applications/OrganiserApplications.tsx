@@ -1,14 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Paper, Stack, Tab, Tabs, TextField, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Auth";
 import { applicationApi, ApiError } from "../api";
 import { application, events, feedback, settings, uncertain, type Application, type ApplicationSettings, type OrganiserDraftMemory, type OrganiserEvent } from "./model";
 import { ApplicationLayout, ContentSummary, Feedback, Frozen, useFeedback } from "./shared";
+import ApplicationAnalysis from "./ApplicationAnalysis";
 export function OrganiserApplications() {
   const { actor, revalidate, destinations, organiserMemory } = useAuth();
   const location = useLocation(), navigate = useNavigate();
   const query = new URLSearchParams(location.search);
+  const applicationId = query.get("applicationId");
+  const tab = location.hash === "#analysis" ? "analysis" : "review";
+  function tabPath(value: string, id = applicationId, nextEvent = eventId) {
+    const params = new URLSearchParams({eventId: nextEvent});
+    if (id) params.set("applicationId", id);
+    return `/organiser/applications?${params}#${value}`;
+  }
   const eventId = query.get("eventId") ?? actor!.eventMemberships[0]?.eventId ?? "";
   const assigned = actor!.eventMemberships.some((item) => item.eventId === eventId && item.status === "active" && item.role === "organiser");
   const memoryKey = `${actor!.id}:${eventId}`;
@@ -62,7 +70,7 @@ export function OrganiserApplications() {
         const named = events(await applicationApi.organiserEvents(), true).filter((item) => actor!.eventMemberships.some((membership) => membership.eventId === item.eventId && membership.status === "active" && membership.role === "organiser"));
         if (!active || epoch.current !== generation) return;
         setSummaries(named);
-        if (!query.has("eventId")) { const params = new URLSearchParams({eventId}); if (query.has("applicationId")) params.set("applicationId", query.get("applicationId")!); navigate(`/organiser/applications?${params}`, {replace: true}); return; }
+        if (!query.has("eventId")) { navigate(tabPath(tab), {replace: true}); }
         if (!named.some((item) => item.eventId === eventId)) throw new ApiError(403, "Access is not permitted.", "forbidden");
         const [list, setting] = await Promise.all([applicationApi.reviews(eventId), applicationApi.settings(eventId)]);
         if (!active || epoch.current !== generation) return;
@@ -84,7 +92,7 @@ export function OrganiserApplications() {
       } catch (error) { if (active && epoch.current === generation) { finish(feedback(error)); denied(error); } }
     })();
     return () => { active = false; epoch.current++; };
-  }, [eventId, location.search, actor!.id]);
+  }, [eventId, applicationId, actor!.id]);
   async function readOutcome(kind: "settings" | "decision", conflict = false) {
     if (lock.current) return;
     if (draft.current?.operation?.inFlight) {finish("Outcome not confirmed - the original request is still in progress. Check again after it settles."); return;}
@@ -150,14 +158,24 @@ export function OrganiserApplications() {
       }
     } finally { operation.inFlight = false; if (epoch.current === generation) { lock.current = false; setBusy(false); if (conflict) void readOutcome("decision", true); } }
   }
-  return <ApplicationLayout title="Application reviews" role="organiser" dirty={!!draft.current?.settingsDirty}><Stack spacing={3}>
-    <TextField label="Event" select value={event ? eventId : ""} onChange={(e) => changeContext(`/organiser/applications?eventId=${encodeURIComponent(e.target.value)}`)} slotProps={{select: {native: true}, inputLabel: {shrink: true}}}>{summaries.map((item) => <option key={item.eventId} value={item.eventId}>{item.title}</option>)}</TextField>
+  return <ApplicationLayout title="Applications" role="organiser" dirty={!!draft.current?.settingsDirty}><Stack spacing={4}>
+    <Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Stack spacing={2}>
+    <TextField label="Event" select value={event ? eventId : ""} onChange={(e) => changeContext(tabPath(tab, null, e.target.value))} slotProps={{select: {native: true}, inputLabel: {shrink: true}}}>{summaries.map((item) => <option key={item.eventId} value={item.eventId}>{item.title}</option>)}</TextField>
     {event && <Typography>{event.startsAt} - {event.endsAt} ({event.timezone})</Typography>}
     <Feedback status={status} />
     {unknown && <Button disabled={busy} onClick={() => readOutcome(unknown)}>Check outcome</Button>}
     {savedSettings && <Box><FormControlLabel control={<Checkbox checked={open} disabled={busy || !!unknown} onChange={(e) => changeOpen(e.target.checked)} />} label="Accepting applications" /><Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button disabled={busy || !!unknown} onClick={() => setConfirmation("settings")}>Save application settings</Button>{/settings.*changed/i.test(status) && <Button disabled={busy} onClick={() => readOutcome("settings")}>Refresh application settings</Button>}</Stack></Box>}
-    {savedSettings && <Box><Typography component="h2" variant="h2">Submitted applications</Typography><Stack spacing={2}>{records.map((record) => <Box key={record.id} sx={{border: 1, borderColor: "divider", p: 2, overflowWrap: "anywhere"}}><Typography>{record.businessName} - {record.eventTitle}</Typography><Typography>{record.status}</Typography><Button onClick={() => changeContext(`/organiser/applications?eventId=${encodeURIComponent(eventId)}&applicationId=${encodeURIComponent(record.id)}`)}>View application</Button></Box>)}</Stack></Box>}
-    {selected && <><Frozen value={selected} /><Typography>Record revision: {selected.revision}</Typography>{selected.status === "submitted" && <Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button disabled={busy || !!unknown} onClick={() => {setConfirmation("accepted"); setReasonError("");}}>Approve application</Button><Button disabled={busy || !!unknown} onClick={() => {setConfirmation("rejected"); setReasonError("");}}>Reject application</Button></Stack>}</>}
+    </Stack></Paper>
+    <Box sx={{display: "grid", gridTemplateColumns: {xs: "minmax(0, 1fr)", lg: "280px minmax(0, 1fr)"}, gap: 4, alignItems: "start"}}>
+    {savedSettings && <Paper component="aside" variant="outlined" sx={{p: 2, minWidth: 0}}><Typography component="h2" variant="h2" sx={{mb: 2}}>Submitted applications</Typography><Stack spacing={2}>{records.map((record) => <Box key={record.id} sx={{border: 1, borderColor: selected?.id === record.id ? "primary.main" : "divider", borderRadius: 2, p: 2, overflowWrap: "anywhere"}}><Stack spacing={1}><Typography fontWeight={700}>{record.businessName}</Typography><Chip label={record.status} size="small" sx={{alignSelf: "start"}}/><Button aria-current={selected?.id === record.id ? "true" : undefined} onClick={() => changeContext(tabPath(tab, record.id))}>View application</Button></Stack></Box>)}</Stack></Paper>}
+    <Box sx={{minWidth: 0}}>
+    <Tabs value={tab} onChange={(_, value: string) => navigate(tabPath(value))} aria-label="Application workspace" variant="fullWidth" sx={{borderBottom: 1, borderColor: "divider", mb: 3}}><Tab id="application-review-tab" aria-controls="application-review-panel" value="review" label="Application Review"/><Tab id="application-analysis-tab" aria-controls="application-analysis-panel" value="analysis" label="AI Analysis"/></Tabs>
+    {!selected && <Paper variant="outlined" sx={{p: 4}}><Typography variant="h2">Choose an application</Typography><Typography color="text.secondary" sx={{mt: 2}}>Select a submitted application to {tab === "analysis" ? "review its rubric and AI reports" : "inspect its details and make a decision"}.</Typography></Paper>}
+    {selected && <>
+    <Box role="tabpanel" id="application-review-panel" aria-labelledby="application-review-tab" hidden={tab !== "review"}><Stack spacing={3}><Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Frozen value={selected}/><Typography color="text.secondary" sx={{mt: 2}}>Record revision: {selected.revision}</Typography></Paper><Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Typography variant="h2" component="h2" sx={{mb: 2}}>Application decision</Typography>{selected.status === "submitted" ? <Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button variant="contained" disabled={busy || !!unknown} onClick={() => {setConfirmation("accepted"); setReasonError("");}}>Approve application</Button><Button variant="outlined" disabled={busy || !!unknown} onClick={() => {setConfirmation("rejected"); setReasonError("");}}>Reject application</Button></Stack> : <Typography>This application has already been {selected.status}. Its decision is final.</Typography>}</Paper></Stack></Box>
+    <Box role="tabpanel" id="application-analysis-panel" aria-labelledby="application-analysis-tab" hidden={tab !== "analysis"}><Typography variant="h2" sx={{mb: 2}}>{selected.businessName}</Typography><ApplicationAnalysis key={`${eventId}:${selected.id}`} eventId={eventId} applicationId={selected.id} submittedRevision={selected.frozenSubmittedContentRevision!} onManualReview={() => navigate(tabPath("review"))}/></Box>
+    </>}
+    </Box></Box>
   </Stack>
   {confirmation && <Dialog open transitionDuration={0} onClose={() => !busy && setConfirmation(null)} aria-labelledby="confirmation-title" fullWidth maxWidth="sm"><DialogTitle id="confirmation-title">{confirmation === "settings" ? "Confirm application settings" : "Confirm decision"}</DialogTitle><DialogContent sx={{overflowWrap: "anywhere"}}>
     <Typography>Event: {event?.title}</Typography>

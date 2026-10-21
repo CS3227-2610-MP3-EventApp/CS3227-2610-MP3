@@ -1,8 +1,10 @@
 from typing import Literal
 from urllib.parse import urlsplit
 import re
+import json
+from uuid import UUID
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +14,12 @@ class Settings(BaseSettings):
     trusted_origins: list[str] = Field(default_factory=lambda: [
         "http://localhost:5173", "http://127.0.0.1:5173",
     ])
+    ai_enabled: bool = False
+    ai_synthetic_only: bool = False
+    ai_synthetic_event_ids: str = "[]"
+    soclaas_api_key: SecretStr | None = None
+    soclaas_model: str | None = None
+    soclaas_requests_per_minute: int = Field(default=30, ge=1, le=90)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -33,3 +41,13 @@ class Settings(BaseSettings):
             if self.environment == "production" and parsed.scheme != "https":
                 raise ValueError("Production origins require HTTPS")
         return self
+
+    @property
+    def synthetic_event_ids(self) -> set[UUID]:
+        try:
+            values = json.loads(self.ai_synthetic_event_ids)
+            if not isinstance(values, list):
+                raise ValueError
+            return {UUID(value) for value in values}
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise ValueError("AI_SYNTHETIC_EVENT_IDS must be a JSON UUID list") from exc
