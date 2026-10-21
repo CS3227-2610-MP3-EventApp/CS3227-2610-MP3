@@ -92,6 +92,8 @@ Manual flows after launching both servers:
 
 Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Domain cards remain previews until their own capabilities are implemented.
 
+The first organiser programme slice is governed by [programme revision 6](../specs/programme/create-and-publish-programme.md). Apply its additive migration before using Programme Management; existing authentication records must be preserved. See [programme testing and attendee API handoff](ProgrammeTesting.md) for local flows, publication boundaries and consumer integration. The [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md) records actual implementation/verification status; this guide is not a passing-test claim.
+
 ## Delivery evidence to maintain
 
 Document deployment/recovery steps and the online application URL when hosting is implemented. Keep development and production databases, credentials and configuration separate; production model/database credentials stay server-side. Record client-bundle/log secret checks and deployed synthetic smoke journeys for all three workspaces, including each role's real LLM integration and manual fallback. Link revision-specific evidence to the release gates in project context. This slice does not provide password recovery, email verification, rate limiting or a production deployment.

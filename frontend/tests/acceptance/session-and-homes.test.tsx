@@ -114,8 +114,12 @@ describe("role homes preserve presentation and accessibility", () => {
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
     const unavailable = screen.getAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(3);
+    expect(unavailable).toHaveLength(role === "organiser" ? 2 : 3);
     for (const button of unavailable) expect(button).toBeDisabled();
+    if (role === "organiser") {
+      const programmeAction = screen.queryByRole("link", { name: /programme/i }) ?? screen.getByRole("button", { name: /programme/i });
+      expect(programmeAction).not.toBeDisabled();
+    }
     expect(screen.queryByText(/credentials are not authenticated/i)).not.toBeInTheDocument();
   });
 

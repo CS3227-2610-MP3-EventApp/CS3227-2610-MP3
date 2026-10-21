@@ -8,21 +8,22 @@ import { Alert, Typography } from "@mui/material";
 import { AuthProvider, useAuth } from "./Auth";
 import { ChangePassword } from "./ChangePassword";
 import { EntryLayout } from "./components";
+import { Programme } from "./Programme";
 
-function GuardedWorkspace({ role }: { role: Role }) {
+function GuardedWorkspace({ role, programme = false }: { role: Role; programme?: boolean }) {
   const { actor } = useAuth();
   if (!actor || actor.role !== role) return <Navigate to="/login" replace />;
   if (actor.mustChangePassword) return <Navigate to="/change-password" replace />;
   if ((role === "organiser" && !actor.eventMemberships.length) || (role === "business" && !actor.businessMemberships.length)) {
     return <EntryLayout><Typography component="h1" variant="h2">Workspace unavailable</Typography><Alert severity="warning">No active membership. Access is not permitted.</Alert><ChangePassword signOutOnly /></EntryLayout>;
   }
-  return <Workspace session={actor} />;
+  return programme ? <Programme /> : <Workspace session={actor} />;
 }
 
 function ApplicationRoutes() {
   const location = useLocation();
   useEffect(() => {
-    document.title = `EventApp · ${location.pathname === "/login" ? "Log in" : location.pathname.startsWith("/register/") ? "Create account" : location.pathname === "/change-password" ? "Change password" : "Workspace"}`;
+    document.title = `EventApp · ${location.pathname === "/login" ? "Log in" : location.pathname.startsWith("/register/") ? "Create account" : location.pathname === "/change-password" ? "Change password" : location.pathname === "/organiser/programme" ? "Programme Management" : "Workspace"}`;
     document.querySelector<HTMLElement>("[data-page-heading]")?.focus();
   }, [location.pathname]);
   return <Routes>
@@ -30,6 +31,7 @@ function ApplicationRoutes() {
     <Route path="/register/attendee" element={<Register key="attendee" role="attendee" />} />
     <Route path="/register/business" element={<Register key="business" role="business" />} />
     <Route path="/change-password" element={<ChangePassword />} />
+    <Route path="/organiser/programme" element={<GuardedWorkspace role="organiser" programme />} />
     {roles.map((role) => <Route key={role} path={`/${role}`} element={<GuardedWorkspace role={role} />} />)}
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>;

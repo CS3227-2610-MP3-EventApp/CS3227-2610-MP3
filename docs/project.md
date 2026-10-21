@@ -1,6 +1,6 @@
 # EventApp project context
 
-EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python/FastAPI, TypeScript/React and three teammates. All three approved RD01–RD07 on 2026-10-15. The frontend prototype and FastAPI/PostgreSQL foundation are implemented and In review. The requesting teammate authorised the shared-authentication implementation plan on 2026-10-19; its exact revision/readiness, protected tests and implementation evidence are recorded separately. Other domain features, AI and deployment remain subject to their own gates.
+EventApp helps people plan attendance and run events while keeping AI recommendations and actions grounded in verifiable information. Confirmed on 2026-10-14: Python/FastAPI, TypeScript/React and three teammates. All three approved RD01–RD07 on 2026-10-15. Shared authentication and the frontend/backend foundations are merged. Dylan approved exact programme revision 6 on 2026-10-20; the organiser UI and published attendee read API are implemented for review, with evidence in the [programme run record](../workflow/agents/runs/2026-10-20-organiser-programme.md). Attendee screens, other domain features, AI and deployment remain subject to their own gates.
 
 ## Shared UI direction
 
@@ -140,6 +140,7 @@ Use the confirmed FastAPI backend and React frontend. Recommended first architec
 | D06 | Model provider, retention, consent, data minimisation | AI privacy and integration | Open before F03 |
 | D07 | Maps, search, email and commerce providers and budget | External integration scope | Open before relevant extension |
 | D08 | Preference semantics and measurable limits | Constraint correctness, latency, quotas and accessibility | Open before affected features |
+| D09 | First organiser programme contract | F01-US01/02, F04-US03; F01-US03 read API only | Dylan approved exact revision 6 on 2026-10-20: complete drafts, six types, SGD integer cents, optional unknown accessibility, event bounds, permitted overlap, immutable publication/parent locks, safe deletion and versioned API. Dylan owns this organiser task; attendee UI remains teammate-owned. No other roadmap/allocation change. |
 
 When a decision is made, record the choice, approver, date, reasoning, and affected feature IDs here. Do not treat a draft recommendation as approval.
 
