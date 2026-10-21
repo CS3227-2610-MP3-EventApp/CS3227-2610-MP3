@@ -114,7 +114,7 @@ describe("role homes preserve presentation and accessibility", () => {
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
     const unavailable = screen.queryAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(role === "organiser" ? 0 : 2);
+    expect(unavailable).toHaveLength(role === "organiser" ? 0 : role === "business" ? 1 : 2);
     for (const button of unavailable) expect(button).toBeDisabled();
     if (role === "attendee") {
       // BROWSE-TCR-01: only Browse Programme progresses beyond the prototype.
@@ -129,6 +129,9 @@ describe("role homes preserve presentation and accessibility", () => {
       expect(browse).toBeEnabled();
     }
     if (role === "business") {
+      const preparation = screen.getByRole("link", { name: /^open preparation$/i });
+      expect(preparation).toHaveAttribute("href", "/business/preparation");
+      expect(preparation).not.toHaveAttribute("aria-disabled", "true");
       const entry = screen.getByRole("link", { name: role === "business" ? /^open applications$/i : /^review applications$/i });
       expect(entry).toHaveAttribute("href", `/${role}/applications`);
       expect(entry).not.toHaveAttribute("aria-disabled", "true");

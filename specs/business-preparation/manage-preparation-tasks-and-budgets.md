@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | manage-preparation-tasks-and-budgets |
 | Covered stories | F06-US03; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 3 / Ready |
+| Specification revision / status | 4 / In progress |
 | Product roles / roadmap reference | Active members of a participating business. [2 - Manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved r2 with quantity/price amendments and authorised implementing related specification amendments on 2026-10-21; r3 records that approved direction. Independent test/baseline gates remain separate. |
 | Review / run record | [Actual drafting handoffs, independent reviews and proposed scenarios](../../logs/isaac/2026-10-21-f06-phase-2-preparation.md); implementation test design/baseline pending |
@@ -66,6 +66,7 @@ RD01, RD07; SEC01, SEC02, SEC08, SEC10, SEC11. Every read/write resolves current
 | manage-preparation-tasks-and-budgets-AC08 | A full-document replacement, including deletions, budget/task rows, revision and success audit is atomic; a forced commit failure leaves all previous records intact, and preparation revisions remain independent of participation/application revisions. | F06-US03; RD01/RD02; SEC11 | PostgreSQL failure injection; application mutation does not alter preparation and vice versa |
 | manage-preparation-tasks-and-budgets-AC09 | The UI exposes labelled keyboard-operable fields, visible focus, field-specific recoverable validation, announced save/error outcomes and estimate/quotation meaning without relying on colour. Private document state is not persisted and is cleared on identity/participation changes or access denial; uncertain writes reconcile only after rechecking the same current identity and authorized participation, before retry, and are never shown as saved prematurely. | F06-US03; SEC01/02/10 | Keyboard/accessibility inspection, context-switch/privacy checks, validation and simulated lost response |
 | manage-preparation-tasks-and-budgets-AC10 | Valid saved tasks and budget survive a real PostgreSQL connection lifecycle; successful changes are attributable in minimal audit records, and responses/logs contain no other business's data or internal error detail. | F06-US03; SEC02/08/11/12 | Synthetic persistence/reopen, audit and response/log inspection |
+| manage-preparation-tasks-and-budgets-AC11 | The business home exposes an enabled Preparation & Budget destination and accurately shows two available features and one AI preview after this capability is delivered. Existing application navigation remains live. This later approved capability supersedes only the earlier submit-r4 AC17 one-live/two-preview home snapshot; other roles and domain criteria are unchanged. | F06-US03; shared UI | Positive enabled route, accurate counts, remaining disabled AI preview |
 
 ## External interfaces and dependencies
 
@@ -81,11 +82,14 @@ Requires CurrentActor v1 and BusinessContext v1 plus an existing EventParticipat
 
 ## Verification and evidence
 
+Revision4 makes the approved Phase2 home availability explicit under Isaac's specification-amendment/implementation authority; it does not introduce a new product policy or change quantity/price/API rules. Initial independent protected baseline remains historical at b5600c03968bc23cc1d3cc69c47144fca90dcbc2 (r3). First implementation reviews found focus/failed-revalidation/private-state gaps plus omitted authorized currentRevision on conflicts; fixes and test-owner regressions/replacement baseline are recorded in the phase run. Human teammate/accessibility/summary verification is still pending.
+
 Independent test design, adequacy review, protected baseline, implementation snapshot, integration and security checks are pending under the [agent workflow](../../workflow/agents/README.md). No application behaviour, persistence, provider integration or deployment has been verified. AI role coverage and environment separation remain release gates where applicable.
 
 | Criterion | Evidence | Status |
 | --- | --- | --- |
 | manage-preparation-tasks-and-budgets-AC01–AC10 | Pending scenario design, review, baseline and implementation evidence | Not verified |
+| manage-preparation-tasks-and-budgets-AC11 | Test-owner home compatibility correction and independent replacement-baseline review pending | Not verified |
 
 ## Revision history
 
@@ -94,3 +98,4 @@ Independent test design, adequacy review, protected baseline, implementation sna
 | 1 / 2026-10-18 | Initial bounded Draft from F06-US03 and current RD/SEC rules | Product approval and verification pending |
 | 2 / 2026-10-21 | Added proposed manual API/UI contract, strict bounds and DTO, per-participation CAS/atomicity, independent application state, safe recovery and persisted evidence criteria; retained Draft | Defaults and interfaces remain unapproved; scenario design/review and implementation evidence pending |
 | 3 / 2026-10-21 | Recorded Isaac's r2 approval plus quantity 1,000,000 and price SGD 1,000,000,000/unit amendments; JSON integer unit prices through 100,000,000,000 cents, aggregate totals as decimal strings, exact UI arithmetic | Ready for independent test/baseline gates under the authorised amendment; no runtime or completion claim |
+| 4 / 2026-10-21 | Made approved live preparation home/accurate two-live-one-preview state explicit in new AC11; source/API/numeric rules unchanged | In progress; first independent review repairs and test-owner replacement baseline pending; no new human completion claim |

@@ -157,7 +157,7 @@ def test_first_save_concurrency_and_failed_audit_are_atomic(world, participation
     saved = success(world.x.get(route))
     assert saved["revision"] == 2
     assert saved == next(r.json() for r in responses if r.status_code == 200)
-    error(request(world.x,"PUT",route,json=document()),409,"revision_conflict")
+    assert error(request(world.x,"PUT",route,json=document()),409,"revision_conflict")["currentRevision"] == 2
     assert success(world.x.get(route)) == saved
     with reject_writes("audit_events"):
         failed = request(world.x,"PUT",route,json=document(expectedRevision=2,tasks=[]))

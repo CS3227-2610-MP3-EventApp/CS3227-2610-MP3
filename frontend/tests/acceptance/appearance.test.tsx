@@ -415,9 +415,14 @@ describe("revision 2 AC09 representative typography and palette", () => {
     if (role === "organiser") {
       expect(screen.queryByText("03 / AVAILABLE · 00 / PREVIEWS")).not.toBeInTheDocument();
     } else {
-      expectMinimumTextSize(screen.getByText(role === "business" ? "01 / AVAILABLE · 02 / PREVIEWS" : "03 / PREVIEWS"), 18);
+      expectMinimumTextSize(screen.getByText(role === "business" ? "02 / AVAILABLE · 01 / PREVIEWS" : "03 / PREVIEWS"), 18);
     }
     expectMinimumTextSize(role === "organiser" ? screen.getByRole("link", { name: /analysis/i }) : screen.getAllByRole("button", { name: /coming later/i })[0], 21);
+    if (role === "business") {
+      const preparation = screen.getByRole("link", { name: /^open preparation$/i });
+      expect(preparation).toHaveAttribute("href", "/business/preparation");
+      expect(preparation).not.toHaveAttribute("aria-disabled", "true");
+    }
     const actorBeforeFailure = auth.current;
     auth.failure = { status: 500, detail: "Request could not be completed." };
     await user.click(screen.getByRole("button", { name: /sign out/i }));

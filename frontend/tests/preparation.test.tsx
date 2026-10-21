@@ -19,6 +19,7 @@ function install(value = fixture(), mode: "normal" | "lost" | "mismatch" | "erro
   const fallback = globalThis.fetch;
   const writes: Record<string, unknown>[] = [];
   let reads = 0;
+  let failGet = false;
   let hold: Promise<void> | undefined;
   vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(typeof input === "object" && "url" in input ? input.url : String(input), window.location.origin);
@@ -28,7 +29,10 @@ function install(value = fixture(), mode: "normal" | "lost" | "mismatch" | "erro
     }
     if (url.pathname !== endpoint) return fallback(input, init);
     const pending = hold;
-    if ((init?.method ?? "GET") === "GET") reads++;
+    if ((init?.method ?? "GET") === "GET") {
+      reads++;
+      if (failGet) {failGet=false; return new Response(JSON.stringify({code:"service_unavailable"}),{status:503,headers:{"Content-Type":"application/problem+json"}});}
+    }
     else {
       const body = JSON.parse(String(init?.body)); writes.push(body);
       if (mode === "error") return new Response(JSON.stringify({code:"validation_error",detail:"<script>PRIVATE-SERVER-EXCEPTION</script>",fieldErrors:[{field:"tasks",code:"invalid"}]}),{status:422,headers:{"Content-Type":"application/problem+json"}});
@@ -40,7 +44,7 @@ function install(value = fixture(), mode: "normal" | "lost" | "mismatch" | "erro
     if (pending) await pending;
     return new Response(snapshot,{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
   }));
-  return { writes, reads: () => reads, hold: () => { let release!: () => void; hold=new Promise<void>(resolve => {release=resolve;}); return () => {hold=undefined;release();}; } };
+  return { writes, reads: () => reads, failNextGet: () => {failGet=true;}, hold: () => { let release!: () => void; hold=new Promise<void>(resolve => {release=resolve;}); return () => {hold=undefined;release();}; } };
 }
 async function open() {
   await renderPrototype(route);
@@ -154,4 +158,59 @@ test("AC09 recoverable validation retains editable input and hides arbitrary ser
   expect(await screen.findByText(/check.*task|task.*invalid|review.*field|check.*field|could not.*save|correct.*field/i)).toBeVisible();
   expect(screen.getByLabelText(/^task title$/i)).toHaveValue("PRIVATE-INVALID-DRAFT");
   expect(document.body).not.toHaveTextContent("PRIVATE-SERVER-EXCEPTION");
+});
+
+test.each(["focus","pageshow"])("AC09 same-scope %s authority remount preserves unsaved draft in memory", async (event) => {
+  install(); await open();
+  fireEvent.change(screen.getByLabelText(/^task title$/i),{target:{value:"PRIVATE-SAME-SCOPE-DRAFT"}});
+  const release=applications.hold("/api/v1/auth/me");
+  await act(async () => {window.dispatchEvent(new Event(event));});
+  await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-SAME-SCOPE-DRAFT")).not.toBeInTheDocument());
+  await act(async () => {release();});
+  expect(await screen.findByDisplayValue("PRIVATE-SAME-SCOPE-DRAFT")).toBeVisible();
+  expect(privateStorage()).not.toContain("PRIVATE-SAME-SCOPE-DRAFT");
+});
+
+test("AC09 failed local reload conceals cached private editor and offers retry", async () => {
+  const server=install(fixture(),"mismatch"); await open();
+  fireEvent.change(screen.getByLabelText(/^task title$/i),{target:{value:"PRIVATE-RELOAD-DRAFT"}});
+  await userEvent.setup().click(screen.getByRole("button",{name:/^save preparation$/i}));
+  const reload=await screen.findByRole("button",{name:/reload latest preparation/i});
+  server.failNextGet();
+  await userEvent.setup().click(reload);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/could not|unavailable|check|retry/i);
+  expect(screen.queryByDisplayValue("PRIVATE-RELOAD-DRAFT")).not.toBeInTheDocument();
+  expect(screen.queryByDisplayValue("PRIVATE-PREPARATION-MARKER")).not.toBeInTheDocument();
+  const retry=screen.getByRole("button",{name:/retry|try again|reload latest|check access/i});
+  expect(retry).toBeEnabled();
+  await userEvent.setup().click(retry);
+  expect(await screen.findByLabelText(/^task title$/i)).toBeVisible();
+});
+
+test("AC09 late departed local authority response cannot clear or replace new context", async () => {
+  install(fixture(),"mismatch");
+  applications.records.push(draft({id:A2,eventId:E2,eventTitle:"Synthetic Winter Market",participationId:otherParticipation}));
+  await open();
+  fireEvent.change(screen.getByLabelText(/^task title$/i),{target:{value:"TRIGGER-CONFLICT"}});
+  await userEvent.setup().click(screen.getByRole("button",{name:/^save preparation$/i}));
+  const reload=await screen.findByRole("button",{name:/reload latest preparation/i});
+  const stale={...auth.current!,id:"dddddddd-dddd-4ddd-8ddd-dddddddddddd"};
+  const release=applications.hold("/api/v1/auth/me","GET",{value:stale});
+  const before=applications.requests.filter(r=>r.path === "/api/v1/auth/me").length;
+  await userEvent.setup().click(reload);
+  await waitFor(() => expect(applications.requests.filter(r=>r.path === "/api/v1/auth/me").length).toBeGreaterThan(before));
+  await act(async () => {history.pushState({},"",`/business/preparation?businessId=${B1}&eventId=${E2}&participationId=${otherParticipation}`);window.dispatchEvent(new PopStateEvent("popstate"));});
+  expect(await screen.findByDisplayValue("OTHER-PARTICIPATION-TASK")).toBeVisible();
+  fireEvent.change(screen.getByLabelText(/^task title$/i),{target:{value:"NEW-SCOPE-PRIVATE-DRAFT"}});
+  await act(async () => {release();});
+  expect(screen.getByDisplayValue("NEW-SCOPE-PRIVATE-DRAFT")).toBeVisible();
+  expect(screen.queryByDisplayValue("TRIGGER-CONFLICT")).not.toBeInTheDocument();
+});
+
+test("AC09 malformed server known-price unknown-basis document is rejected before display", async () => {
+  const value=fixture([{id:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",description:"MALFORMED-PRICE-BASIS",quantity:1,unitPriceMinorUnits:100,priceBasis:"unknown",quotationBasis:null}]);
+  value.budget.knownSubtotalMinorUnits="100";value.budget.totalMinorUnits="100";
+  install(value); await renderPrototype(route);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/could not|invalid|unavailable/i);
+  expect(screen.queryByDisplayValue("MALFORMED-PRICE-BASIS")).not.toBeInTheDocument();
 });
