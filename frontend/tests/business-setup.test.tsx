@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { renderPrototype, storedValues } from "./helpers/renderPrototype";
 import { applications, submitted, A1, B1, E1 } from "./fixtures/applications";
+import { auth } from "./fixtures/auth";
 
 const participation="88888888-8888-4888-8888-888888888888";
 const organiserPath=`/api/v1/organiser/events/${E1}/participations/${participation}/setup`;
@@ -14,6 +15,7 @@ function install(role:"business"|"organiser"="organiser", mode:"normal"|"lost"|"
   applications.install(role);
   applications.records=[submitted({status:"accepted",revision:3,decision:{outcome:"accepted",reason:null,decidedAt:"2026-10-21T03:00:00Z"}})];
   const fallback=globalThis.fetch, writes:Record<string,unknown>[]=[];
+  const hooks:{afterWrite?:()=>void}={};
   let value=setup(),reads=0,gate:Promise<void>|undefined;
   vi.stubGlobal("fetch",vi.fn(async (input:string|URL|Request,init?:RequestInit) => {
     const url=new URL(typeof input === "object" && "url" in input ? input.url:String(input),location.origin);
@@ -21,6 +23,7 @@ function install(role:"business"|"organiser"="organiser", mode:"normal"|"lost"|"
     const held=gate;
     if ((init?.method ?? "GET") === "PUT") {
       const payload=JSON.parse(String(init?.body));writes.push(payload);
+      hooks.afterWrite?.();
       expect(init?.credentials).toBe("same-origin");
       if (mode === "invalid") return new Response(JSON.stringify({code:"validation_error",detail:"PRIVATE-RAW-SERVER-EXCEPTION <script>execute()</script>",fieldErrors:[{field:"boothLabel",code:"invalid"}]}),{status:422,headers:{"Content-Type":"application/problem+json","Cache-Control":"no-store"}});
       if (mode === "conflict") return new Response(JSON.stringify({code:"revision_conflict",currentRevision:2}),{status:409,headers:{"Content-Type":"application/problem+json"}});
@@ -32,7 +35,7 @@ function install(role:"business"|"organiser"="organiser", mode:"normal"|"lost"|"
     if (held) await held;
     return new Response(snapshot,{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
   }));
-  return {writes,reads:()=>reads,value:()=>value,hold:()=>{let release!:()=>void;gate=new Promise<void>(resolve=>{release=resolve;});return ()=>{gate=undefined;release();};}};
+  return {writes,hooks,reads:()=>reads,value:()=>value,hold:()=>{let release!:()=>void;gate=new Promise<void>(resolve=>{release=resolve;});return ()=>{gate=undefined;release();};}};
 }
 async function open() {await renderPrototype(organiserRoute);await screen.findByLabelText(/^booth label$/i);}
 function fill(label="PRIVATE-BOOTH-A1",instructions="PRIVATE-SETUP-INSTRUCTIONS") {
@@ -180,4 +183,38 @@ test.each([
   expect(screen.queryByText("FOREIGN-PRIVATE-INSTRUCTIONS")).not.toBeInTheDocument();
   expect(screen.queryByDisplayValue("FOREIGN-PRIVATE-INSTRUCTIONS")).not.toBeInTheDocument();
   expect(storage()).not.toContain("FOREIGN-PRIVATE");
+});
+
+test("AC03/05 publication rechecks fresh requesting actor and invalidates old confirmation",async()=>{
+  const server=install();await open();fill();const dialog=await confirm();
+  auth.current={...auth.current!,id:"ffffffff-ffff-4fff-8fff-ffffffffffff",displayName:"Different assigned organiser"};
+  const before=applications.requests.filter(r=>r.path === "/api/v1/auth/me").length;
+  const release=applications.hold("/api/v1/auth/me");
+  await userEvent.setup().click(within(dialog).getByRole("button",{name:/^publish setup$/i}));
+  await waitFor(()=>expect(applications.requests.filter(r=>r.path === "/api/v1/auth/me").length).toBeGreaterThan(before));
+  expect(server.writes).toHaveLength(0);
+  await act(async()=>{release();});
+  await waitFor(()=>expect(screen.queryByDisplayValue("PRIVATE-SETUP-INSTRUCTIONS")).not.toBeInTheDocument());
+  expect(screen.queryByRole("dialog",{name:/^confirm setup details$/i})).not.toBeInTheDocument();
+  expect(server.writes).toHaveLength(0);
+  expect(storage()).not.toContain("PRIVATE-SETUP-INSTRUCTIONS");
+});
+
+test("AC03/05 uncertain publication checks fresh actor before adopting reconciliation",async()=>{
+  const server=install("organiser","lost");await open();fill();
+  let release:(()=>void)|undefined;
+  let before=0;
+  server.hooks.afterWrite=()=>{
+    auth.current={...auth.current!,id:"ffffffff-ffff-4fff-8fff-ffffffffffff",displayName:"Different assigned organiser"};
+    before=applications.requests.filter(r=>r.path === "/api/v1/auth/me").length;
+    release=applications.hold("/api/v1/auth/me");
+  };
+  await publish();
+  await waitFor(()=>expect(server.writes).toHaveLength(1));
+  await waitFor(()=>expect(applications.requests.filter(r=>r.path === "/api/v1/auth/me").length).toBeGreaterThan(before));
+  await act(async()=>{release?.();});
+  await waitFor(()=>expect(screen.queryByDisplayValue("PRIVATE-SETUP-INSTRUCTIONS")).not.toBeInTheDocument());
+  expect(screen.queryByText(/saved state confirmed|setup details published/i)).not.toBeInTheDocument();
+  expect(server.writes).toHaveLength(1);
+  expect(storage()).not.toContain("PRIVATE-SETUP-INSTRUCTIONS");
 });
