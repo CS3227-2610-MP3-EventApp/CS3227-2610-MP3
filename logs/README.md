@@ -34,3 +34,5 @@ The AI checks factual statements against the visible interaction/tool evidence a
 - [2026-10-21 open participation requests](isaac/2026-10-21-open-participation-requests.md): user-approved spec amendments, request/decision journey, agent performance and missed-coverage fixes, 195/173 passing suites, testing-guide and conversation-logging follow-ups; human verification pending.
 
 Each teammate must add summaries for their own earlier sessions and verify the historical coverage. Existing SDD revision records can support backfills but are not original prompt transcripts.
+
+- [2026-10-21 Isaac merge-conflict and verification conversation](isaac/2026-10-21-merge-conversation.md): whole-conversation summary covering preservation of both features, Node compatibility, CI/verifier setup, PowerShell safety, incomplete-run corrections, actual reviewer/test-owner handoffs, specification synchronization and final 452/452 verified cases. Human verification pending; [repair evidence](isaac/2026-10-21-merge-error-repair.md) retains the narrower execution record.
