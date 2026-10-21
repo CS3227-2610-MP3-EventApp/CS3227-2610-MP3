@@ -114,11 +114,11 @@ describe("role homes preserve presentation and accessibility", () => {
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
     const unavailable = screen.getAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(role === "organiser" ? 1 : 2);
+    expect(unavailable).toHaveLength(role === "business" ? 2 : 1);
     for (const button of unavailable) expect(button).toBeDisabled();
     if (role === "attendee") {
-      // BROWSE-TCR-01: only Browse Programme progresses beyond the prototype.
-      for (const title of ["My Itinerary", "Event Assistant"]) {
+      // F02-TCR-01: My Itinerary joins Browse Programme; Event Assistant remains a preview.
+      for (const title of ["Event Assistant"]) {
         const card = screen.getByRole("heading", { name: title }).closest("article")!;
         expect(within(card).getByRole("button", { name: /coming later/i })).toBeDisabled();
       }
@@ -127,6 +127,11 @@ describe("role homes preserve presentation and accessibility", () => {
         ?? screen.queryByRole("button", { name: /browse programme/i })
         ?? within(browseCard).queryByRole("link") ?? within(browseCard).getByRole("button");
       expect(browse).toBeEnabled();
+      const itineraryCard = screen.getByRole("heading", { name: "My Itinerary" }).closest("article")!;
+      const itinerary = screen.queryByRole("link", { name: /my itinerary/i })
+        ?? screen.queryByRole("button", { name: /my itinerary/i })
+        ?? within(itineraryCard).queryByRole("link") ?? within(itineraryCard).getByRole("button");
+      expect(itinerary).toBeEnabled();
     }
     if (role === "business") {
       const entry = screen.getByRole("link", { name: role === "business" ? /^open applications$/i : /^review applications$/i });
