@@ -135,6 +135,19 @@ class AnalysisJob(Input):
     report: AnalysisReport | None
 
 
+class BusinessPreparationJob(Input):
+    id: UUID
+    eventId: UUID
+    participationId: UUID
+    state: Literal["pending", "running", "completed", "failed", "cancelled"]
+    createdAt: datetime
+    updatedAt: datetime
+    completedAt: datetime | None
+    failureCode: str | None
+    providerMayHaveRun: bool
+    draft: None = None
+
+
 class AnalysisHistory(Input):
     items: list[AnalysisReport]
     total: int

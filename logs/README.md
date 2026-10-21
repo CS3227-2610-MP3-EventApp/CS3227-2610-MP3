@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-22 Isaac F06 phase4](isaac/2026-10-22-f06-phase-4-jobs.md): approved business-job foundation and sequential independent pipeline; observed results and pending gates.
+
 - [2026-10-21 Isaac F06 phase2](isaac/2026-10-21-f06-phase-2-implementation.md): approved manual preparation bounds, actual independent test/developer/reviewer handoffs, repairs, local integration/restart evidence and commit; human verification pending.
 - [2026-10-21 Isaac F06 phase3](isaac/2026-10-21-f06-phase-3-setup.md): approved booth/setup scope and ongoing independent test-first pipeline; results recorded as observed, human verification pending.
 

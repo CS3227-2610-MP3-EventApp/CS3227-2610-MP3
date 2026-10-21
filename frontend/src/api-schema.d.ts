@@ -1110,6 +1110,47 @@ export interface components {
              */
             status: "active";
         };
+        /** BusinessPreparationJob */
+        BusinessPreparationJob: {
+            /** Completedat */
+            completedAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Draft */
+            draft?: null;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /** Failurecode */
+            failureCode: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Providermayhaverun */
+            providerMayHaveRun: boolean;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "running" | "completed" | "failed" | "cancelled";
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
         /** BusinessRegistration */
         BusinessRegistration: {
             /** Businessname */
@@ -2031,7 +2072,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnalysisJob"];
+                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"];
                 };
             };
             /** @description Unauthorized */
@@ -2123,7 +2164,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnalysisJob"];
+                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"];
                 };
             };
             /** @description Unauthorized */

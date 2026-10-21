@@ -62,7 +62,8 @@ def _recover_overdue():
 def _claim():
     with SessionLocal.begin() as db:
         service.recovery(db)
-        job = db.scalar(select(AnalysisJob).where(AnalysisJob.state == "pending")
+        job = db.scalar(select(AnalysisJob).where(AnalysisJob.state == "pending",
+            AnalysisJob.workflow == "analysis")
             .order_by(AnalysisJob.created_at, AnalysisJob.id).with_for_update(skip_locked=True).limit(1))
         if job is None:
             return None

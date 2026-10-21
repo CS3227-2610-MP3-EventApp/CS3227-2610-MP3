@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from app.ai.schemas import AnalysisHistory, AnalysisJob as JobView, AnalysisPayload, AnalysisReport as ReportView
 from app.applications.models import Submission
-from app.auth.models import AuditEvent, Event, EventMembership, PasswordCredential, User, utcnow
+from app.auth.models import AuditEvent, BusinessMembership, Event, EventMembership, PasswordCredential, User, utcnow
 from app.business.models import EventParticipation
 from app.settings import Settings
 
@@ -228,17 +228,29 @@ def job_view(db, job):
 
 
 def get_job(db, owner, job_id):
+    if owner.role == "attendee":
+        raise AIError("forbidden")
     job = db.scalar(select(AnalysisJob).where(AnalysisJob.id == job_id, AnalysisJob.owner_id == owner.id))
     if job is None:
+        raise AIError("not_found")
+    if job.workflow == "preparation":
+        return _business_job(db, owner, job)
+    if job.workflow != "analysis" or owner.role != "organiser":
         raise AIError("not_found")
     require_authority(db, owner.id, job.event_id)
     return job_view(db, job)
 
 
 def cancel_job(db, owner, job_id):
+    if owner.role == "attendee":
+        raise AIError("forbidden")
     job = db.scalar(select(AnalysisJob).where(AnalysisJob.id == job_id,
         AnalysisJob.owner_id == owner.id).with_for_update())
     if job is None:
+        raise AIError("not_found")
+    if job.workflow == "preparation":
+        return _cancel_business_job(db, owner, job)
+    if job.workflow != "analysis" or owner.role != "organiser":
         raise AIError("not_found")
     require_authority(db, owner.id, job.event_id)
     if job.state in {"pending", "running"}:
@@ -250,6 +262,51 @@ def cancel_job(db, owner, job_id):
                           resource_revision=job.source_revision, outcome="success"))
     db.flush()
     return job_view(db, job)
+
+
+def _business_job(db, actor, job):
+    from app.ai.schemas import BusinessPreparationJob
+
+    if actor.mustChangePassword:
+        raise AIError("password_change_required")
+    participation = db.get(EventParticipation, job.business_participation_id)
+    if participation is None or participation.event_id != job.event_id:
+        raise AIError("not_found")
+    has_workspace = db.scalar(select(BusinessMembership.id).where(
+        BusinessMembership.user_id == actor.id,
+        BusinessMembership.membership_role == "owner",
+        BusinessMembership.status == "active").limit(1))
+    if not has_workspace:
+        raise AIError("forbidden")
+    membership = db.scalar(select(BusinessMembership.id).where(
+        BusinessMembership.user_id == actor.id,
+        BusinessMembership.business_id == participation.business_id,
+        BusinessMembership.membership_role == "owner",
+        BusinessMembership.status == "active"))
+    if actor.role != "business" or membership is None:
+        raise AIError("not_found")
+    return BusinessPreparationJob(id=job.id, eventId=job.event_id,
+        participationId=participation.id, state=job.state, createdAt=job.created_at,
+        updatedAt=job.updated_at, completedAt=job.completed_at,
+        failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run,
+        draft=None)
+
+
+def _cancel_business_job(db, actor, job):
+    # The job row is already locked by cancel_job; membership is rechecked in
+    # this transaction before any state or audit mutation.
+    view = _business_job(db, actor, job)
+    if job.state in {"pending", "running"}:
+        now = utcnow()
+        job.state = "cancelled"
+        job.updated_at = now
+        job.completed_at = now
+        job.provider_may_have_run = job.dispatch_at is not None
+        db.add(AuditEvent(user_id=actor.id, action="preparation_job_cancel",
+            resource_id=job.id, resource_revision=None, outcome="success"))
+        db.flush()
+        return _business_job(db, actor, job)
+    return view
 
 
 def history(db, owner, event_id, application_id, limit=20, offset=0):
@@ -305,6 +362,7 @@ def problem_response(request, code):
         "revision_conflict": (409, "The analysis inputs changed."), "active_job": (409, "An analysis is already active."),
         "daily_limit": (429, "The daily analysis limit has been reached."),
         "validation_error": (422, "Request validation failed."),
+        "password_change_required": (403, "Password change is required."),
         "service_unavailable": (503, "AI analysis is not available for this event."),
     }
     status, detail = mapping.get(code, mapping["service_unavailable"])

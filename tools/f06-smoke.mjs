@@ -104,11 +104,11 @@ async function browserAs(actor, route) {
   await cdp('Emulation.setFocusEmulationEnabled', { enabled: true });
   await cdp('Page.navigate', { url: base + route });
 }
-let savedSetup;
+let savedSetup, savedJob;
 await cdp('Page.enable'); await cdp('Network.enable');
 await cdp('Network.setCookie', { name: 'eventapp_session', value: biz.cookie.slice('eventapp_session='.length), url: base, httpOnly: true, sameSite: 'Lax' });
 await cdp('Page.navigate', { url: base + '/business/preparation?businessId=' + businessId + '&eventId=' + eventId + '&participationId=' + pid });
-console.log('BROWSER_READY; commands phase2, restart2, phase3, restart3, quit. Credentials remain memory-only.');
+console.log('BROWSER_READY; commands phase2, restart2, phase3, restart3, phase4, restart4, quit. Credentials remain memory-only.');
 const input = createInterface({ input: process.stdin, crlfDelay: Infinity });
 for await (const command of input) {
   try {
@@ -158,6 +158,37 @@ for await (const command of input) {
       await cdp('Page.reload');
       await until(() => evaluate("document.body.innerText.includes('INVENTED-SMOKE-A1')"));
       console.log('PHASE3_RESTART_PASS: setup and manual preparation retained without reseeding');
+    } else if (command === 'phase4') {
+      const jobId = randomUUID();
+      const seeded = spawnSync(path.join(root, 'backend/.venv/Scripts/python.exe'), ['-c', `import json,sys
+from datetime import timedelta
+from uuid import UUID
+from app.database import SessionLocal
+from app.ai.models import AnalysisJob
+from app.business.models import EventParticipation
+from app.applications.models import Submission
+from app.auth.models import utcnow
+d=json.load(sys.stdin)
+with SessionLocal.begin() as db:
+ db.add(AnalysisJob(id=UUID(d['id']),owner_id=UUID(d['owner']),event_id=UUID(d['event']),business_participation_id=UUID(d['participation']),workflow='preparation',application_id=None,source_revision=None,rubric_revision=None,request_id=UUID(d['request']),comparison_revisions=[],state='pending',provider_may_have_run=False,deadline_at=utcnow()+timedelta(seconds=180)))
+`], { cwd: path.join(root, 'backend'), encoding: 'utf8', env: { ...process.env, DATABASE_URL: 'postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp' }, input: JSON.stringify({ id: jobId, owner: actor.id, event: eventId, participation: pid, request: randomUUID() }) });
+      if (seeded.status !== 0) {
+        const category = seeded.stderr?.match(/(?:^|\n)([A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception)):/g)?.at(-1)?.trim().slice(0, -1) ?? 'unknown';
+        throw Error('Invented infrastructure job seed failed (' + category + ')');
+      }
+      savedJob = await api(biz, 'GET', '/api/v1/ai/jobs/' + jobId);
+      if (savedJob.state !== 'pending' || savedJob.participationId !== pid || savedJob.draft !== null) throw Error('Wrong business job envelope');
+      await api(org, 'GET', '/api/v1/ai/jobs/' + jobId, undefined, 404);
+      await api(anon, 'GET', '/api/v1/ai/jobs/' + jobId, undefined, 401);
+      await api(biz, 'POST', '/api/v1/ai/jobs/' + jobId + '/cancel', undefined, 403, false);
+      console.log('PHASE4_HTTP_PASS: trusted invented job, exact business context, role/Origin denials; no provider dispatch');
+    } else if (command === 'restart4') {
+      if (!savedJob || JSON.stringify(await api(biz, 'GET', '/api/v1/ai/jobs/' + savedJob.id)) !== JSON.stringify(savedJob)) throw Error('Restart changed pending job');
+      const cancelled = await api(biz, 'POST', '/api/v1/ai/jobs/' + savedJob.id + '/cancel');
+      if (cancelled.state !== 'cancelled' || cancelled.providerMayHaveRun) throw Error('Wrong cancellation state');
+      if (JSON.stringify(await api(biz, 'POST', '/api/v1/ai/jobs/' + savedJob.id + '/cancel')) !== JSON.stringify(cancelled)) throw Error('Cancel replay changed state');
+      if (JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(saved)) throw Error('Job changed manual preparation');
+      console.log('PHASE4_RESTART_PASS: pending job retained without reseed, idempotent cancellation, manual preservation');
     } else if (command === 'quit') { await cdp('Browser.close'); break; }
     else console.log('UNKNOWN_COMMAND');
   } catch (error) { console.log('SMOKE_FAILURE: ' + error.message); }

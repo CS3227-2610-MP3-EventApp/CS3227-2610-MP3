@@ -1045,6 +1045,91 @@
         "title": "BusinessMembershipActor",
         "type": "object"
       },
+      "BusinessPreparationJob": {
+        "additionalProperties": false,
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "draft": {
+            "title": "Draft",
+            "type": "null"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "participationId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun"
+        ],
+        "title": "BusinessPreparationJob",
+        "type": "object"
+      },
       "BusinessRegistration": {
         "additionalProperties": false,
         "properties": {
@@ -3181,7 +3266,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalysisJob"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AnalysisJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPreparationJob"
+                    }
+                  ],
+                  "title": "Response Get Job Api V1 Ai Jobs  Jobid  Get"
                 }
               }
             },
@@ -3296,7 +3389,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalysisJob"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AnalysisJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPreparationJob"
+                    }
+                  ],
+                  "title": "Response Cancel Job Api V1 Ai Jobs  Jobid  Cancel Post"
                 }
               }
             },
