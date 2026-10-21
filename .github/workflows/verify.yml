@@ -1,0 +1,68 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20.x", "22.x", "24.x", "26.x"]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Configure browser-test storage
+        if: matrix.node != '20.x'
+        run: echo 'NODE_OPTIONS=--no-experimental-webstorage' >> "$GITHUB_ENV"
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: eventapp_test
+          POSTGRES_PASSWORD: eventapp_test
+          POSTGRES_DB: eventapp_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U eventapp_test -d eventapp_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+psycopg://eventapp:eventapp@127.0.0.1:5432/eventapp
+      TEST_DATABASE_URL: postgresql+psycopg://eventapp_test:eventapp_test@127.0.0.1:5433/eventapp_test
+      EVENTAPP_ALLOW_TEST_DB_RESET: "true"
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --all-groups
+      - run: uv run pytest

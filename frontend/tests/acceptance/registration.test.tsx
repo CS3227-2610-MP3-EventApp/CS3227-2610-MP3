@@ -68,7 +68,7 @@ describe("AC03-AC04 and AC07 registration", () => {
     expect(screen.getByLabelText(/^username$/i)).toHaveValue("ab");
     expect(screen.getByText(/username.*at least 3/i)).toBeVisible();
     expect(screen.getByText(/valid email/i)).toBeVisible();
-    expect(screen.getByText(/password.*at least 8/i)).toBeVisible();
+    expect(screen.getByText("Use between 8 and 128 characters.")).toBeVisible();
     expect(screen.getByText(/passwords.*match/i)).toBeVisible();
     expect(screen.getByLabelText(/display name/i)).toHaveValue("Synthetic Person");
   });

@@ -1,6 +1,201 @@
 {
   "components": {
     "schemas": {
+      "ApplicationContent": {
+        "additionalProperties": false,
+        "properties": {
+          "contactEmail": {
+            "title": "Contactemail",
+            "type": "string"
+          },
+          "contactName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Contactname",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "participantType": {
+            "enum": [
+              "exhibitor",
+              "vendor"
+            ],
+            "title": "Participanttype",
+            "type": "string"
+          },
+          "requestedSpace": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Requestedspace",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participantType",
+          "description",
+          "requestedSpace",
+          "contactName",
+          "contactEmail"
+        ],
+        "title": "ApplicationContent",
+        "type": "object"
+      },
+      "ApplicationEvent": {
+        "properties": {
+          "applicationId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applicationid"
+          },
+          "applicationsOpen": {
+            "title": "Applicationsopen",
+            "type": "boolean"
+          },
+          "endsAt": {
+            "format": "date-time",
+            "title": "Endsat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "eventRevision": {
+            "title": "Eventrevision",
+            "type": "integer"
+          },
+          "settingsRevision": {
+            "title": "Settingsrevision",
+            "type": "integer"
+          },
+          "startsAt": {
+            "format": "date-time",
+            "title": "Startsat",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "eventId",
+          "title",
+          "timezone",
+          "startsAt",
+          "endsAt",
+          "eventRevision",
+          "applicationsOpen",
+          "settingsRevision",
+          "applicationId"
+        ],
+        "title": "ApplicationEvent",
+        "type": "object"
+      },
+      "ApplicationProblem": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "currentApplication": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessApplication"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FieldError"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "ApplicationProblem",
+        "type": "object"
+      },
+      "ApplicationSettings": {
+        "properties": {
+          "applicationsOpen": {
+            "title": "Applicationsopen",
+            "type": "boolean"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "eventId",
+          "applicationsOpen",
+          "revision"
+        ],
+        "title": "ApplicationSettings",
+        "type": "object"
+      },
       "AttendeeRegistration": {
         "additionalProperties": false,
         "properties": {
@@ -34,6 +229,139 @@
           "password"
         ],
         "title": "AttendeeRegistration",
+        "type": "object"
+      },
+      "AuthFieldError": {
+        "properties": {
+          "code": {
+            "enum": [
+              "required",
+              "password_length",
+              "invalid"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "enum": [
+              "username",
+              "email",
+              "displayName",
+              "password",
+              "businessName",
+              "identifier",
+              "role",
+              "currentPassword",
+              "newPassword",
+              "request"
+            ],
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "code"
+        ],
+        "title": "AuthFieldError",
+        "type": "object"
+      },
+      "BusinessApplication": {
+        "properties": {
+          "businessId": {
+            "format": "uuid",
+            "title": "Businessid",
+            "type": "string"
+          },
+          "businessName": {
+            "title": "Businessname",
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/ApplicationContent"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Decision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "eventTitle": {
+            "title": "Eventtitle",
+            "type": "string"
+          },
+          "frozenSubmittedContentRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frozensubmittedcontentrevision"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "submitted",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submittedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submittedat"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "businessName",
+          "eventId",
+          "eventTitle",
+          "participationId",
+          "status",
+          "revision",
+          "content",
+          "frozenSubmittedContentRevision",
+          "submittedAt",
+          "decision"
+        ],
+        "title": "BusinessApplication",
         "type": "object"
       },
       "BusinessMembershipActor": {
@@ -109,6 +437,62 @@
         "title": "BusinessRegistration",
         "type": "object"
       },
+      "CreateApplication": {
+        "additionalProperties": false,
+        "properties": {
+          "businessId": {
+            "format": "uuid",
+            "title": "Businessid",
+            "type": "string"
+          },
+          "contactEmail": {
+            "title": "Contactemail",
+            "type": "string"
+          },
+          "contactName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Contactname",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "participantType": {
+            "enum": [
+              "exhibitor",
+              "vendor"
+            ],
+            "title": "Participanttype",
+            "type": "string"
+          },
+          "requestedSpace": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Requestedspace",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participantType",
+          "description",
+          "requestedSpace",
+          "contactName",
+          "contactEmail",
+          "businessId",
+          "eventId"
+        ],
+        "title": "CreateApplication",
+        "type": "object"
+      },
       "CurrentActor": {
         "properties": {
           "businessMemberships": {
@@ -162,6 +546,76 @@
           "businessMemberships"
         ],
         "title": "CurrentActor",
+        "type": "object"
+      },
+      "DecideApplication": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "outcome": {
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "outcome"
+        ],
+        "title": "DecideApplication",
+        "type": "object"
+      },
+      "Decision": {
+        "properties": {
+          "decidedAt": {
+            "format": "date-time",
+            "title": "Decidedat",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "outcome",
+          "reason",
+          "decidedAt"
+        ],
+        "title": "Decision",
         "type": "object"
       },
       "EventFacts": {
@@ -265,6 +719,25 @@
           "revision"
         ],
         "title": "EventSummary",
+        "type": "object"
+      },
+      "FieldError": {
+        "properties": {
+          "code": {
+            "const": "invalid",
+            "default": "invalid",
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field"
+        ],
+        "title": "FieldError",
         "type": "object"
       },
       "ItemFields": {
@@ -466,6 +939,57 @@
         "title": "LoginRequest",
         "type": "object"
       },
+      "OrganiserEventSummary": {
+        "properties": {
+          "applicationsOpen": {
+            "title": "Applicationsopen",
+            "type": "boolean"
+          },
+          "endsAt": {
+            "format": "date-time",
+            "title": "Endsat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "eventRevision": {
+            "title": "Eventrevision",
+            "type": "integer"
+          },
+          "settingsRevision": {
+            "title": "Settingsrevision",
+            "type": "integer"
+          },
+          "startsAt": {
+            "format": "date-time",
+            "title": "Startsat",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "eventId",
+          "title",
+          "timezone",
+          "startsAt",
+          "endsAt",
+          "eventRevision",
+          "applicationsOpen",
+          "settingsRevision"
+        ],
+        "title": "OrganiserEventSummary",
+        "type": "object"
+      },
       "Page_EventSummary_": {
         "properties": {
           "items": {
@@ -658,6 +1182,20 @@
             "title": "Detail",
             "type": "string"
           },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AuthFieldError"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
           "instance": {
             "title": "Instance",
             "type": "string"
@@ -837,6 +1375,20 @@
             ],
             "title": "Errors"
           },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AuthFieldError"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
           "instance": {
             "title": "Instance",
             "type": "string"
@@ -1014,6 +1566,56 @@
           "room"
         ],
         "title": "PublishedProgramme",
+        "type": "object"
+      },
+      "ReplaceApplication": {
+        "additionalProperties": false,
+        "properties": {
+          "contactEmail": {
+            "title": "Contactemail",
+            "type": "string"
+          },
+          "contactName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Contactname",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "participantType": {
+            "enum": [
+              "exhibitor",
+              "vendor"
+            ],
+            "title": "Participanttype",
+            "type": "string"
+          },
+          "requestedSpace": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Requestedspace",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participantType",
+          "description",
+          "requestedSpace",
+          "contactName",
+          "contactEmail",
+          "expectedRevision"
+        ],
+        "title": "ReplaceApplication",
         "type": "object"
       },
       "RevisionRequest": {
@@ -1206,6 +1808,41 @@
           "expectedRevision"
         ],
         "title": "RoomReplacement",
+        "type": "object"
+      },
+      "SubmitApplication": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedRevision"
+        ],
+        "title": "SubmitApplication",
+        "type": "object"
+      },
+      "UpdateApplicationSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "applicationsOpen": {
+            "title": "Applicationsopen",
+            "type": "boolean"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "applicationsOpen"
+        ],
+        "title": "UpdateApplicationSettings",
         "type": "object"
       },
       "ValidationResult": {
@@ -2672,6 +3309,850 @@
         ]
       }
     },
+    "/api/v1/business/application-events": {
+      "get": {
+        "operationId": "events_api_v1_business_application_events_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "businessId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Businessid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationEvent"
+                  },
+                  "title": "Response Events Api V1 Business Application Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Events",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/business/applications": {
+      "get": {
+        "operationId": "applications_api_v1_business_applications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "businessId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Businessid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessApplication"
+                  },
+                  "title": "Response Applications Api V1 Business Applications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Applications",
+        "tags": [
+          "Business applications"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_applications_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApplication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApplication"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/business/applications/{applicationId}": {
+      "get": {
+        "operationId": "detail_api_v1_business_applications__applicationId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "applicationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Applicationid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApplication"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Detail",
+        "tags": [
+          "Business applications"
+        ]
+      },
+      "put": {
+        "operationId": "replace_api_v1_business_applications__applicationId__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "applicationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Applicationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceApplication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApplication"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/business/applications/{applicationId}/submit": {
+      "post": {
+        "operationId": "submit_api_v1_business_applications__applicationId__submit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "applicationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Applicationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitApplication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApplication"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Submit",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "live_api_v1_health_live_get",
@@ -2728,39 +4209,17 @@
     },
     "/api/v1/organiser/events": {
       "get": {
-        "operationId": "organiser_events_api_v1_organiser_events_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 100,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "maximum": 2147483647,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          }
-        ],
+        "operationId": "assigned_events_api_v1_organiser_events_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_EventSummary_"
+                  "items": {
+                    "$ref": "#/components/schemas/OrganiserEventSummary"
+                  },
+                  "title": "Response Assigned Events Api V1 Organiser Events Get",
+                  "type": "array"
                 }
               }
             },
@@ -2770,14 +4229,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Unauthorized"
           },
@@ -2785,14 +4240,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Forbidden"
           },
@@ -2800,44 +4251,54 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
           },
           "409": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
           },
           "422": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Unprocessable Entity"
           },
@@ -2845,14 +4306,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Internal Server Error"
           },
@@ -2860,14 +4317,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
+                  "$ref": "#/components/schemas/ApplicationProblem"
                 }
               },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProgrammeProblem"
-                }
-              }
+              "application/problem+json": {}
             },
             "description": "Service Unavailable"
           }
@@ -2877,9 +4330,1004 @@
             "APIKeyCookie": []
           }
         ],
-        "summary": "Organiser Events",
+        "summary": "Assigned Events",
         "tags": [
-          "Programme"
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{eventId}/application-settings": {
+      "get": {
+        "operationId": "application_settings_api_v1_organiser_events__eventId__application_settings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Application Settings",
+        "tags": [
+          "Business applications"
+        ]
+      },
+      "put": {
+        "operationId": "save_application_settings_api_v1_organiser_events__eventId__application_settings_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApplicationSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Save Application Settings",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{eventId}/applications": {
+      "get": {
+        "operationId": "review_list_api_v1_organiser_events__eventId__applications_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessApplication"
+                  },
+                  "title": "Response Review List Api V1 Organiser Events  Eventid  Applications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Review List",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{eventId}/applications/{applicationId}": {
+      "get": {
+        "operationId": "review_detail_api_v1_organiser_events__eventId__applications__applicationId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "applicationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Applicationid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApplication"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Review Detail",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{eventId}/applications/{applicationId}/decision": {
+      "post": {
+        "operationId": "decide_api_v1_organiser_events__eventId__applications__applicationId__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "applicationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Applicationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideApplication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApplication"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Decide",
+        "tags": [
+          "Business applications"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{eventId}/business-approvals": {
+      "get": {
+        "operationId": "approvals_api_v1_organiser_events__eventId__business_approvals_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Approvals",
+        "tags": [
+          "Business applications"
+        ]
+      },
+      "post": {
+        "operationId": "approve_api_v1_organiser_events__eventId__business_approvals_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Approve",
+        "tags": [
+          "Business applications"
         ]
       }
     },
@@ -5462,6 +7910,163 @@
           }
         ],
         "summary": "Create Room",
+        "tags": [
+          "Programme"
+        ]
+      }
+    },
+    "/api/v1/organiser/programme-events": {
+      "get": {
+        "operationId": "organiser_events_api_v1_organiser_programme_events_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_EventSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgrammeProblem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Organiser Events",
         "tags": [
           "Programme"
         ]

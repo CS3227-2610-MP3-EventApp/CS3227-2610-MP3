@@ -110,9 +110,11 @@ class BusinessMembership(Base):
 
 class AuditEvent(Base):
     __tablename__ = "audit_events"
+    __table_args__ = (CheckConstraint("resource_revision IS NULL OR resource_revision >= 1", name="ck_audit_resource_revision"),)
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
     action: Mapped[str] = mapped_column(String(64))
     resource_id: Mapped[UUID | None]
+    resource_revision: Mapped[int | None] = mapped_column(Integer)
     outcome: Mapped[str] = mapped_column(String(16))
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

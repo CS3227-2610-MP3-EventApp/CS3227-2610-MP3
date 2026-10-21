@@ -7,7 +7,7 @@
 | Specification revision / status | 2 / In review |
 | Product roles / roadmap | No product role; [phase 0 foundation](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Requesting teammate approved this bounded foundation and safe local defaults in the latest scope instruction |
-| Review / run record | [Implementation and multi-agent evidence](../../workflow/agents/runs/2026-10-18-backend-foundation.md); automated and independent reviews pass, clean development-database workflow and human review pending |
+| Review / run record | [Implementation and multi-agent evidence](../../workflow/agents/runs/2026-10-18-backend-foundation.md); [2026-10-20 isolated development workflow](../../workflow/agents/runs/2026-10-20-foundation-follow-through.md) passed; human review and fresh-machine setup remain pending |
 
 This Draft follows the [specification standard](../README.md), [development workflow](../../workflow/README.md), [agent workflow](../../workflow/agents/README.md) and applicable environment-separation rules in [security](../../docs/security.md). It establishes only a runnable technical backend foundation.
 
@@ -90,6 +90,8 @@ The public boundary is limited to the three `GET` endpoints above. Runtime depen
 Revision 2 is implemented at `e3535964bf759589ed9d76fed168af842382692b`. The replacement protected baseline, all 16 backend tests, real test-PostgreSQL readiness and empty migration, loopback HTTP smoke, compilation, migration-head check, and independent behaviour/security reviews pass. A local PostgreSQL process already occupying port 5432 prevented a clean run of the documented development Compose service; the isolated test database and backend ran on port 5433. Human teammate review remains pending, so the capability stays In review. No production readiness is claimed.
 
 ## Revision history
+
+Evidence update, 2026-10-20 (no contract/status/revision change): at `1249e012c9df348e9d9a6fe1144a1f8ddde77ac2`, the independent behaviour verifier completed the previously missing clean empty-development-database workflow using a verified-absent isolated Compose project and retained the existing development volume untouched. Python 3.12.15 dependency sync, approved current-head migrations, exact loopback reload Uvicorn command, real live/ready/OpenAPI requests and listener checks passed. Current head includes the separately approved auth tables; the historical foundation-only schema expectation remains scoped to its original migration. Services started by the check were stopped. This reused the checkout/venv and does not establish fresh-machine installation, required human review or production delivery. Exact evidence and scope are in the follow-through run above; historical results remain tied to their original snapshots.
 
 | Revision / date | Change | Approval / evidence impact |
 | --- | --- | --- |

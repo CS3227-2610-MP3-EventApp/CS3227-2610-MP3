@@ -51,6 +51,34 @@ def draft(client, base, room, **updates):
     return request(client, "POST", base + "/programme-items", fields(room, **updates), 201)
 
 
+def test_organiser_discovery_contracts_are_distinct_and_routes_are_unique(journey):
+    from app.main import app
+
+    organiser, attendee, base, _, other = journey
+    event_id = base.rsplit("/", 1)[1]
+    applications = request(organiser, "GET", "/api/v1/organiser/events")
+    assert isinstance(applications, list)
+    assert [event["eventId"] for event in applications] == [event_id]
+    assert applications[0]["applicationsOpen"] is False
+    assert applications[0]["settingsRevision"] == 1
+
+    programme = request(organiser, "GET", "/api/v1/organiser/programme-events")
+    assert set(programme) == {"items", "total", "limit", "offset"}
+    assert (programme["total"], programme["limit"], programme["offset"]) == (1, 50, 0)
+    assert [event["id"] for event in programme["items"]] == [event_id]
+    assert other not in {event["id"] for event in programme["items"]}
+    paginated = request(organiser, "GET", "/api/v1/organiser/programme-events?limit=1&offset=1")
+    assert paginated == {"items": [], "total": 1, "limit": 1, "offset": 1}
+    invalid = request(organiser, "GET", "/api/v1/organiser/programme-events?limit=0", status=422)
+    assert invalid["errors"] == {"limit": ["Invalid or missing value."]}
+    assert "fieldErrors" not in invalid
+    request(attendee, "GET", "/api/v1/organiser/events", status=403)
+    request(attendee, "GET", "/api/v1/organiser/programme-events", status=403)
+
+    registrations = [(method, route.path) for route in app.routes for method in getattr(route, "methods", ())]
+    assert len(registrations) == len(set(registrations))
+
+
 def test_create_validate_publish_exact_snapshot_and_audit(journey):
     organiser, attendee, base, public, _ = journey
     venue, room = locations(organiser, base)

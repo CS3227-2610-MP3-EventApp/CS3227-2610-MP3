@@ -27,7 +27,7 @@ O = "/organiser/events/{event_id}"
 A = "/attendee/events/{event_id}"
 
 
-@router.get("/organiser/events", response_model=schemas.Page[schemas.EventSummary])
+@router.get("/organiser/programme-events", response_model=schemas.Page[schemas.EventSummary])
 def organiser_events(db: DB, actor: OrganiserWorkspace, limit: Limit = 50, offset: Offset = 0):
     query = select(Event).join(EventMembership).where(EventMembership.user_id == actor.id, EventMembership.status == "active", EventMembership.role == "organiser").order_by(Event.starts_at, Event.id)
     return svc.page(db, query, schemas.EventSummary, limit, offset)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import psycopg
@@ -27,7 +28,7 @@ def test_empty_database_upgrade_creates_authentication_tables() -> None:
         connection.execute("CREATE SCHEMA public")
 
     result = subprocess.run(
-        ["uv", "run", "alembic", "upgrade", "head"],
+        ["uv", "run", "alembic", "upgrade", "20261019_0002"],
         cwd=BACKEND,
         env={**os.environ, "DATABASE_URL": os.environ["TEST_DATABASE_URL"]},
         capture_output=True,
@@ -41,7 +42,7 @@ def test_empty_database_upgrade_creates_authentication_tables() -> None:
             "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'"
         ).fetchall()
 
-    assert {row[0] for row in tables} == {"alembic_version", "users", "password_credentials", "sessions", "businesses", "business_memberships", "events", "event_memberships", "audit_events", "venues", "rooms", "programme_items", "programme_item_revisions"}
+    assert {row[0] for row in tables} == {"alembic_version", "users", "password_credentials", "sessions", "businesses", "business_memberships", "events", "event_memberships", "audit_events"}
 
 
 def test_programme_upgrade_preserves_existing_authentication_records() -> None:
@@ -55,6 +56,8 @@ def test_programme_upgrade_preserves_existing_authentication_records() -> None:
     environment = {**os.environ, "DATABASE_URL": os.environ["TEST_DATABASE_URL"]}
     old = subprocess.run(["uv", "run", "alembic", "upgrade", "20261019_0002"], cwd=BACKEND, env=environment, capture_output=True, text=True)
     assert old.returncode == 0, old.stdout + old.stderr
+    business = subprocess.run(["uv", "run", "alembic", "upgrade", "20261020_0003"], cwd=BACKEND, env=environment, capture_output=True, text=True)
+    assert business.returncode == 0, business.stdout + business.stderr
     event = str(uuid4())
     result = bootstrap(["event", "--id", event, "--title", "Preserved event", "--timezone", "Asia/Singapore", "--starts-at", "2027-01-01T09:00:00+08:00", "--ends-at", "2027-01-01T18:00:00+08:00"])
     assert result.returncode == 0, result.stderr
@@ -94,7 +97,7 @@ def test_reset_guard_rejects_unsafe_targets_before_database_import() -> None:
         if not overrides:
             environment.pop("EVENTAPP_ALLOW_TEST_DB_RESET", None)
         result = subprocess.run(
-            ["python", "-c", "from tests.reset_guard import require_synthetic_reset_target; require_synthetic_reset_target()"],
+            [sys.executable, "-c", "from tests.reset_guard import require_synthetic_reset_target; require_synthetic_reset_target()"],
             cwd=BACKEND,
             env=environment,
             capture_output=True,

@@ -74,7 +74,15 @@ def problem(response, status, code):
     assert response.status_code == status, response.text
     assert response.headers["content-type"].startswith("application/problem+json")
     body = response.json()
-    assert set(body) == {"type", "title", "status", "detail", "instance", "code"}
+    expected = {"type", "title", "status", "detail", "instance", "code"}
+    if code == "validation_error":
+        expected.add("fieldErrors")
+        fields = body["fieldErrors"]
+        assert fields and fields == sorted(fields, key=lambda item: (item["field"], item["code"]))
+        assert len({(item["field"], item["code"]) for item in fields}) == len(fields)
+        assert all(set(item) == {"field", "code"} and item["code"] in {"required", "password_length", "invalid"} for item in fields)
+        assert {item["field"] for item in fields} <= {"username", "email", "displayName", "password", "businessName", "identifier", "role", "currentPassword", "newPassword", "request"}
+    assert set(body) == expected
     assert body["type"] == "about:blank" and body["status"] == status and body["code"] == code
     assert body["instance"] == response.request.url.path
     assert response.headers.get("cache-control") == "no-store"
@@ -285,7 +293,7 @@ def test_mandatory_change_rotates_current_cookie_revokes_other_sessions_and_old_
         with connect() as connection:
             original_expiry = connection.execute("SELECT expires_at FROM sessions WHERE token_hash=%s", (hashlib.sha256(previous.encode()).hexdigest(),)).fetchone()[0]
         invalid = client.post("/api/v1/auth/change-password", json={"currentPassword": "Wrong-Password", "newPassword": "Replacement-123"}, headers=ORIGIN)
-        assert invalid.status_code == 401
+        assert problem(invalid, 422, "current_password_incorrect")["detail"] == "The current password is incorrect."
         assert other.get("/api/v1/auth/me").status_code == 200
         response = client.post("/api/v1/auth/change-password", json={"currentPassword": PASSWORD, "newPassword": "Replacement-123"}, headers=ORIGIN)
         assert response.status_code == 200 and response.json()["mustChangePassword"] is False
@@ -310,7 +318,7 @@ def test_same_password_is_not_a_mandatory_initial_password_replacement(client):
         sessions_before = connection.execute("SELECT token_hash,expires_at,revoked_at FROM sessions ORDER BY id").fetchall()
     assert credential_before[1] is True
     response = client.post("/api/v1/auth/change-password", json={"currentPassword": PASSWORD, "newPassword": PASSWORD}, headers=ORIGIN)
-    problem(response, 422, "validation_error")
+    assert problem(response, 422, "password_unchanged")["detail"] == "The new password must be different from your current password."
     assert PASSWORD not in response.text and "set-cookie" not in response.headers
     assert client.cookies["eventapp_session"] == token
     with connect() as connection:

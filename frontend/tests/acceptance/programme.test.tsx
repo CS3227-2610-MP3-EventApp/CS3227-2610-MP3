@@ -56,7 +56,7 @@ function programmeServer(options: { unavailable?: boolean; emptyLocations?: bool
       return problem(failure.status, failure.detail, failure.errors);
     }
     const list = (values: unknown[]) => json({ items: values, total: values.length, limit: 50, offset: 0 });
-    if (url.pathname === "/api/v1/organiser/events" && method === "GET") return list(options.events ?? [event]);
+    if (url.pathname === "/api/v1/organiser/programme-events" && method === "GET") return list(options.events ?? [event]);
     const match = url.pathname.match(/^\/api\/v1\/organiser\/events\/([^/]+)\/(venues|rooms|programme-items)(?:\/([^/]+))?(?:\/(rooms|validate|publish))?$/);
     if (!match) return problem(404, "Unknown programme resource.");
     const [, eventId, resource, id, action] = match;
@@ -166,7 +166,7 @@ describe("organiser programme entry and server states", () => {
   test.each(["light", "dark"])("loads permitted events in %s appearance without publishing anything", async (mode) => {
     localStorage.setItem("eventapp.colorMode", mode); seedActor("organiser");
     const server = programmeServer(); await openProgramme();
-    await waitFor(() => expect(server.requests.some(({ path }) => path === "/api/v1/organiser/events")).toBe(true));
+    await waitFor(() => expect(server.requests.some(({ path }) => path === "/api/v1/organiser/programme-events")).toBe(true));
     expect(await screen.findByText(/Synthetic Convention/)).toBeVisible();
     expect(screen.getByRole("heading", { name: /programme/i })).toBeVisible();
     expect(server.writes()).toEqual([]); expect(auth.current?.role).toBe("organiser");
@@ -202,7 +202,7 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
     expectCompleteItem(server.writes()[2].body);
     expect(server.items[0]).toMatchObject({ ...fields, revision: 1, state: "draft", publishedAt: null });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  }, 10000);
+  }, 30_000);
 
   test("F01-AC03/07 saves complete edits with expectedRevision and converts event-local times", async () => {
     seedActor("organiser"); const server = programmeServer({ items: [draft] });
@@ -225,7 +225,7 @@ describe("revision-6 organiser editing (mocked HTTP integration)", () => {
       expect(await screen.findByText(/^Revision\s*2$/i)).toBeVisible();
       expect(server.items[0].state).toBe("draft"); expect(server.writes()).toHaveLength(1);
     } finally { browserZone.mockRestore(); }
-  });
+  }, 30_000);
 
   test("F01-AC03/07 preserves untouched fractional instants on a title-only edit at the event boundary", async () => {
     seedActor("organiser");

@@ -1,42 +1,82 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Box, Button, Typography } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import { api, ApiError } from "./api";
 import type { CurrentActor } from "./session";
-
-const AuthContext = createContext<{
-  actor: CurrentActor | null;
-  setActor: (actor: CurrentActor | null) => void;
-} | null>(null);
-
+import type { DraftMemory, OrganiserDraftMemory } from "./applications/model";
+interface AuthValue {
+  actor: CurrentActor | null; setActor: (actor: CurrentActor | null) => void;
+  sessionNotice: string; setSessionNotice: (notice: string) => void;
+  revalidate: () => void; memory: Map<string, DraftMemory>; destinations: Map<string, string>;
+  organiserMemory: Map<string, OrganiserDraftMemory>;
+}
+const AuthContext = createContext<AuthValue | null>(null);
+function identity(actor: CurrentActor | null) { return actor ? JSON.stringify([actor.id, actor.role, actor.mustChangePassword]) : ""; }
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [actor, setActor] = useState<CurrentActor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [actor, updateActor] = useState<CurrentActor | null>(null);
+  const actorRef = useRef(actor);
+  const memory = useRef(new Map<string, DraftMemory>());
+  const organiserMemory = useRef(new Map<string, OrganiserDraftMemory>());
+  const destinations = useRef(new Map<string, string>());
+  const [loading, setLoading] = useState(true), [error, setError] = useState("");
+  const [stillLoading, setStillLoading] = useState(false);
+  const [sessionNotice, setSessionNotice] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const epoch = useRef(0);
+  const location = useLocation();
+  function setActor(value: CurrentActor | null) {
+    epoch.current++;
+    if (!value || identity(value) !== identity(actorRef.current)) {
+      memory.current.clear(); organiserMemory.current.clear(); destinations.current.clear();
+      if (identity(value) !== identity(actorRef.current)) setSessionNotice("");
+    } else {
+      const owns = (businessId: string) => value.businessMemberships.some((membership) => membership.businessId === businessId && membership.status === "active" && membership.role === "owner");
+      const assigned = (eventId: string) => value.eventMemberships.some((membership) => membership.eventId === eventId && membership.status === "active" && membership.role === "organiser");
+      let lostScope = false;
+      for (const key of organiserMemory.current.keys()) {
+        const [actorId, eventId] = key.split(":");
+        if (actorId !== value.id || value.role !== "organiser" || !assigned(eventId)) {
+          organiserMemory.current.delete(key); lostScope = true;
+        }
+      }
+      for (const key of memory.current.keys()) {
+        const [actorId, role, businessId, eventId] = key.split(":");
+        if (actorId !== value.id || role !== value.role || role === "business" && !owns(businessId) || role === "organiser" && !assigned(eventId)) {
+          memory.current.delete(key); lostScope = true;
+        }
+      }
+      for (const [role, destination] of destinations.current) {
+        const params = new URL(destination, window.location.origin).searchParams;
+        if (role === "business" && params.has("businessId") && !owns(params.get("businessId")!) || role === "organiser" && params.has("eventId") && !assigned(params.get("eventId")!)) {
+          destinations.current.delete(role); lostScope = true;
+        }
+      }
+      if (lostScope || actorRef.current?.businessMemberships.some((membership) => !owns(membership.businessId)) || actorRef.current?.eventMemberships.some((membership) => !assigned(membership.eventId))) setSessionNotice("");
+    }
+    actorRef.current = value; updateActor(value);
+  }
+  function revalidate() { epoch.current++; setLoading(true); setAttempt((value) => value + 1); }
+  useEffect(() => {
+    const listener = () => revalidate();
+    window.addEventListener("focus", listener); window.addEventListener("pageshow", listener);
+    return () => { window.removeEventListener("focus", listener); window.removeEventListener("pageshow", listener); };
+  }, []);
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setError("");
-    // The previous prototype stored a role here. It must never restore authority.
-    try { sessionStorage.removeItem("eventapp.prototype.session"); } catch { /* Browser storage is optional. */ }
-    api.me().then((value) => { if (active) setActor(value); }).catch((failure: unknown) => {
-      if (!active) return;
-      if (failure instanceof ApiError && failure.status === 401) setActor(null);
-      else setError(failure instanceof Error ? failure.message : "Unable to restore your session.");
-    }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [attempt]);
-  if (loading) return <Box component="main" sx={{ p: 4 }}><Typography role="status">Loading your session…</Typography></Box>;
-  if (error) return <Box component="main" sx={{ p: 4 }}>
-    <Typography component="h1" variant="h2">Unable to open EventApp</Typography>
-    <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
-    <Button onClick={() => setAttempt((value) => value + 1)}>Try again</Button>
-  </Box>;
-  return <AuthContext.Provider value={{ actor, setActor }}>{children}</AuthContext.Provider>;
+    const current = ++epoch.current;
+    let completionEpoch = current;
+    setLoading(true); setStillLoading(false); setError("");
+    const started = performance.now();
+    const timer = setTimeout(() => { if (active && epoch.current === current && performance.now() - started >= 10000) setStillLoading(true); }, 10000);
+    try { sessionStorage.removeItem("eventapp.prototype.session"); } catch { /* Optional storage. */ }
+    api.me().then((value) => { if (active && epoch.current === current) { setActor(value); completionEpoch = epoch.current; } }).catch((failure: unknown) => {
+      if (!active || epoch.current !== current) return;
+      if (failure instanceof ApiError && (failure.status === 401 || failure.status === 403)) { setActor(null); completionEpoch = epoch.current; }
+      else setError("Temporarily unavailable. Unable to open EventApp. Check your access again.");
+    }).finally(() => { if (active && epoch.current === completionEpoch) { clearTimeout(timer); setStillLoading(false); setLoading(false); } });
+    return () => { active = false; clearTimeout(timer); epoch.current++; };
+  }, [attempt, location.pathname, location.search]);
+  const value = { actor, setActor, sessionNotice, setSessionNotice, revalidate, memory: memory.current, organiserMemory: organiserMemory.current, destinations: destinations.current };
+  return <AuthContext.Provider value={value}>{loading ? <Box component="main" sx={{ p: 4 }}><Typography role="status">{stillLoading ? "Still in progress — checking your session…" : "In progress — checking your session…"}</Typography></Box> : error ? <Box component="main" sx={{ p: 4 }}><Typography component="h1" variant="h2">Check EventApp access</Typography><Alert severity="error" sx={{ my: 2 }}>{error}</Alert><Button onClick={revalidate}>Try again</Button></Box> : children}</AuthContext.Provider>;
 }
-
-export function useAuth() {
-  const auth = useContext(AuthContext);
-  if (!auth) throw new Error("Authentication context is unavailable.");
-  return auth;
-}
+export function useAuth() { const auth = useContext(AuthContext); if (!auth) throw new Error("Authentication context is unavailable."); return auth; }

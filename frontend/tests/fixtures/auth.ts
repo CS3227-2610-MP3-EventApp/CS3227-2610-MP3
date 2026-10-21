@@ -29,9 +29,11 @@ export const auth = {
       let status = 200;
       let data: unknown = this.current;
       if (path === "/api/v1/auth/me") {
-        if (!this.current) { status = 401; data = { detail: "Authentication required." }; }
+        if (!this.current) { status = 401; data = { type: "about:blank", title: "Unauthorized", status, detail: "Authentication required.", instance: path, code: "unauthenticated" }; }
       } else if (this.failure) {
-        status = this.failure.status; data = { detail: this.failure.detail };
+        status = this.failure.status;
+        const code = status === 401 ? "invalid_credentials" : status === 409 ? "registration_conflict" : status === 503 ? "service_unavailable" : status === 403 ? "forbidden" : "internal_error";
+        data = { type: "about:blank", title: "Request failed", status, detail: this.failure.detail, instance: path, code };
       } else if (path === "/api/v1/auth/logout") {
         this.current = null; status = 204; data = null;
       } else if (path === "/api/v1/auth/change-password") {
@@ -41,7 +43,7 @@ export const auth = {
         this.current = this.loginActor ?? actor(role, typeof body.displayName === "string" ? body.displayName : `Synthetic ${role}`);
         data = this.current; status = path.includes("/register/") ? 201 : 200;
       } else { status = 404; data = { detail: "Not found." }; }
-      return new Response(status === 204 ? null : JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+      return new Response(status === 204 ? null : JSON.stringify(data), { status, headers: { "Content-Type": status >= 400 ? "application/problem+json" : "application/json", "Cache-Control": "no-store" } });
     }));
   },
 };
