@@ -1,6 +1,6 @@
 # EventApp architecture and shared contracts
 
-Status: Remaining domain design is draft. Approved authentication, submit r4 and bounded decision r2 are implemented and In review with passing automated/browser evidence; human/accessibility review remains pending.
+Status: Remaining domain design is draft. Approved authentication, organiser programme revision 6, submit r4 and bounded decision r2 are implemented and in review with passing automated/browser evidence; human/accessibility review remains pending.
 Updated: 2026-10-21. Accepted behavior decisions: [RD01–RD07 in project context](project.md#accepted-review-decisions). Remaining domain schemas stay proposed.
 
 Accepted direction: one FastAPI/PostgreSQL foundation, module-owned data and stable contracts. Application-owned authentication is selected for the authorised slice below; hosting and remaining domain schemas stay unresolved where recorded.
@@ -12,7 +12,7 @@ Use one database and one FastAPI application. A module is a code and data owners
 | Module | Tables it owns | Responsibility | Consumers |
 | --- | --- | --- | --- |
 | Identity | users, password_credentials, sessions, event_memberships, business_memberships | Verified identity, credentials, sessions and membership access | All modules |
-| Programme | events, venues, rooms, programme_items, programme_changes | Authoritative event and programme facts | Attendee planning, submissions, business preparation, AI |
+| Programme | events, venues, rooms, programme_items, programme_item_revisions, programme_changes | Authoritative event and programme facts | Attendee planning, submissions, business preparation, AI |
 | Business preparation | businesses, event_participations, preparation_tasks, budgets, budget_lines | Private business and event-preparation records | Identity, submissions, AI |
 | Attendee planning | attendee_preferences, bookmarks, itineraries, itinerary_revisions, itinerary_items | Private preferences and versioned attendee plans | AI and notifications |
 | Submissions | application_approvals (legacy), application_settings, submissions, application_decisions, rubric_versions | Frozen applications, rubrics and decisions | Business status view, organiser analysis |
@@ -40,6 +40,14 @@ Do not introduce a reverse dependency in Event or User on itineraries, budgets o
 Accepted access scope: business membership is business-wide, with event-specific participation; participation-specific staff access is deferred (RD01). Registration creates the new business and active owner membership atomically with user/credential/session. It cannot select existing businesses or organiser authority. Additional memberships/invitations/transfer are excluded; users have one product role. Attendee programme browsing requires sign-in. Initial submission scope remains a separate decision.
 
 The approved 2026-10-19 auth plan uses a trusted operator CLI for organiser/event provisioning with runtime passwords requiring replacement before workspace access. It supersedes provider selection, a stored super-organiser role and the earlier separate temporary-password expiry proposal. No public organiser registration, admin UI or default/shared password exists.
+
+## Approved organiser programme extension
+
+[Programme revision 6](../specs/programme/create-and-publish-programme.md) owns the approved programme API/DTOs, bounds, filtering, revision and lifecycle semantics. Dylan owns this organiser delivery task and coordinates the published read API; attendee screens remain teammate-owned. The task [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md) separates preparation, implementation and evidence.
+
+Reuse the existing `events` and identity tables. Add programme-owned venues, rooms, items and immutable publication revisions through an additive migration, preserving authentication data and previous migrations. Published snapshots include event/location facts; the first publication makes an event attendee-visible. There is no event-creation UI or new event store. Published item changes remain a later capability.
+
+Mutations must coordinate item and location changes so publication cannot race past parent-capacity validation or published-location locks. A publication state transition, immutable snapshot and attributable success audit are one transaction. Reuse existing cookie/current-membership dependencies; extend trusted-Origin checks and CORS methods to programme mutations. Preserve exact existing auth response bodies. Generated OpenAPI/TypeScript artifacts are shared integration ownership, not parallel hand-edited contracts.
 
 ## Shared authentication foundation contract
 

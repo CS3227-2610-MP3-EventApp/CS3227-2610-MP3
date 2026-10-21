@@ -28,8 +28,13 @@ class ApplicationError(Exception):
 
 
 def is_application_path(path: str) -> bool:
-    return any(path == prefix or path.startswith(prefix + "/") for prefix in (
-        "/api/v1/business", "/api/v1/organiser"))
+    if path == "/api/v1/business" or path.startswith("/api/v1/business/"):
+        return True
+    if path == "/api/v1/organiser/events":
+        return True
+    parts = path.split("/")
+    return (len(parts) >= 7 and parts[:5] == ["", "api", "v1", "organiser", "events"]
+            and parts[6] in {"applications", "application-settings", "business-approvals", "business-directory"})
 
 
 def problem_response(request: Request, code: str, errors=None, current_application=None) -> JSONResponse:

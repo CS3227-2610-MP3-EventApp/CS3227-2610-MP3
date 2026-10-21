@@ -35,6 +35,7 @@ PASSWORD = "Synthetic-Business-Password-123"
 AUTH_TABLES = {"users", "password_credentials", "sessions", "businesses", "business_memberships", "events", "event_memberships", "audit_events"}
 LEGACY_DOMAIN_TABLES = {"application_approvals", "event_participations", "submissions"}
 DOMAIN_TABLES = LEGACY_DOMAIN_TABLES | {"application_settings", "application_decisions"}
+PROGRAMME_TABLES = {"venues", "rooms", "programme_items", "programme_item_revisions"}
 ACTIONS = {"application_settings_update", "application_decide", "application_create", "application_edit", "application_submit"}
 CONTENT_KEYS = {"participantType", "description", "requestedSpace", "contactName", "contactEmail"}
 APPLICATION_KEYS = {"id", "businessId", "businessName", "eventId", "eventTitle", "participationId", "status", "revision", "content", "frozenSubmittedContentRevision", "submittedAt", "decision"}
@@ -757,7 +758,8 @@ def reset_schema():
 def assert_current_schema(historical=False):
     with connect() as connection:
         tables = {row[0] for row in connection.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")}
-        assert tables == AUTH_TABLES | (LEGACY_DOMAIN_TABLES if historical else DOMAIN_TABLES) | {"alembic_version"}
+        expected_domain_tables = LEGACY_DOMAIN_TABLES if historical else DOMAIN_TABLES | PROGRAMME_TABLES
+        assert tables == AUTH_TABLES | expected_domain_tables | {"alembic_version"}
         assert connection.execute("SELECT is_nullable FROM information_schema.columns WHERE table_schema='public' AND table_name='audit_events' AND column_name='resource_revision'").fetchone() == ("YES",)
         references = {"application_approvals": {"events", "businesses", "users"}, "event_participations": {"events", "businesses"}, "submissions": {"event_participations", "users"}}
         for table, expected_unique in [("application_approvals", {"event_id", "business_id"}), ("event_participations", {"event_id", "business_id"}), ("submissions", {"participation_id"})]:

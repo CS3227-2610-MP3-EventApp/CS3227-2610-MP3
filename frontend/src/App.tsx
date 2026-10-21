@@ -8,6 +8,7 @@ import { Alert, Typography } from "@mui/material";
 import { AuthProvider, useAuth } from "./Auth";
 import { ChangePassword } from "./ChangePassword";
 import { EntryLayout } from "./components";
+import { Programme } from "./Programme";
 
 function GuardedWorkspace({ role, children }: { role: Role; children?: ReactNode }) {
   const { actor } = useAuth();
@@ -24,7 +25,7 @@ import { OrganiserApplications } from "./applications/OrganiserApplications";
 function ApplicationRoutes() {
   const location = useLocation();
   useEffect(() => {
-    document.title = `EventApp · ${location.pathname === "/login" ? "Log in" : location.pathname.startsWith("/register/") ? "Create account" : location.pathname === "/change-password" ? "Change password" : location.pathname === "/business/applications" ? "Business applications" : location.pathname === "/organiser/applications" ? "Application reviews" : "Workspace"}`;
+    document.title = `EventApp · ${location.pathname === "/login" ? "Log in" : location.pathname.startsWith("/register/") ? "Create account" : location.pathname === "/change-password" ? "Change password" : location.pathname === "/organiser/programme" ? "Programme Management" : location.pathname === "/business/applications" ? "Business applications" : location.pathname === "/organiser/applications" ? "Application reviews" : "Workspace"}`;
     document.querySelector<HTMLElement>("[data-page-heading]")?.focus();
   }, [location.pathname]);
   return <Routes>
@@ -32,6 +33,7 @@ function ApplicationRoutes() {
     <Route path="/register/attendee" element={<Register key="attendee" role="attendee" />} />
     <Route path="/register/business" element={<Register key="business" role="business" />} />
     <Route path="/change-password" element={<ChangePassword />} />
+    <Route path="/organiser/programme" element={<GuardedWorkspace role="organiser"><Programme /></GuardedWorkspace>} />
     {roles.map((role) => <Route key={role} path={`/${role}`} element={<GuardedWorkspace role={role} />} />)}
     <Route path="/business/applications" element={<GuardedWorkspace role="business"><BusinessApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/organiser/applications" element={<GuardedWorkspace role="organiser"><OrganiserApplications key={location.pathname + location.search} /></GuardedWorkspace>} />

@@ -12,6 +12,8 @@ from app.auth.problems import AuthProblem, problem_response
 from app.auth.routes import router
 from app.applications.routes import router as application_router
 from app.applications.problems import ApplicationError, is_application_path, problem_response as application_problem_response
+from app.programme.problems import ProgrammeProblem, field_errors, invalid, problem_response as programme_problem_response
+from app.programme.routes import router as programme_router
 from app.database import engine
 from app.settings import Settings
 
@@ -21,8 +23,9 @@ app = FastAPI(title="EventApp API", openapi_url=None)
 settings = Settings()
 app.include_router(router)
 app.include_router(application_router)
+app.include_router(programme_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
-                   allow_credentials=True, allow_methods=["GET", "POST", "PUT"], allow_headers=["Content-Type"])
+                   allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
 
 @app.exception_handler(ApplicationError)
@@ -46,7 +49,14 @@ async def auth_problem(request: Request, exc: AuthProblem):
 async def invalid_request(request: Request, exc: RequestValidationError):
     if is_application_path(request.url.path):
         return application_problem_response(request, "validation_error", exc.errors())
+    if request.url.path.startswith(("/api/v1/organiser/", "/api/v1/attendee/")):
+        return programme_problem_response(request, invalid(field_errors(exc.errors())))
     return problem_response(request, "validation_error", exc.errors())
+
+
+@app.exception_handler(ProgrammeProblem)
+async def programme_problem(request: Request, exc: ProgrammeProblem):
+    return programme_problem_response(request, exc)
 
 
 @app.exception_handler(SQLAlchemyError)
@@ -61,7 +71,7 @@ async def unexpected_failure(request: Request, exc: Exception):
 
 @app.middleware("http")
 async def auth_boundary(request: Request, call_next):
-    if request.url.path.startswith("/api/v1/auth/") or is_application_path(request.url.path):
+    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/")) or is_application_path(request.url.path):
         if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("origin") not in settings.trusted_origins:
             return problem_response(request, "forbidden")
         response = await call_next(request)

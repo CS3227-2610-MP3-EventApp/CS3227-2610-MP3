@@ -172,6 +172,32 @@ npm run build
 npm audit
 ```
 
+### One-command automated verification (PowerShell)
+
+With Docker Desktop running and dependencies already installed, run this from the repository root:
+
+```powershell
+.\tools\verify.ps1
+```
+
+It starts the disposable test database, runs every backend test, then runs every frontend test and the production frontend build. It sets the documented Node 26 compatibility option only for the test process and restores your environment variables afterwards. The test database on port 5433 may be reset; it never uses the development database on port 5432. To run only the frontend checks, use `./tools/verify.ps1 -FrontendOnly`.
+
+The verifier checks each command's exit code and reports failure if any test suite or the build fails, even when later stages pass. It restores the original terminal directory and environment afterwards. The storage compatibility flag is enabled only when the installed Node version supports it. Avoid running multiple backend suites against the same disposable database at once: their reset fixtures intentionally recreate and truncate synthetic tables.
+
+#### PowerShell execution-policy guidance
+
+If PowerShell says that script execution is disabled, use this one-time invocation:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\verify.ps1
+```
+
+**Benefit:** it permits this single PowerShell process to run the checked-out verifier without changing the machine or user execution policy. **Risk:** `Bypass` does not isolate or restrict the script; it can do anything your current Windows account can do. Review `tools/verify.ps1`, use it only from a trusted repository revision, and do not paste an untrusted script path into this command.
+
+The verifier itself starts Docker's disposable `test-db` service and resets its synthetic `eventapp_test` schema on port 5433. This is intentional for repeatable tests, but any data in that database can be removed. It is safe for the documented test container; never point `TEST_DATABASE_URL` at a development, shared, or production database. Docker Desktop must be running. The script runs tests and a frontend build but does not commit, push, deploy, or change the development database on port 5432.
+
+For a persistent, per-user setting that permits locally created or downloaded-and-unblocked scripts, use `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. **Trade-off:** this is more convenient, but it broadens the set of scripts your user account may execute. It still does not make unreviewed repository scripts safe, so the one-time invocation above is the recommended default for this verifier.
+
 macOS/Linux (bash/zsh):
 
 ```sh
@@ -187,6 +213,8 @@ Historical presentation evidence is recorded in the [role-entry run record](../w
 Configuration supports `ENVIRONMENT` (`development`, `test`, `production`) and `TRUSTED_ORIGINS` (a JSON array of exact frontend origins). Outside development, cookies require HTTPS; production requires explicit HTTPS trusted origins. Keep environment files, credentials and database URLs out of Git. Do not reuse the disposable test database for normal accounts.
 
 Generate API artifacts after API changes from `backend/` with `uv run python -m app.export_openapi`, then from `frontend/` run `npm run api:types`. Commit the OpenAPI document and generated declarations together. Re-run the backend and frontend suites before claiming verification. Only delivered application cards are enabled for Business/organiser; other domain cards remain previews until their own capabilities are implemented.
+
+The first organiser programme slice is governed by [programme revision 6](../specs/programme/create-and-publish-programme.md). Apply its additive migration before using Programme Management; existing authentication records must be preserved. See [programme testing and attendee API handoff](ProgrammeTesting.md) for local flows, publication boundaries and consumer integration. The [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md) records actual implementation/verification status; this guide is not a passing-test claim.
 
 ## Delivery evidence to maintain
 

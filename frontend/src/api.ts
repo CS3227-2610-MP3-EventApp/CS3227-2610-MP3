@@ -1,7 +1,7 @@
 import type { components } from "./api-schema";
 import type { CurrentActor } from "./session";
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string, public readonly code = "", public readonly fields: string[] = [], public readonly fieldErrors: {field: string; code: string}[] = [], public readonly currentApplication?: unknown) { super(message); }
+  constructor(public readonly status: number, message: string, public readonly code = "", public readonly fields: string[] = [], public readonly fieldErrors: {field: string; code: string}[] = [], public readonly currentApplication?: unknown, public readonly errors: Record<string, string[]> = {}) { super(message); }
 }
 const allowedFields = ["participantType", "description", "requestedSpace", "contactName", "contactEmail", "businessId", "eventId", "expectedRevision", "applicationsOpen", "outcome", "reason", "identifier", "role", "displayName", "username", "email", "businessName", "password", "currentPassword", "newPassword", "request"];
 const reasons: Record<string, string> = {
@@ -33,20 +33,23 @@ export function errorCategory(error: unknown) {
   return "Temporarily unavailable";
 }
 export const errorFeedback = (error: unknown) => `${errorCategory(error)} — ${error instanceof ApiError ? error.message : "The request could not be completed."} ${errorAction(error)}`;
-async function request<T>(path: string, method = "GET", body?: unknown, domain = false, withStatus = false): Promise<T> {
+async function request<T>(path: string, method = "GET", body?: unknown, scope: "auth" | "domain" | "organiser" = "auth", withStatus = false): Promise<T> {
   let response: Response;
-  try { response = await fetch(`/api/v1${domain ? "" : "/auth"}${path}`, { method, credentials: "same-origin", cache: "no-store", ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }) }); }
+  try { response = await fetch(`/api/v1${scope === "domain" ? "" : `/${scope}`}${path}`, { method, credentials: "same-origin", cache: "no-store", ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }) }); }
   catch { throw new ApiError(0, "Unable to reach EventApp. Please try again."); }
   if (!response.ok) {
     let detail = "The request could not be completed.", code = "", fields: string[] = [], fieldErrors: {field: string; code: string}[] = [], currentApplication: unknown;
+    const errors: Record<string, string[]> = {};
     try {
       const problem = await response.json();
-      if (typeof problem?.code === "string" && Object.hasOwn(reasons, problem.code) && (domain || !["current_password_incorrect", "password_unchanged"].includes(problem.code) || path === "/change-password")) { code = problem.code; detail = reasons[code]; }
+      if (scope === "organiser" && typeof problem?.detail === "string") detail = problem.detail;
+      if (typeof problem?.code === "string" && Object.hasOwn(reasons, problem.code) && (scope === "domain" || !["current_password_incorrect", "password_unchanged"].includes(problem.code) || path === "/change-password")) { code = problem.code; detail = reasons[code]; }
       if (code === "validation_error" && Array.isArray(problem?.fieldErrors)) fieldErrors = problem.fieldErrors.filter((f: { field?: unknown; code?: unknown }) => typeof f?.field === "string" && allowedFields.includes(f.field) && ["required", "password_length", "invalid"].includes(String(f.code))).map((f: {field: string; code: string}) => ({field: f.field, code: f.code}));
       fields = fieldErrors.map((f) => f.field);
-      if (domain && response.status === 409 && ["application_decided", "revision_conflict"].includes(code)) currentApplication = problem.currentApplication;
+      if (scope === "domain" && response.status === 409 && ["application_decided", "revision_conflict"].includes(code)) currentApplication = problem.currentApplication;
+      if (problem?.errors && typeof problem.errors === "object") for (const [field, messages] of Object.entries(problem.errors)) if (Array.isArray(messages) && messages.every((message) => typeof message === "string")) errors[field] = messages;
     } catch { /* Keep a safe generic error. */ }
-    throw new ApiError(response.status, detail, code, fields, fieldErrors, currentApplication);
+    throw new ApiError(response.status, detail, code, fields, fieldErrors, currentApplication, errors);
   }
   try { const value = response.status === 204 ? undefined : await response.json(); return (withStatus ? { value, status: response.status } : value) as T; }
   catch { throw new ApiError(0, "Invalid response."); }
@@ -61,16 +64,52 @@ export const api = {
   logout: () => request<void>("/logout", "POST"),
 };
 export const applicationApi = {
-  events: (businessId: string) => request<unknown>(`/business/application-events?businessId=${encodeURIComponent(businessId)}`, "GET", undefined, true),
-  list: (businessId: string) => request<unknown>(`/business/applications?businessId=${encodeURIComponent(businessId)}`, "GET", undefined, true),
-  get: (id: string) => request<unknown>(`/business/applications/${encodeURIComponent(id)}`, "GET", undefined, true),
-  create: (body: S["ApplicationContent"] & { businessId: string; eventId: string }) => request<unknown>("/business/applications", "POST", body, true),
-  edit: (id: string, body: S["ApplicationContent"] & { expectedRevision: number }) => request<unknown>(`/business/applications/${encodeURIComponent(id)}`, "PUT", body, true),
-  submit: (id: string, expectedRevision: number) => request<unknown>(`/business/applications/${encodeURIComponent(id)}/submit`, "POST", { expectedRevision }, true),
-  organiserEvents: () => request<unknown>("/organiser/events", "GET", undefined, true),
-  settings: (eventId: string) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/application-settings`, "GET", undefined, true),
-  saveSettings: (eventId: string, expectedRevision: number, applicationsOpen: boolean) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/application-settings`, "PUT", {expectedRevision, applicationsOpen}, true),
-  decide: (eventId: string, id: string, expectedRevision: number, outcome: "accepted" | "rejected", reason: string | null) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/applications/${encodeURIComponent(id)}/decision`, "POST", {expectedRevision, outcome, reason}, true),
-  reviews: (eventId: string) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/applications`, "GET", undefined, true),
-  review: (eventId: string, id: string) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/applications/${encodeURIComponent(id)}`, "GET", undefined, true),
+  events: (businessId: string) => request<unknown>(`/business/application-events?businessId=${encodeURIComponent(businessId)}`, "GET", undefined, "domain"),
+  list: (businessId: string) => request<unknown>(`/business/applications?businessId=${encodeURIComponent(businessId)}`, "GET", undefined, "domain"),
+  get: (id: string) => request<unknown>(`/business/applications/${encodeURIComponent(id)}`, "GET", undefined, "domain"),
+  create: (body: S["ApplicationContent"] & { businessId: string; eventId: string }) => request<unknown>("/business/applications", "POST", body, "domain"),
+  edit: (id: string, body: S["ApplicationContent"] & { expectedRevision: number }) => request<unknown>(`/business/applications/${encodeURIComponent(id)}`, "PUT", body, "domain"),
+  submit: (id: string, expectedRevision: number) => request<unknown>(`/business/applications/${encodeURIComponent(id)}/submit`, "POST", { expectedRevision }, "domain"),
+  organiserEvents: () => request<unknown>("/organiser/events", "GET", undefined, "domain"),
+  settings: (eventId: string) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/application-settings`, "GET", undefined, "domain"),
+  saveSettings: (eventId: string, expectedRevision: number, applicationsOpen: boolean) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/application-settings`, "PUT", {expectedRevision, applicationsOpen}, "domain"),
+  decide: (eventId: string, id: string, expectedRevision: number, outcome: "accepted" | "rejected", reason: string | null) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/applications/${encodeURIComponent(id)}/decision`, "POST", {expectedRevision, outcome, reason}, "domain"),
+  reviews: (eventId: string) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/applications`, "GET", undefined, "domain"),
+  review: (eventId: string, id: string) => request<unknown>(`/organiser/events/${encodeURIComponent(eventId)}/applications/${encodeURIComponent(id)}`, "GET", undefined, "domain"),
+};
+
+
+export type EventSummary = components["schemas"]["EventSummary"];
+export type Venue = components["schemas"]["Venue"];
+export type Room = components["schemas"]["Room"];
+export type ProgrammeItem = components["schemas"]["ProgrammeItem"];
+export type VenueFields = components["schemas"]["VenueFields"];
+export type RoomFields = components["schemas"]["RoomFields"];
+export type ItemFields = components["schemas"]["ItemFields"];
+
+async function allPages<T>(path: string): Promise<T[]> {
+  const items: T[] = [];
+  let total = Infinity;
+  while (items.length < total) {
+    const page = await request<{ items: T[]; total: number; limit: number; offset: number }>(`${path}?limit=100&offset=${items.length}`, "GET", undefined, "organiser");
+    items.push(...page.items);
+    total = page.total;
+    if (!page.items.length) break;
+  }
+  return items;
+}
+
+const eventPath = (eventId: string) => `/events/${encodeURIComponent(eventId)}`;
+export const programmeApi = {
+  events: () => allPages<EventSummary>("/programme-events"),
+  venues: (eventId: string) => allPages<Venue>(`${eventPath(eventId)}/venues`),
+  rooms: (eventId: string) => allPages<Room>(`${eventPath(eventId)}/rooms`),
+  items: (eventId: string) => allPages<ProgrammeItem>(`${eventPath(eventId)}/programme-items`),
+  item: (eventId: string, id: string) => request<ProgrammeItem>(`${eventPath(eventId)}/programme-items/${id}`, "GET", undefined, "organiser"),
+  saveVenue: (eventId: string, body: VenueFields, current?: Venue) => request<Venue>(`${eventPath(eventId)}/venues${current ? `/${current.id}` : ""}`, current ? "PATCH" : "POST", { ...body, ...(current ? { expectedRevision: current.revision } : {}) }, "organiser"),
+  saveRoom: (eventId: string, venueId: string, body: RoomFields, current?: Room) => request<Room>(`${eventPath(eventId)}${current ? `/rooms/${current.id}` : `/venues/${venueId}/rooms`}`, current ? "PATCH" : "POST", { ...body, ...(current ? { expectedRevision: current.revision } : {}) }, "organiser"),
+  saveItem: (eventId: string, body: ItemFields, current?: ProgrammeItem) => request<ProgrammeItem>(`${eventPath(eventId)}/programme-items${current ? `/${current.id}` : ""}`, current ? "PATCH" : "POST", { ...body, ...(current ? { expectedRevision: current.revision } : {}) }, "organiser"),
+  delete: (eventId: string, resource: "venues" | "rooms" | "programme-items", current: { id: string; revision: number }) => request<void>(`${eventPath(eventId)}/${resource}/${current.id}`, "DELETE", { expectedRevision: current.revision }, "organiser"),
+  validate: (eventId: string, item: ProgrammeItem) => request<components["schemas"]["ValidationResult"]>(`${eventPath(eventId)}/programme-items/${item.id}/validate`, "POST", { expectedRevision: item.revision }, "organiser"),
+  publish: (eventId: string, item: ProgrammeItem) => request<ProgrammeItem>(`${eventPath(eventId)}/programme-items/${item.id}/publish`, "POST", { expectedRevision: item.revision }, "organiser"),
 };
