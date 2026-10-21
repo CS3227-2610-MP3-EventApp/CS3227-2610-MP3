@@ -3,17 +3,17 @@
 | Field | Value |
 | --- | --- |
 | Stable capability ID | monitor-and-recover-ai-tasks |
-| Covered stories | [F10-US02](../../docs/UserStoriesAndFeatures.md), organiser application-analysis job slice only |
-| Specification revision / status | 2 / Draft |
-| Product roles / roadmap | Organiser; [phase 3](../../docs/project.md#phase-priority-roadmap) |
-| Product and contract approval | Pending human approval of exact revision 2 and proposed job/data/API contracts |
-| Review / run record | Pending |
+| Covered stories | [F10-US02](../../docs/UserStoriesAndFeatures.md), organiser analysis and approved business preparation job slices; attendee jobs deferred |
+| Specification revision / status | 3 / Draft; business amendment approved for bounded implementation; organiser exact-written-review status remains separate |
+| Product roles / roadmap | Organiser and approved business slice; [phase 3](../../docs/project.md#phase-priority-roadmap) |
+| Product and contract approval | Historical organiser exact revision2 review remains pending; Isaac approved the bounded business extension through defaults3/4/6 on2026-10-21, with30dispatches/minute. This does not approve unrelated organiser/attendee policy. |
+| Review / run record | [Business foundation run](../../workflow/agents/runs/2026-10-22-business-jobs-implementation.md); historical organiser evidence below |
 
-Sources: [standard](../README.md), catalogue, [RD07](../../docs/project.md#accepted-review-decisions), [security](../../docs/security.md), [architecture](../../docs/architecture.md), and [organiser application-analysis Draft](../applications/analyse-applications-with-ai.md). This revision scopes F10-US02 to organiser analysis; attendee and business jobs still require their own approved capability coverage.
+Sources: [standard](../README.md), catalogue, [RD07](../../docs/project.md#accepted-review-decisions), [security](../../docs/security.md), [architecture](../../docs/architecture.md), and [organiser application-analysis Draft](../applications/analyse-applications-with-ai.md). Historical organiser contracts below are preserved; revision3 adds the separately approved business extension under External interfaces. Attendee coverage remains deferred.
 
 ## Product outcome, users and scope
 
-An event organiser can request a bounded application-analysis job, see its status, inspect a validated report or actionable failure, cancel work that has not completed, and continue reviewing applications manually. This specification revision covers only the F10-US02 job controls consumed by F04-US02; it does not implement attendee or business workflows and does not satisfy their separate LLM requirements. AI cannot change application decisions or other accepted/shared state.
+An event organiser can request a bounded application-analysis job, see its status, inspect a validated report or actionable failure, cancel work that has not completed, and continue reviewing applications manually. Historical F04-US02 job controls remain unchanged; the separately approved business extension supports F06-US04. Attendee workflows remain deferred. Infrastructure alone does not satisfy a role's LLM requirement. AI cannot change application decisions or other accepted/shared state.
 
 ## Use cases and user interface
 
@@ -61,6 +61,30 @@ The concrete contract's 30-day cleanup removes terminal jobs and associated repo
 
 ## External interfaces and dependencies
 
+### Approved business job extension (revision3)
+
+Isaac approved the business provider/data/limits defaults and related contract/implementation amendments on 2026-10-21. This extension adds business job controls without changing the organiser DTO, rubric/submission semantics, historical evidence or unapproved organiser review status above. It supersedes earlier statements that business jobs are entirely outside scope; attendee jobs remain deferred. The business preparation generation contract owns job creation inputs and draft payload/adoption; this shared contract owns durable state, current authority and resource limits. A job infrastructure slice alone does not satisfy actual business LLM delivery.
+
+`BusinessPreparationJob v1` is `{id,eventId,participationId,state,createdAt,updatedAt,completedAt,failureCode,providerMayHaveRun,draft}`. State uses the existing five-state job lifecycle. Draft is null unless completed and validated; its domain schema is in generate-preparation-drafts. Existing `/api/v1/ai/jobs/{jobId}` GET/cancel dispatches by stored workflow type and current stored user role; organiser responses remain exactly their existing shape. Only the requesting business owner with a current active owner membership of the stored participation business and completed mandatory password replacement can read/cancel. Missing/foreign/cross-workflow jobs are indistinguishable404 after role checks. All mutations enforce trusted Origin; every outcome is no-store. Worker authority is checked at source, dispatch and final commit, not inferred from earlier API access.
+
+Business jobs bind a request UUID, participation, event/preparation/setup revisions and immutable permitted source snapshot at creation. Request-ID replay with the identical normalized request returns the original job without another quota charge; changed payload with the same owner/request ID is409. Owner-scoped locks atomically enforce10 jobs per UTC day and one active job, counting original accepted creations even if cancelled/failed. Jobs are owned by requesting user, while successfully adopted manual preparation remains business-owned. History/latest-job refresh does not use browser-stored job identities.
+
+Reuse60s provider timeout,180s overall deadline,40000 serialized message codepoints,4000 output tokens,40000 response-content characters, at most2 simultaneous provider requests per worker, one HTTP502/503 retry after2s within deadline, no ambiguous timeout/transport/429/invalid-output retry. `SOCLAAS_REQUESTS_PER_MINUTE=30` caps dispatch attempts through the existing shared PostgreSQL gate across both workflows and worker processes. Attempts/retries share the cap; it is not a provider billing guarantee. Model/provider keys remain backend-only. Production calls are disabled; opted-in dev/test, an operator-allowlisted invented-data event and per-request synthetic confirmation are required for live creation/dispatch.
+
+Worker claims are durable/atomic with bounded leases and no duplicate dispatch after restart. Cancel/dispatch/finish serialize on job state; cancellation before dispatch records no attempt, cancellation after dispatch may consume quota but cannot persist a late draft. `providerMayHaveRun` exposes uncertainty. A revoked owner cannot publish a draft. Expired running jobs become failed/interrupted without automatic provider replay; pending jobs survive process restart. Terminal jobs/drafts expire30 days after creation; cleanup preserves manual preparation, setup, application decisions and content-free audits. App retention is not provider retention. Provider failure never changes manual records. Permission/availability errors use fixed safe categories without prompts/provider bodies.
+
+Additional acceptance IDs (old AC01–07 remain unchanged and organiser-scoped where specified):
+
+| ID | Observable business criterion | Trace | Verification |
+| --- | --- | --- | --- |
+| monitor-and-recover-ai-tasks-AC08 | Only the requesting currently authorised business owner can read/cancel its persisted job; foreign, revoked and organiser callers cannot expose or modify it. | F10-US02 business; RD01/07; SEC01/02 | Direct role/ownership/revocation/Origin/no-store checks |
+| monitor-and-recover-ai-tasks-AC09 | Owner/request-ID dedup, daily/active quotas, common30/min dispatch gate and deadline/size/token limits are enforced atomically across concurrent requests/workers. | F10-US02 business; SEC08/10 | Bounds, retry accounting and concurrent queues |
+| monitor-and-recover-ai-tasks-AC10 | Cancel/dispatch/finish races never commit a cancelled/revoked late draft; uncertainty is visible and manual data unchanged. | F10-US02 business; SEC01/10/11 | Before/after dispatch and final-commit races |
+| monitor-and-recover-ai-tasks-AC11 | Pending jobs survive restart; expired leased work fails without automatic replay;30-day cleanup deletes jobs/drafts only, preserving domain records/audits. | F10-US02 business; SEC10/11 | Real restart, inclusive expiry and preservation |
+| monitor-and-recover-ai-tasks-AC12 | Business UI restores latest owner job, exposes progress/failure/cancel and keeps manual preparation usable; no raw provider/private cross-context data appears. | F10-US02 business; SEC01/02/08 | Consumer tests, browser failure/context journey |
+
+Business amendment evidence: [phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); independent tests/baseline, runtime reviews, real provider/browser/restart checks pending. Phase4 delivers the infrastructure and ownership/cancellation boundary; Phase5 attaches creation, validated drafts and the business UI, with full AC08–12 evidence assessed at integration. No business runtime completion is claimed by this amendment.
+
 Consumes [workspace access](access-authorised-workspaces.md) and `CurrentActor v1`; produces owner-scoped task state and `DraftArtifact v1` per [architecture](../../docs/architecture.md#contracts-for-independent-development). Domain AI capabilities define artifact schemas and fresh acceptance validation. The approval contract in [external actions](approve-external-actions.md) governs any external write. Error categories, state transitions, retention and compatibility versions must be agreed before Ready.
 
 ## Decisions and approval
@@ -83,3 +107,4 @@ Independent test design/review, protected baselines, implementation and behaviou
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial bounded Draft | Approval and verification pending |
 | 2 / 2026-10-21 | Scoped the shared F10 contract to organiser application-analysis jobs and recorded planned SoCLaaS, limits, ownership, cancellation, restart and retention behavior; left exact interfaces and physical storage as proposals | Exact revision-2 and shared contract approval pending; no test, implementation or provider evidence claimed |
+| 3 / 2026-10-21 | Added approved business job extension AC08–12, owner/business authority, shared30/min dispatch and retained existing organiser/attendee boundaries | Isaac's business defaults/amendment authority recorded; independent business implementation/baseline evidence pending; historical organiser evidence unchanged |
