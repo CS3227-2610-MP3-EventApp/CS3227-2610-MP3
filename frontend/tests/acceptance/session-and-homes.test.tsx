@@ -114,8 +114,20 @@ describe("role homes preserve presentation and accessibility", () => {
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
     const unavailable = screen.queryAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(role === "organiser" ? 0 : role === "attendee" ? 3 : 2);
+    expect(unavailable).toHaveLength(role === "organiser" ? 0 : 2);
     for (const button of unavailable) expect(button).toBeDisabled();
+    if (role === "attendee") {
+      // BROWSE-TCR-01: only Browse Programme progresses beyond the prototype.
+      for (const title of ["My Itinerary", "Event Assistant"]) {
+        const card = screen.getByRole("heading", { name: title }).closest("article")!;
+        expect(within(card).getByRole("button", { name: /coming later/i })).toBeDisabled();
+      }
+      const browseCard = screen.getByRole("heading", { name: "Browse Programme" }).closest("article")!;
+      const browse = screen.queryByRole("link", { name: /browse programme/i })
+        ?? screen.queryByRole("button", { name: /browse programme/i })
+        ?? within(browseCard).queryByRole("link") ?? within(browseCard).getByRole("button");
+      expect(browse).toBeEnabled();
+    }
     if (role === "business") {
       const entry = screen.getByRole("link", { name: role === "business" ? /^open applications$/i : /^review applications$/i });
       expect(entry).toHaveAttribute("href", `/${role}/applications`);
@@ -125,11 +137,11 @@ describe("role homes preserve presentation and accessibility", () => {
       const analysisCard = screen.getByRole("heading", { name: "AI Application Analysis" }).closest("article");
       expect(analysisCard).not.toBeNull();
       expect(within(analysisCard!).getByText(/synthetic|invented/i)).toBeVisible();
-      expect(within(analysisCard!).getByRole("link", { name: /analysis/i })).toHaveAttribute("href", "/organiser/applications");
+      expect(within(analysisCard!).getByRole("link", { name: /analysis/i })).toHaveAttribute("href", "/organiser/applications#analysis");
       const programmeAction = screen.queryByRole("link", { name: /programme/i }) ?? screen.getByRole("button", { name: /programme/i });
       expect(programmeAction).not.toBeDisabled();
       const applicationAction = screen.getByRole("link", { name: /^review applications$/i });
-      expect(applicationAction).toHaveAttribute("href", "/organiser/applications");
+      expect(applicationAction).toHaveAttribute("href", "/organiser/applications#review");
     }
     expect(screen.queryByText(/credentials are not authenticated/i)).not.toBeInTheDocument();
   });

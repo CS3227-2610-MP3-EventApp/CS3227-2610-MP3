@@ -33,6 +33,9 @@ function ApplicationRoutes() {
     <Route path="/register/attendee" element={<Register key="attendee" role="attendee" />} />
     <Route path="/register/business" element={<Register key="business" role="business" />} />
     <Route path="/change-password" element={<ChangePassword />} />
+    <Route path="/attendee/programme" element={<GuardedWorkspace role="attendee" />} />
+    <Route path="/attendee/programme/events/:eventId" element={<GuardedWorkspace role="attendee" />} />
+    <Route path="/attendee/programme/events/:eventId/items/:itemId" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/organiser/programme" element={<GuardedWorkspace role="organiser"><Programme /></GuardedWorkspace>} />
     {roles.map((role) => <Route key={role} path={`/${role}`} element={<GuardedWorkspace role={role} />} />)}
     <Route path="/business/applications" element={<GuardedWorkspace role="business"><BusinessApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
