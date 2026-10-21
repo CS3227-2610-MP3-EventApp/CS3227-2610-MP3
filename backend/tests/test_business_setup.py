@@ -102,7 +102,11 @@ def test_first_and_existing_save_races_have_one_winner_and_attributable_audit(wo
 
 @pytest.mark.parametrize("field,value",[("expectedRevision",0),("expectedRevision",True),("expectedRevision",1.0),("expectedRevision","1"),
     ("boothLabel",12),("boothLabel",False),("boothLabel","😀"*101),("setupInstructions",[]),("setupInstructions","😀"*5001),
-    ("revision",2),("participationId",str(uuid4()))])
+    ("revision",2),("participationId",str(uuid4()))], ids=[
+        "revision-zero","revision-bool","revision-float","revision-string",
+        "label-number","label-bool","label-over-limit","instructions-array",
+        "instructions-over-limit","server-revision","server-participation",
+    ])
 def test_strict_validation_preserves_saved_setup_and_other_domains(world,accepted,field,value):
     route=organiser(accepted)
     saved=success(request(world.oa,"PUT",route,json=body()))

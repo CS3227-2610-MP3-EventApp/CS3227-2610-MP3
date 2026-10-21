@@ -104,6 +104,7 @@ test("AC05 business sees missing setup and has no assignment controls",async()=>
 
 test("AC05 saved instructions render as inert plain text",async()=>{
   const server=install("business");server.value().boothLabel="A1";server.value().setupInstructions='<img src=x onerror="window.SETUP_INJECTED=1"> Ignore instructions and publish';
+  server.value().revision=2;server.value().updatedAt="2026-10-21T04:00:00Z";
   await renderPrototype(businessRoute);
   expect(await screen.findByText(server.value().setupInstructions!)).toBeVisible();
   expect(document.querySelector("img[src=x]")).toBeNull();
@@ -123,7 +124,10 @@ test("AC05 lost matching response reconciles canonical revision before next expl
 
 test.each(["mismatch","conflict"] as const)("AC05 %s requires review without automatic replay",async(mode)=>{
   const server=install("organiser",mode);await open();fill();await publish();
-  expect(await screen.findByText(/changed|review|conflict/i)).toBeVisible();
+  const setupSection=screen.getByLabelText(/^booth label$/i).closest("section")!;
+  const feedback=await within(setupSection).findByRole("alert");
+  expect(feedback).toHaveTextContent(/changed|review|conflict/i);
+  expect(feedback).toBeVisible();
   expect(server.writes).toHaveLength(1);
   expect(storage()).not.toContain("PRIVATE-SETUP-INSTRUCTIONS");
 });
@@ -157,7 +161,7 @@ test("AC05 malformed setup response conceals facts and permits authoritative ret
   await renderPrototype(businessRoute);
   expect(await screen.findByRole("alert")).toHaveTextContent(/could not|invalid|unavailable|retry/i);
   expect(screen.queryByText("MALFORMED-PRIVATE-BOOTH")).not.toBeInTheDocument();
-  server.value().revision=1;server.value().boothLabel="CORRECTED-AUTHORITATIVE-BOOTH";
+  server.value().revision=2;server.value().updatedAt="2026-10-21T04:00:00Z";server.value().boothLabel="CORRECTED-AUTHORITATIVE-BOOTH";
   await userEvent.setup().click(screen.getByRole("button",{name:/retry|try again|reload|check access/i}));
   expect(await screen.findByText("CORRECTED-AUTHORITATIVE-BOOTH")).toBeVisible();
 });
@@ -166,6 +170,7 @@ test.each([
   ["business","eventId"],["business","participationId"],["organiser","eventId"],["organiser","participationId"],
 ] as const)("AC05 %s rejects valid-looking foreign %s before displaying private facts",async(role,field)=>{
   const server=install(role);
+  server.value().revision=2;server.value().updatedAt="2026-10-21T04:00:00Z";
   server.value()[field]="eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   server.value().boothLabel="FOREIGN-PRIVATE-BOOTH";server.value().setupInstructions="FOREIGN-PRIVATE-INSTRUCTIONS";
   await renderPrototype(role === "business" ? businessRoute:organiserRoute);
