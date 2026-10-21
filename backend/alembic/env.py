@@ -11,6 +11,7 @@ from app.applications import models as application_models  # noqa: F401
 from app.programme import models as programme_models  # noqa: F401 -- register programme tables
 from app.ai import models as ai_models  # noqa: F401 -- register analysis tables
 from app.preparation import models as preparation_models  # noqa: F401 -- register preparation table
+from app.setup import models as setup_models  # noqa: F401 -- register participation setup table
 
 
 config = context.config

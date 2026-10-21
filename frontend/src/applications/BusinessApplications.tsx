@@ -5,6 +5,7 @@ import { useAuth } from "../Auth";
 import { applicationApi, ApiError } from "../api";
 import { application, blank, events as parseEvents, feedback, labels, limits, uncertain, validate, type Application, type ApplicationEvent, type Content, type DraftMemory, type PendingOperation } from "./model";
 import { ApplicationLayout, ContentSummary, Feedback, Frozen, useFeedback } from "./shared";
+import { SetupDetails } from "../setup/SetupDetails";
 const ContentField = memo(function ContentField({ field, value, error, edit }: { field: keyof typeof limits; value: string; error?: string; edit: (field: keyof Content, value: string) => void }) {
   return <TextField id={`application-${field}`} name={field} label={labels[field]} value={value} onChange={(event) => edit(field, event.target.value)} multiline={field === "description" || field === "requestedSpace"} rows={field === "description" ? 3 : field === "requestedSpace" ? 2 : undefined} type={field === "contactEmail" ? "email" : "text"} autoComplete="off" error={!!error} helperText={error ?? `Required. Maximum ${limits[field]} characters after trimming.`} slotProps={{ input: { inputComponent: field === "description" || field === "requestedSpace" ? "textarea" : "input" }, htmlInput: { "aria-required": true, rows: field === "description" ? 3 : field === "requestedSpace" ? 2 : undefined } }} />;
 });
@@ -172,7 +173,7 @@ export function BusinessApplications() {
       {!!eventList.length && <TextField select label="Event" value={eventId} onChange={(event) => chooseEvent(event.target.value)} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>{eventList.map((event) => <option key={event.eventId} value={event.eventId}>{event.title}</option>)}</TextField>}
       {eventList.filter((event) => event.eventId === eventId).map((event) => <Box key={event.eventId}><Typography>{event.title}</Typography><Typography>{event.startsAt} - {event.endsAt} ({event.timezone})</Typography><Typography>{event.applicationsOpen ? "Applications open" : "Applications are closed for this event. Keep editing your saved draft or choose an open event."}</Typography></Box>)}
       <Feedback status={status} />
-      {visible && draft!.saved && draft!.saved.status !== "draft" ? <Frozen value={draft!.saved} /> : visible && <Box component="form" noValidate onSubmit={save}>
+      {visible && draft!.saved && draft!.saved.status !== "draft" ? <><Frozen value={draft!.saved} /><SetupDetails mode="business" eventId={draft!.saved.eventId} participationId={draft!.saved.participationId} /></> : visible && <Box component="form" noValidate onSubmit={save}>
         <Stack spacing={3}>
           {draft!.saved && <Typography>Saved revision: {draft!.saved.revision}</Typography>}
           <TextField id="application-participantType" select label="Participant type" value={draft!.values.participantType} onChange={(event) => change("participantType", event.target.value)} error={!!errors.participantType} helperText={errors.participantType} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}><option value="exhibitor">Exhibitor</option><option value="vendor">Vendor</option></TextField>

@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | assign-booths-and-publish-setup-details |
 | Covered stories | [F06-US02](../../docs/UserStoriesAndFeatures.md), booth/setup portion only; status/reason stays in decision r2 |
-| Specification revision / status | 1 / Ready |
+| Specification revision / status | 1 / In review |
 | Product roles / roadmap | Assigned organisers and active business owners; manual journeys |
 | Product and contract approval | Isaac approved booth/setup default 2 and implementation/specification-amendment authority default 6 on 2026-10-21. This contract records those choices; human teammate review is separate. |
 | Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); test baseline and implementation pending |
@@ -58,7 +58,13 @@ Isaac approved organiser-only assignment to accepted businesses, save-to-publish
 
 ## Verification and evidence
 
-Independent test design/review/baseline and implementation checks pending in the phase run. All AC01–06 unverified as runtime completion; required human teammate/accessibility/summary review remains pending. No deployment, provider integration or Completed claim. Session conversation and actual handoffs go under `logs/isaac` at the phase commit.
+Independent design/reviews established initial baseline2db4a2f, reviewed fixture/portable-name/selector corrections at3639174, then same-actor approval/reconciliation regressions at `d7762e149599f2ebc97d9fc7fa974acc7bfae16f`. Backend18 focused/320 full and frontend18 focused/296 full tests plus production build pass. Both independent affected reviews resolved the stale-identity blocker at the same final source fingerprint recorded in the run. See the [setup phase run](../../workflow/agents/runs/2026-10-21-business-setup-implementation.md) for exact snapshots, actual agents and failed-attempt attribution. Human teammate/accessibility/summary review remains pending. No deployment, provider integration or Completed claim.
+
+| Criterion | Current evidence | Limitation |
+| --- | --- | --- |
+| AC01–AC04 | HTTP/PostgreSQL role/state/bounds/CAS/audit rollback and domain preservation cases;18 focused/320 full backend tests; independent server source reviews | Local evidence, not deployment/human signoff |
+| AC05 | UI confirmation/cancel/edit invalidation/unknown-write recovery/inert text/foreign-reference/identity swap cases;18 focused/296 full pass; both affected independent reviews pass; real Chrome organiser publication→business visibility | Human keyboard/NVDA/400% pending |
+| AC06 | Retained0006→0007 migration, every old table's row fingerprint unchanged; actual database/API restart preserved setup and manual preparation without reseeding | Synthetic local environment; online delivery remains separate |
 
 Preimplementation contract review: actual security reviewer `/root/preparation_security` reported no blocking specification findings; test designer `/root/preparation_scenarios` supplied positive/adverse/race/atomicity/UI scenarios and the path/confirmation/reconciliation clarifications above. These are read-only contract reviews, not runtime or executable-test adequacy evidence. Both remain to be performed at the phase baseline.
 

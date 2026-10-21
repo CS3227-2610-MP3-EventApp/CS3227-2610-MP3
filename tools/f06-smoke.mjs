@@ -64,12 +64,51 @@ let sequence = 0;
 await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
 socket.addEventListener('message', event => { const message = JSON.parse(event.data); if (pending.has(message.id)) { const request = pending.get(message.id); pending.delete(message.id); message.error ? request.reject(Error('CDP failure')) : request.resolve(message.result); } });
 function cdp(method, params = {}) { return new Promise((resolve, reject) => { const id = ++sequence; pending.set(id, { resolve, reject }); socket.send(JSON.stringify({ id, method, params })); }); }
-async function evaluate(expression) { const result = await cdp('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }); if (result.exceptionDetails) throw Error('Browser evaluation failed'); return result.result.value; }
-async function until(check) { for (let i = 0; i < 80; i++) { if (await check()) return; await new Promise(resolve => setTimeout(resolve, 100)); } throw Error('Browser condition timed out'); }
+async function evaluate(expression) {
+  const result = await cdp('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
+  if (result.exceptionDetails) {
+    const message = result.exceptionDetails.exception?.description?.split('\n')[0] ?? 'Unknown browser exception';
+    throw Error('Browser evaluation failed: ' + message);
+  }
+  return result.result.value;
+}
+async function until(check) {
+  for (let i = 0; i < 80; i++) {
+    try { if (await check()) return; } catch (error) {
+      // A navigation can replace the execution context between Page.navigate and the poll.
+      if (!error.message.startsWith('Browser evaluation failed:')) throw error;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw Error('Browser condition timed out');
+}
+async function clickText(label) {
+  const point = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('button')).find(item=>item.innerText.trim()===${JSON.stringify(label)});if(!button)throw Error('Missing button');button.scrollIntoView({block:'center'});const box=button.getBoundingClientRect();return{x:box.x+box.width/2,y:box.y+box.height/2};})()`);
+  await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+  await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+}
+async function fillLabel(label, text) {
+  const focus = `(()=>{const label=Array.from(document.querySelectorAll('label')).find(item=>item.innerText.replaceAll('*','').trim()===${JSON.stringify(label)});if(!label)return false;const input=document.getElementById(label.htmlFor);if(!input)return false;input.focus();return true;})()`;
+  // Activating a headless page can cause the application's mandatory authority refresh.
+  // Wait for the real labelled control to stay focused across that refresh before typing.
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await until(() => evaluate(focus));
+    await new Promise(resolve => setTimeout(resolve, 150));
+    if (await evaluate(`document.activeElement?.labels?.[0]?.innerText.trim()===${JSON.stringify(label)}`)) break;
+    if (attempt === 19) throw Error('Label did not retain focus');
+  }
+  await cdp('Input.insertText', { text });
+}
+async function browserAs(actor, route) {
+  await cdp('Network.setCookie', { name: 'eventapp_session', value: actor.cookie.slice('eventapp_session='.length), url: base, httpOnly: true, sameSite: 'Lax' });
+  await cdp('Emulation.setFocusEmulationEnabled', { enabled: true });
+  await cdp('Page.navigate', { url: base + route });
+}
+let savedSetup;
 await cdp('Page.enable'); await cdp('Network.enable');
 await cdp('Network.setCookie', { name: 'eventapp_session', value: biz.cookie.slice('eventapp_session='.length), url: base, httpOnly: true, sameSite: 'Lax' });
 await cdp('Page.navigate', { url: base + '/business/preparation?businessId=' + businessId + '&eventId=' + eventId + '&participationId=' + pid });
-console.log('BROWSER_READY; commands phase2, restart2, quit. Credentials remain memory-only.');
+console.log('BROWSER_READY; commands phase2, restart2, phase3, restart3, quit. Credentials remain memory-only.');
 const input = createInterface({ input: process.stdin, crlfDelay: Infinity });
 for await (const command of input) {
   try {
@@ -89,6 +128,36 @@ for await (const command of input) {
       await cdp('Page.reload');
       await until(() => evaluate("!!Array.from(document.querySelectorAll('input')).find(input=>input.value==='Retained invented smoke task')"));
       console.log('PHASE2_RESTART_PASS: saved document and existing cookie survive without reseeding');
+    } else if (command === 'phase3') {
+      const current = await api(biz, 'GET', '/api/v1/business/applications/' + application.id);
+      const submitted = await api(biz, 'POST', '/api/v1/business/applications/' + application.id + '/submit', { expectedRevision: current.revision });
+      await api(org, 'POST', '/api/v1/organiser/events/' + eventId + '/applications/' + application.id + '/decision', { expectedRevision: submitted.revision, outcome: 'accepted', reason: null });
+      await browserAs(org, '/organiser/applications?eventId=' + eventId + '&applicationId=' + application.id);
+      await until(() => evaluate("Array.from(document.querySelectorAll('label')).some(label=>label.innerText.trim()==='Booth label')"));
+      await fillLabel('Booth label', 'INVENTED-SMOKE-A1');
+      await fillLabel('Setup instructions', 'Invented setup at 08:00; no real allocation');
+      await clickText('Save setup');
+      await until(() => evaluate("!!document.querySelector('[role=dialog]')"));
+      if (!(await evaluate("document.querySelector('[role=dialog]').innerText")).includes('INVENTED-SMOKE-A1')) throw Error('Confirmation omitted exact booth');
+      await clickText('Cancel');
+      const setupPath = '/api/v1/business/participations/' + pid + '/setup';
+      if ((await api(biz, 'GET', setupPath)).revision !== 1) throw Error('Cancel published setup');
+      await clickText('Save setup');
+      await until(() => evaluate("!!document.querySelector('[role=dialog]')"));
+      await clickText('Publish setup');
+      await until(async () => (await api(biz, 'GET', setupPath)).revision === 2);
+      savedSetup = await api(biz, 'GET', setupPath);
+      if (savedSetup.boothLabel !== 'INVENTED-SMOKE-A1' || savedSetup.setupInstructions !== 'Invented setup at 08:00; no real allocation') throw Error('Published facts differ');
+      await browserAs(biz, '/business/applications?businessId=' + businessId + '&eventId=' + eventId + '&applicationId=' + application.id);
+      await until(() => evaluate("document.body.innerText.includes('INVENTED-SMOKE-A1')"));
+      if (JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(saved)) throw Error('Setup changed manual preparation');
+      console.log('PHASE3_BROWSER_PASS: real organizer confirmation/cancel/publication, business visibility, manual independence');
+    } else if (command === 'restart3') {
+      if (!savedSetup || JSON.stringify(await api(biz, 'GET', '/api/v1/business/participations/' + pid + '/setup')) !== JSON.stringify(savedSetup)) throw Error('Restart changed setup');
+      if (JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(saved)) throw Error('Restart changed manual preparation');
+      await cdp('Page.reload');
+      await until(() => evaluate("document.body.innerText.includes('INVENTED-SMOKE-A1')"));
+      console.log('PHASE3_RESTART_PASS: setup and manual preparation retained without reseeding');
     } else if (command === 'quit') { await cdp('Browser.close'); break; }
     else console.log('UNKNOWN_COMMAND');
   } catch (error) { console.log('SMOKE_FAILURE: ' + error.message); }

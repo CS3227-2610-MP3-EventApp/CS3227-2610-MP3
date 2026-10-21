@@ -16,6 +16,9 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-21 Isaac F06 phase2](isaac/2026-10-21-f06-phase-2-implementation.md): approved manual preparation bounds, actual independent test/developer/reviewer handoffs, repairs, local integration/restart evidence and commit; human verification pending.
+- [2026-10-21 Isaac F06 phase3](isaac/2026-10-21-f06-phase-3-setup.md): approved booth/setup scope and ongoing independent test-first pipeline; results recorded as observed, human verification pending.
+
 - [2026-10-21 Dylan organiser AI analysis](dylan/2026-10-21-organiser-ai-analysis.md): approved-plan implementation, SoCLaaS synthetic-data boundary, actual specialist handoffs, protected tests and verification status; human verification pending.
 
 - [2026-10-15–16 coordination discussion and repository sync](yikbing/2026-10-16-yik-bing-coordination-history.md): retrospective from the visible chat and Git evidence; earlier project-planning conversations are unavailable, and no claim of their complete coverage is made.

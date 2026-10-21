@@ -18,6 +18,8 @@ from app.programme.problems import ProgrammeProblem, field_errors, invalid, prob
 from app.programme.routes import router as programme_router
 from app.preparation.problems import PreparationError, is_preparation_path, problem_response as preparation_problem_response
 from app.preparation.routes import router as preparation_router
+from app.setup.problems import SetupError, is_setup_path, problem_response as setup_problem_response
+from app.setup.routes import router as setup_router
 from app.database import engine
 from app.settings import Settings
 
@@ -30,6 +32,7 @@ app.include_router(application_router)
 app.include_router(programme_router)
 app.include_router(ai_router)
 app.include_router(preparation_router)
+app.include_router(setup_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
@@ -50,8 +53,16 @@ async def preparation_problem(request: Request, exc: PreparationError):
                                         current_revision=exc.current_revision)
 
 
+@app.exception_handler(SetupError)
+async def setup_problem(request: Request, exc: SetupError):
+    return setup_problem_response(request, exc.code, fields=exc.fields,
+                                  current_revision=exc.current_revision)
+
+
 @app.exception_handler(HTTPException)
 async def http_problem(request: Request, exc: HTTPException):
+    if is_setup_path(request.url.path) and exc.status_code in {404, 405}:
+        return setup_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
     if is_preparation_path(request.url.path) and exc.status_code in {404, 405}:
         return preparation_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
     if is_application_path(request.url.path) and exc.status_code in {404, 405}:
@@ -66,6 +77,8 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
+    if is_setup_path(request.url.path):
+        return setup_problem_response(request, "validation_error", exc.errors())
     if is_preparation_path(request.url.path):
         return preparation_problem_response(request, "validation_error", exc.errors())
     if "/analysis" in request.url.path or request.url.path.endswith("analysis-rubric"):
@@ -94,7 +107,7 @@ async def unexpected_failure(request: Request, exc: Exception):
 
 @app.middleware("http")
 async def auth_boundary(request: Request, call_next):
-    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/", "/api/v1/ai/")) or is_application_path(request.url.path) or is_preparation_path(request.url.path):
+    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/", "/api/v1/ai/")) or is_application_path(request.url.path) or is_preparation_path(request.url.path) or is_setup_path(request.url.path):
         if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("origin") not in settings.trusted_origins:
             return problem_response(request, "forbidden")
         response = await call_next(request)

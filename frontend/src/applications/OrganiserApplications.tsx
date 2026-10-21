@@ -6,8 +6,9 @@ import { applicationApi, ApiError } from "../api";
 import { application, events, feedback, settings, uncertain, type Application, type ApplicationSettings, type OrganiserDraftMemory, type OrganiserEvent } from "./model";
 import { ApplicationLayout, ContentSummary, Feedback, Frozen, useFeedback } from "./shared";
 import ApplicationAnalysis from "./ApplicationAnalysis";
+import { SetupDetails } from "../setup/SetupDetails";
 export function OrganiserApplications() {
-  const { actor, revalidate, destinations, organiserMemory } = useAuth();
+  const { actor, revalidate, destinations, organiserMemory, setupMemory } = useAuth();
   const location = useLocation(), navigate = useNavigate();
   const query = new URLSearchParams(location.search);
   const applicationId = query.get("applicationId");
@@ -25,6 +26,7 @@ export function OrganiserApplications() {
   const [savedSettings, setSavedSettings] = useState<ApplicationSettings | null>(null), [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<"settings" | "accepted" | "rejected" | null>(null);
   const [reason, setReason] = useState(""), [reasonError, setReasonError] = useState("");
+  const [setupDirty, setSetupDirty] = useState(false);
   const [busy, setBusy] = useState(false), [unknown, setUnknown] = useState<"settings" | "decision" | null>(null);
   const [destination, setDestination] = useState<string | null>(null);
   const epoch = useRef(0), lock = useRef(false);
@@ -33,6 +35,7 @@ export function OrganiserApplications() {
   function denied(error: unknown) {
     if (error instanceof ApiError && [401, 403, 404].includes(error.status)) {
       organiserMemory.delete(memoryKey); draft.current = null;
+      for (const key of setupMemory.keys()) if (key.startsWith(`${actor!.id}:${eventId}:`)) setupMemory.delete(key);
       setSelected(null); setRecords([]); setSavedSettings(null); setReason(""); setConfirmation(null); setUnknown(null);
       if (error.status !== 404) revalidate();
     }
@@ -50,7 +53,7 @@ export function OrganiserApplications() {
     setReason(value); setReasonError("");
   }
   function changeContext(path: string) {
-    if (draft.current?.settingsDirty) {setDestination(path); return;}
+    if (draft.current?.settingsDirty || setupDirty) {setDestination(path); return;}
     organiserMemory.delete(memoryKey); navigate(path);
   }
   useEffect(() => {
@@ -81,6 +84,8 @@ export function OrganiserApplications() {
         if (id) {
           const detail = application(await applicationApi.review(eventId, id), {eventId, id, submitted: true});
           if (!active || epoch.current !== generation) return;
+          const setupKey = `${actor!.id}:${eventId}:${detail.participationId}`;
+          for (const key of setupMemory.keys()) if (key.startsWith(`${actor!.id}:`) && key !== setupKey) setupMemory.delete(key);
           setSelected(detail);
           if (detail.decision) model.reasons.delete(id);
           else setReason(model.reasons.get(id) ?? "");
@@ -158,7 +163,7 @@ export function OrganiserApplications() {
       }
     } finally { operation.inFlight = false; if (epoch.current === generation) { lock.current = false; setBusy(false); if (conflict) void readOutcome("decision", true); } }
   }
-  return <ApplicationLayout title="Applications" role="organiser" dirty={!!draft.current?.settingsDirty}><Stack spacing={4}>
+  return <ApplicationLayout title="Applications" role="organiser" dirty={!!draft.current?.settingsDirty || setupDirty}><Stack spacing={4}>
     <Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Stack spacing={2}>
     <TextField label="Event" select value={event ? eventId : ""} onChange={(e) => changeContext(tabPath(tab, null, e.target.value))} slotProps={{select: {native: true}, inputLabel: {shrink: true}}}>{summaries.map((item) => <option key={item.eventId} value={item.eventId}>{item.title}</option>)}</TextField>
     {event && <Typography>{event.startsAt} - {event.endsAt} ({event.timezone})</Typography>}
@@ -172,7 +177,7 @@ export function OrganiserApplications() {
     <Tabs value={tab} onChange={(_, value: string) => navigate(tabPath(value))} aria-label="Application workspace" variant="fullWidth" sx={{borderBottom: 1, borderColor: "divider", mb: 3}}><Tab id="application-review-tab" aria-controls="application-review-panel" value="review" label="Application Review"/><Tab id="application-analysis-tab" aria-controls="application-analysis-panel" value="analysis" label="AI Analysis"/></Tabs>
     {!selected && <Paper variant="outlined" sx={{p: 4}}><Typography variant="h2">Choose an application</Typography><Typography color="text.secondary" sx={{mt: 2}}>Select a submitted application to {tab === "analysis" ? "review its rubric and AI reports" : "inspect its details and make a decision"}.</Typography></Paper>}
     {selected && <>
-    <Box role="tabpanel" id="application-review-panel" aria-labelledby="application-review-tab" hidden={tab !== "review"}><Stack spacing={3}><Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Frozen value={selected}/><Typography color="text.secondary" sx={{mt: 2}}>Record revision: {selected.revision}</Typography></Paper><Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Typography variant="h2" component="h2" sx={{mb: 2}}>Application decision</Typography>{selected.status === "submitted" ? <Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button variant="contained" disabled={busy || !!unknown} onClick={() => {setConfirmation("accepted"); setReasonError("");}}>Approve application</Button><Button variant="outlined" disabled={busy || !!unknown} onClick={() => {setConfirmation("rejected"); setReasonError("");}}>Reject application</Button></Stack> : <Typography>This application has already been {selected.status}. Its decision is final.</Typography>}</Paper></Stack></Box>
+    <Box role="tabpanel" id="application-review-panel" aria-labelledby="application-review-tab" hidden={tab !== "review"}><Stack spacing={3}><Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Frozen value={selected}/><Typography color="text.secondary" sx={{mt: 2}}>Record revision: {selected.revision}</Typography></Paper><Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Typography variant="h2" component="h2" sx={{mb: 2}}>Application decision</Typography>{selected.status === "submitted" ? <Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button variant="contained" disabled={busy || !!unknown} onClick={() => {setConfirmation("accepted"); setReasonError("");}}>Approve application</Button><Button variant="outlined" disabled={busy || !!unknown} onClick={() => {setConfirmation("rejected"); setReasonError("");}}>Reject application</Button></Stack> : <Typography>This application has already been {selected.status}. Its decision is final.</Typography>}</Paper>{selected.status === "accepted" && <SetupDetails mode="organiser" eventId={selected.eventId} participationId={selected.participationId} onDirtyChange={setSetupDirty} />}</Stack></Box>
     <Box role="tabpanel" id="application-analysis-panel" aria-labelledby="application-analysis-tab" hidden={tab !== "analysis"}><Typography variant="h2" sx={{mb: 2}}>{selected.businessName}</Typography><ApplicationAnalysis key={`${eventId}:${selected.id}`} eventId={eventId} applicationId={selected.id} submittedRevision={selected.frozenSubmittedContentRevision!} onManualReview={() => navigate(tabPath("review"))}/></Box>
     </>}
     </Box></Box>
@@ -181,6 +186,6 @@ export function OrganiserApplications() {
     <Typography>Event: {event?.title}</Typography>
     {confirmation === "settings" ? <Typography>Applications will be {open ? "open" : "closed"}.</Typography> : selected && <><Typography>Business: {selected.businessName}</Typography><Typography>Outcome: {confirmation === "accepted" ? "Accepted" : "Rejected"}. This decision is final.</Typography><Typography>Record revision: {selected.revision}; frozen content revision: {selected.frozenSubmittedContentRevision}</Typography><ContentSummary value={selected} /><TextField fullWidth margin="normal" label="Decision reason" value={reason} onChange={(e) => changeReason(e.target.value)} error={!!reasonError} helperText={reasonError || (confirmation === "rejected" ? "Required. Use 1-1,000 characters. Shared with the applicant." : "Optional. Maximum 1,000 characters. Shared with the applicant.")} multiline slotProps={{htmlInput: {"aria-required": confirmation === "rejected"}}} /></>}
   </DialogContent><DialogActions sx={{flexWrap: "wrap"}}><Button disabled={busy} onClick={() => setConfirmation(null)}>Cancel</Button><Button disabled={busy} onClick={confirm}>{confirmation === "settings" ? "Confirm settings" : confirmation === "accepted" ? "Confirm approval" : "Confirm rejection"}</Button></DialogActions></Dialog>}
-  {destination !== null && <Dialog open transitionDuration={0} onClose={() => setDestination(null)} aria-labelledby="organiser-unsaved-title"><DialogTitle id="organiser-unsaved-title">Unsaved input</DialogTitle><DialogContent>Changing event or application clears private unsaved input for the current context.</DialogContent><DialogActions><Button onClick={() => setDestination(null)}>Stay</Button><Button onClick={() => {const path = destination; organiserMemory.delete(memoryKey); setDestination(null); navigate(path);}}>Continue and discard input</Button></DialogActions></Dialog>}
+  {destination !== null && <Dialog open transitionDuration={0} onClose={() => setDestination(null)} aria-labelledby="organiser-unsaved-title"><DialogTitle id="organiser-unsaved-title">Unsaved input</DialogTitle><DialogContent>Changing event or application clears private unsaved input for the current context.</DialogContent><DialogActions><Button onClick={() => setDestination(null)}>Stay</Button><Button onClick={() => {const path = destination; organiserMemory.delete(memoryKey); if (selected) setupMemory.delete(`${actor!.id}:${eventId}:${selected.participationId}`); setSetupDirty(false); setDestination(null); navigate(path);}}>Continue and discard input</Button></DialogActions></Dialog>}
   </ApplicationLayout>;
 }

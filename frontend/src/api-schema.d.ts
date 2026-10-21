@@ -279,6 +279,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/business/participations/{participation_id}/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business Get */
+        get: operations["business_get_api_v1_business_participations__participation_id__setup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/live": {
         parameters: {
             query?: never;
@@ -464,6 +481,24 @@ export interface paths {
         put?: never;
         /** Approve */
         post: operations["approve_api_v1_organiser_events__eventId__business_approvals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organiser/events/{event_id}/participations/{participation_id}/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Organiser Get */
+        get: operations["organiser_get_api_v1_organiser_events__event_id__participations__participation_id__setup_get"];
+        /** Organiser Save */
+        put: operations["organiser_save_api_v1_organiser_events__event_id__participations__participation_id__setup_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1790,6 +1825,61 @@ export interface components {
             maxCapacity: number;
             /** Name */
             name: string;
+        };
+        /** SaveSetup */
+        SaveSetup: {
+            /** Boothlabel */
+            boothLabel: string | null;
+            /** Expectedrevision */
+            expectedRevision: number;
+            /** Setupinstructions */
+            setupInstructions: string | null;
+        };
+        /** SetupDetails */
+        SetupDetails: {
+            /** Boothlabel */
+            boothLabel: string | null;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Revision */
+            revision: number;
+            /** Setupinstructions */
+            setupInstructions: string | null;
+            /** Updatedat */
+            updatedAt: string | null;
+        };
+        /** SetupProblem */
+        SetupProblem: {
+            /** Code */
+            code: string;
+            /** Currentrevision */
+            currentRevision?: number | null;
+            /** Detail */
+            detail: string;
+            /** Fielderrors */
+            fieldErrors?: {
+                [key: string]: string;
+            }[] | null;
+            /** Instance */
+            instance: string;
+            /** Status */
+            status: number;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @default about:blank
+             * @constant
+             */
+            type: "about:blank";
         };
         /** SubmitApplication */
         SubmitApplication: {
@@ -3756,6 +3846,108 @@ export interface operations {
             };
         };
     };
+    business_get_api_v1_business_participations__participation_id__setup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Method Not Allowed */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
     live_api_v1_health_live_get: {
         parameters: {
             query?: never;
@@ -5100,6 +5292,216 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    organiser_get_api_v1_organiser_events__event_id__participations__participation_id__setup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                participation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Method Not Allowed */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    organiser_save_api_v1_organiser_events__event_id__participations__participation_id__setup_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                participation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveSetup"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Method Not Allowed */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
                     "application/problem+json": unknown;
                 };
             };
