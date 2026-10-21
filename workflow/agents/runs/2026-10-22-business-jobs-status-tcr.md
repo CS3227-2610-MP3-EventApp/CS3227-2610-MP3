@@ -1,0 +1,10 @@
+# Test baseline change request JOBS-TCR-02
+
+- Requester/date: orchestrator `/root`,2026-10-22; test owner `/root/preparation_scenarios`. Current immutable baseline recorded in Phase4 run; preserve previous55817ee5296f9f291d09729237aa8811bcc330ee and compatibility replacement history.
+- Observed evidence reported by root: full backend343 passed/1 failed in test_ai_analysis.py::test_owner_current_membership_and_role_are_required_for_jobs_and_reports. Business GET of organiser-owned analysis job returns404 under approved shared role/workflow dispatch, while two historical assertions require organiser-only403.
+- Contract/policy: shared jobs r3 gives authorised business role access to shared job routing, with foreign/cross-workflow jobs privacy-safe404. Attendee403, anonymous401, own organiser behavior and denied cancel ranges remain unchanged.
+- Exact trusted human approval relayed by root: “Approve404andthetwotestcorrections” (approve404 and the two test corrections). This resolves the product compatibility choice, not an agent-invented expectation.
+- Proposed correction only: business GET `_problem(...,403)`→404 and `applicant_read.status_code ==403`→404 in that single test. Preserve all privacy text checks, before/after state assertions, other-role cases, cancellation status range and all test discovery/configuration.
+- Independent verifier assessment: actual `/root/phase2_final_behaviour` prospectively approved exactly the two403→404 values, as relayed by orchestrator before owner correction. Final applied-delta review pending.
+- Test owner decision: applied exactly those two expected status values after trusted user approval and independent review. Every other assertion preserved. No production edits; separate worker/provider tests unchanged. Tests/metadata frozen for orchestrator replacement baseline.
+- Owner execution: none for this request; no overlapping database run while developer focused suite executes. Correction commit, affected rerun and replacement immutable baseline belong in orchestrator run after approval.
