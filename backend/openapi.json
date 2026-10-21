@@ -1,6 +1,171 @@
 {
   "components": {
     "schemas": {
+      "AcceptCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedDraftRevision": {
+            "minimum": 0.0,
+            "title": "Expecteddraftrevision",
+            "type": "integer"
+          },
+          "expectedPreferenceRevision": {
+            "minimum": 0.0,
+            "title": "Expectedpreferencerevision",
+            "type": "integer"
+          },
+          "expectedStateRevision": {
+            "minimum": 0.0,
+            "title": "Expectedstaterevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedStateRevision",
+          "expectedDraftRevision",
+          "expectedPreferenceRevision"
+        ],
+        "title": "AcceptCommand",
+        "type": "object"
+      },
+      "AcceptedDetail": {
+        "properties": {
+          "acceptedAt": {
+            "format": "date-time",
+            "title": "Acceptedat",
+            "type": "string"
+          },
+          "currency": {
+            "const": "SGD",
+            "default": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "draftRevision": {
+            "title": "Draftrevision",
+            "type": "integer"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AcceptedItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "needsAttention": {
+            "title": "Needsattention",
+            "type": "boolean"
+          },
+          "preferenceRevision": {
+            "title": "Preferencerevision",
+            "type": "integer"
+          },
+          "preferencesSnapshot": {
+            "$ref": "#/components/schemas/PreferenceValues"
+          },
+          "totalMinorUnits": {
+            "title": "Totalminorunits",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "version",
+          "draftRevision",
+          "preferenceRevision",
+          "acceptedAt",
+          "preferencesSnapshot",
+          "totalMinorUnits",
+          "items",
+          "needsAttention"
+        ],
+        "title": "AcceptedDetail",
+        "type": "object"
+      },
+      "AcceptedItem": {
+        "properties": {
+          "acceptedItem": {
+            "$ref": "#/components/schemas/PublishedProgramme"
+          },
+          "accessibilityConfirmed": {
+            "title": "Accessibilityconfirmed",
+            "type": "boolean"
+          },
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "currentItem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublishedProgramme"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observedProgrammeRevision": {
+            "title": "Observedprogrammerevision",
+            "type": "integer"
+          },
+          "programmeItemId": {
+            "format": "uuid",
+            "title": "Programmeitemid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "programmeItemId",
+          "observedProgrammeRevision",
+          "accessibilityConfirmed",
+          "acceptedItem",
+          "currentItem",
+          "changed"
+        ],
+        "title": "AcceptedItem",
+        "type": "object"
+      },
+      "AcceptedSummary": {
+        "properties": {
+          "acceptedAt": {
+            "format": "date-time",
+            "title": "Acceptedat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "acceptedAt"
+        ],
+        "title": "AcceptedSummary",
+        "type": "object"
+      },
       "ApplicationContent": {
         "additionalProperties": false,
         "properties": {
@@ -618,6 +783,132 @@
         "title": "Decision",
         "type": "object"
       },
+      "Draft": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DraftItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "preferenceRevision": {
+            "minimum": 0.0,
+            "title": "Preferencerevision",
+            "type": "integer"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          }
+        },
+        "required": [
+          "revision",
+          "preferenceRevision",
+          "items",
+          "validation"
+        ],
+        "title": "Draft",
+        "type": "object"
+      },
+      "DraftCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedPreferenceRevision": {
+            "minimum": 0.0,
+            "title": "Expectedpreferencerevision",
+            "type": "integer"
+          },
+          "expectedStateRevision": {
+            "minimum": 0.0,
+            "title": "Expectedstaterevision",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DraftInput"
+            },
+            "maxItems": 500,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedStateRevision",
+          "expectedPreferenceRevision",
+          "items"
+        ],
+        "title": "DraftCommand",
+        "type": "object"
+      },
+      "DraftInput": {
+        "additionalProperties": false,
+        "properties": {
+          "accessibilityConfirmed": {
+            "title": "Accessibilityconfirmed",
+            "type": "boolean"
+          },
+          "observedProgrammeRevision": {
+            "minimum": 1.0,
+            "title": "Observedprogrammerevision",
+            "type": "integer"
+          },
+          "programmeItemId": {
+            "format": "uuid",
+            "title": "Programmeitemid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "programmeItemId",
+          "observedProgrammeRevision",
+          "accessibilityConfirmed"
+        ],
+        "title": "DraftInput",
+        "type": "object"
+      },
+      "DraftItem": {
+        "properties": {
+          "accessibilityConfirmed": {
+            "title": "Accessibilityconfirmed",
+            "type": "boolean"
+          },
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "currentItem": {
+            "$ref": "#/components/schemas/PublishedProgramme"
+          },
+          "currentProgrammeRevision": {
+            "title": "Currentprogrammerevision",
+            "type": "integer"
+          },
+          "observedProgrammeRevision": {
+            "title": "Observedprogrammerevision",
+            "type": "integer"
+          },
+          "programmeItemId": {
+            "format": "uuid",
+            "title": "Programmeitemid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "programmeItemId",
+          "observedProgrammeRevision",
+          "accessibilityConfirmed",
+          "currentItem",
+          "currentProgrammeRevision",
+          "changed"
+        ],
+        "title": "DraftItem",
+        "type": "object"
+      },
       "EventFacts": {
         "properties": {
           "endsAt": {
@@ -738,6 +1029,37 @@
           "field"
         ],
         "title": "FieldError",
+        "type": "object"
+      },
+      "Issue": {
+        "properties": {
+          "code": {
+            "enum": [
+              "overlap",
+              "minimum_gap",
+              "budget_exceeded",
+              "accessibility_unconfirmed",
+              "stale_programme",
+              "stale_preferences",
+              "empty_itinerary"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "itemIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Itemids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "itemIds"
+        ],
+        "title": "Issue",
         "type": "object"
       },
       "ItemFields": {
@@ -1170,6 +1492,297 @@
           "newPassword"
         ],
         "title": "PasswordChangeRequest",
+        "type": "object"
+      },
+      "PlanningProblemBody": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AuthFieldError"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "issues": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Issue"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issues"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "PlanningProblemBody",
+        "type": "object"
+      },
+      "PlanningState": {
+        "properties": {
+          "acceptedVersions": {
+            "items": {
+              "$ref": "#/components/schemas/AcceptedSummary"
+            },
+            "title": "Acceptedversions",
+            "type": "array"
+          },
+          "bookmarks": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Bookmarks",
+            "type": "array"
+          },
+          "currentAcceptedVersionId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentacceptedversionid"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/Draft"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "stateRevision": {
+            "minimum": 0.0,
+            "title": "Staterevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "eventId",
+          "stateRevision",
+          "preferences",
+          "bookmarks",
+          "draft",
+          "acceptedVersions",
+          "currentAcceptedVersionId"
+        ],
+        "title": "PlanningState",
+        "type": "object"
+      },
+      "PreferenceCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "accessibilityNeeds": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Accessibilityneeds",
+            "type": "string"
+          },
+          "budgetMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 2147483647.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budgetminorunits"
+          },
+          "currency": {
+            "const": "SGD",
+            "default": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "expectedStateRevision": {
+            "minimum": 0.0,
+            "title": "Expectedstaterevision",
+            "type": "integer"
+          },
+          "interests": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Interests",
+            "type": "string"
+          },
+          "minimumGapMinutes": {
+            "default": 0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Minimumgapminutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedStateRevision"
+        ],
+        "title": "PreferenceCommand",
+        "type": "object"
+      },
+      "PreferenceValues": {
+        "properties": {
+          "accessibilityNeeds": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Accessibilityneeds",
+            "type": "string"
+          },
+          "budgetMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 2147483647.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budgetminorunits"
+          },
+          "currency": {
+            "const": "SGD",
+            "default": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "interests": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Interests",
+            "type": "string"
+          },
+          "minimumGapMinutes": {
+            "default": 0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Minimumgapminutes",
+            "type": "integer"
+          }
+        },
+        "title": "PreferenceValues",
+        "type": "object"
+      },
+      "Preferences": {
+        "properties": {
+          "accessibilityNeeds": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Accessibilityneeds",
+            "type": "string"
+          },
+          "budgetMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 2147483647.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budgetminorunits"
+          },
+          "currency": {
+            "const": "SGD",
+            "default": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "interests": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Interests",
+            "type": "string"
+          },
+          "minimumGapMinutes": {
+            "default": 0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Minimumgapminutes",
+            "type": "integer"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "title": "Preferences",
         "type": "object"
       },
       "Problem": {
@@ -1810,6 +2423,21 @@
         "title": "RoomReplacement",
         "type": "object"
       },
+      "StateCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedStateRevision": {
+            "minimum": 0.0,
+            "title": "Expectedstaterevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedStateRevision"
+        ],
+        "title": "StateCommand",
+        "type": "object"
+      },
       "SubmitApplication": {
         "additionalProperties": false,
         "properties": {
@@ -1843,6 +2471,38 @@
           "applicationsOpen"
         ],
         "title": "UpdateApplicationSettings",
+        "type": "object"
+      },
+      "Validation": {
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "default": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "totalMinorUnits": {
+            "title": "Totalminorunits",
+            "type": "integer"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "totalMinorUnits",
+          "issues"
+        ],
+        "title": "Validation",
         "type": "object"
       },
       "ValidationResult": {
@@ -2220,6 +2880,869 @@
         "summary": "Attendee Events",
         "tags": [
           "Programme"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{event_id}/planning": {
+      "delete": {
+        "operationId": "clear_api_v1_attendee_events__event_id__planning_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Clear",
+        "tags": [
+          "Attendee planning"
+        ]
+      },
+      "get": {
+        "operationId": "read_api_v1_attendee_events__event_id__planning_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "Attendee planning"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{event_id}/planning/accept": {
+      "post": {
+        "operationId": "accept_api_v1_attendee_events__event_id__planning_accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Accept",
+        "tags": [
+          "Attendee planning"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{event_id}/planning/accepted/{version_id}": {
+      "get": {
+        "operationId": "accepted_api_v1_attendee_events__event_id__planning_accepted__version_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Accepted",
+        "tags": [
+          "Attendee planning"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{event_id}/planning/bookmarks/{item_id}": {
+      "delete": {
+        "operationId": "remove_bookmark_api_v1_attendee_events__event_id__planning_bookmarks__item_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Remove Bookmark",
+        "tags": [
+          "Attendee planning"
+        ]
+      },
+      "put": {
+        "operationId": "add_bookmark_api_v1_attendee_events__event_id__planning_bookmarks__item_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Add Bookmark",
+        "tags": [
+          "Attendee planning"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{event_id}/planning/draft": {
+      "put": {
+        "operationId": "draft_api_v1_attendee_events__event_id__planning_draft_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Draft",
+        "tags": [
+          "Attendee planning"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{event_id}/planning/preferences": {
+      "put": {
+        "operationId": "preferences_api_v1_attendee_events__event_id__planning_preferences_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenceCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningProblemBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Preferences",
+        "tags": [
+          "Attendee planning"
         ]
       }
     },

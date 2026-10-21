@@ -13,7 +13,7 @@ Do not edit Dylan's AI files, settings/dependencies, organiser functionality or 
 
 ## Protected baseline
 
-Immutable SHA: Pending independent adequacy review and baseline commit. Implementation cannot start before this value is recorded.
+Initial immutable SHA: 6c0232b38fb4ed81ebc20a9e8fd8a5178a8d1c10. After independently approved TCR04, replacement baseline SHA: 162a1dc96b4f08b8535f9728f04e08a8b3653680. The guard passes on the replacement SHA with the protected path set below.
 
 Protected paths: backend/tests; frontend/tests; backend/pyproject.toml; frontend/package.json; frontend/package-lock.json; frontend/vite.config.ts; tools/check_test_baseline.py; workflow/agents/runs/2026-10-21-attendee-planning-test-plan.md; workflow/agents/runs/2026-10-21-attendee-planning-test-changes.md. Verify every path exists in the baseline before using the guard. The run record remains evidence-owned; do not weaken its baseline identity or protection policy.
 
@@ -34,6 +34,14 @@ Frontend: TZ=UTC; node20.19.0; node_modules/.bin/vitest.cmd run tests/attendee-p
 
 ## Implementation and verification
 
-Pending. No passing implementation, persistence, browser, security or online-delivery claim is made. Actual F05 cancellation remains deferred to the real producer lifecycle. Manual synthetic API tests are separate from provider evidence; F02 itself has no AI dependency.
+Final F02 implementation is in the working diff following baseline `162a1dc96b4f08b8535f9728f04e08a8b3653680`. Independent reviewer `/root/f02_draft_review` assessed the same code snapshot for behaviour/security and found no actionable scoped findings; this was static review, not test execution. No edits were made to protected production/test paths after the baseline except the independently reviewed TCR04 correction included in baseline 162a1dc.
 
-Independent /root/f02_draft_review approved final baseline and both narrow TCRs before implementation. Residual final checks: real foreign/private draft references, different-room/overnight, wrong-role mutation matrix, true DB/API restart and storage rollback. These remain required evidence, not claimed passing. Initial red observations predate final case additions.
+- Backend `backend/.venv/Scripts/python.exe -m pytest tests/test_attendee_planning.py -q`: 22 passed in 3386.79s on guarded `127.0.0.1:5433/eventapp_test`. Only warnings: Starlette/httpx deprecation and pytest cache access denied; neither changed the result.
+- Frontend on Node 20.19.0 with `TZ=UTC`, `npm test -- --run tests/attendee-planning.test.tsx tests/acceptance/session-and-homes.test.tsx --maxWorkers=1`: after TCR04, 2 files/29 tests passed in 60.36s. One earlier run exposed an ambiguous query (both the empty-itinerary warning and stale-write conflict are valid alerts); it was corrected by the test owner, approved independently, frozen as 162a1dc, then passed. No application change was required for this failure.
+- `npm run build`: TypeScript and Vite production build passed. Existing bundle advisory remains: main JS chunk 874.64 kB minified / 268.53 kB gzip, above Vite's 500 kB advisory threshold.
+- Two targeted backend migration tests (fresh full-head schema and auth-to-head data preservation): 2 passed in 35.45s.
+- Independent synthetic scenario helper: real private draft and published foreign-event references denied with unchanged planning data; organiser and business mutation matrix denied; same-room and actual different-room overlap rejected at acceptance; overnight exact adjacency accepted; forced accepted-row insert/delete storage failures rolled back; repeated empty delete remained a no-op.
+- Persistence: wrote synthetic preferences, bookmark, draft and two accepted snapshots, stopped the setup process, restarted only `eventapp-f02-test-20261021` PostgreSQL, then a fresh process/client retrieved the exact state and both accepted versions without reseeding.
+- `tools/check_test_baseline.py` passed against full baseline SHA `162a1dc96b4f08b8535f9728f04e08a8b3653680`; `git diff --check` passed. The synthetic verification script also required a small correction to use a separately created Room B before the different-room case.
+
+Remaining evidence: manual accessibility/assistive technology review, actual online delivery and environment isolation, human teammate review and human session-log verification. F05 cancellation/change producer is absent and explicitly deferred. Dylan's organiser AI migration `20261021_0005` is on a separate branch; reconcile both additive migration heads and test combined empty/existing-database upgrades before integration/PR. No push, PR or merge occurred. See `logs/yikbing/2026-10-21-attendee-planning-start.md` for the user interaction and coordination summary.

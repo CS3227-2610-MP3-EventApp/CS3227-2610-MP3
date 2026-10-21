@@ -33,6 +33,8 @@ function ApplicationRoutes() {
     <Route path="/register/attendee" element={<Register key="attendee" role="attendee" />} />
     <Route path="/register/business" element={<Register key="business" role="business" />} />
     <Route path="/change-password" element={<ChangePassword />} />
+    <Route path="/attendee/planning" element={<GuardedWorkspace role="attendee" />} />
+    <Route path="/attendee/planning/events/:eventId" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/attendee/programme" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/attendee/programme/events/:eventId" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/attendee/programme/events/:eventId/items/:itemId" element={<GuardedWorkspace role="attendee" />} />
