@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | approve-external-actions |
 | Covered stories | [F10-US03](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 2 / Ready; independent executable test baseline gate pending |
+| Specification revision / status | 2 / In progress; approved independent baseline 560cbf4 |
 | Product roles / roadmap | Business participant sandbox contract; organiser compatibility only. [Phase 3](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved Phase 3 defaults and then exact revision 2 on 2026-10-23, replying "yes please start implementing and finishing the phase" to the exact-revision approval request. Implementation follows the independent test-baseline gate. |
-| Review / run record | [Draft analysis, independent reviews and scenario findings](../../logs/isaac/2026-10-23-f09-phase3-approval-contract.md); executable test plan/baseline and implementation run pending |
+| Review / run record | [Phase 3 implementation and baseline](../../workflow/agents/runs/2026-10-23-f09-phase3.md); [conversation and Draft review](../../logs/isaac/2026-10-23-f09-phase3-approval-contract.md) |
 
 Sources: [standard](../README.md), catalogue, [RD01/RD07 and project action levels](../../docs/project.md#ai-service-and-permitted-actions), [security](../../docs/security.md), and [architecture](../../docs/architecture.md).
 
@@ -23,9 +23,9 @@ Show action type, seller identity/source, exact items and quantities, known pric
 
 ## Inputs, outputs and functional contract
 
-### Phase 3 business contract (proposed interface; exact r2 approval pending)
+### Phase 3 business contract v1 (approved revision 2)
 
-The proposed v1 HTTP surface is:
+The approved v1 HTTP surface is:
 
 | Route | Typed request and response |
 | --- | --- |
@@ -104,4 +104,4 @@ Exact revision 2 is approved by Isaac on 2026-10-23. Independent executable test
 | Revision / date | Change | Approval / evidence impact |
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial bounded Draft | Approval and verification pending |
-| 2 / 2026-10-23 | Narrowed to the business sandbox approval service/API and immutable proposal registry; specified typed source-backed payload, API operations, lifecycle, authorization, freshness, expiry, deduplication, cancellation, retention, audit and deferred consumers. | Phase 3 defaults approved by Isaac; exact r2 approval pending. Physical ownership remains for implementation planning; all verification pending. |
+| 2 / 2026-10-23 | Narrowed to the business sandbox approval service/API and immutable proposal registry; specified typed source-backed payload, API operations, lifecycle, authorization, freshness, expiry, deduplication, cancellation, retention, audit and deferred consumers. | Defaults and exact r2 approved by Isaac; reviewed baseline 560cbf4 precedes implementation. Runtime verification pending. |

@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-23 Isaac F09 Phase 3 approval contract](isaac/2026-10-23-f09-phase3-approval-contract.md): whole visible conversation covering specification review, default/exact revision approval, independent test baseline, sandbox implementation, verification corrections and commit evidence; human verification pending.
+
 - [2026-10-23 Isaac F09 Phase 2 completion and Phase 3 handoff](isaac/2026-10-23-f09-phase2-completion-and-handoff.md): whole-conversation summary of listing-only offers (r4), flexible extraction (r5), approvals, live and browser evidence, reviews and the Phase 3 handoff.
 
 - [2026-10-23 Isaac F09 Phase 2 delivery-grounding review](isaac/2026-10-23-f09-phase2-delivery-grounding-review.md): whole-conversation summary of the Phase 2 pending-review, qualifier-bypass regression cycle, live-research limits and remaining gates; human verification pending.

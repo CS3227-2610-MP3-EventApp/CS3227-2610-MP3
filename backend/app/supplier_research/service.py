@@ -892,6 +892,50 @@ def get_shortlist(db, actor, participation_id):
     return _shortlist_view(row, participation_id)
 
 
+def read_action_sources(db, actor, participation_id, shortlist_id, expected_revision, items):
+    """Return the exact owner-authorized evidence selected for an external-action proposal.
+
+    This is an additive consumer interface. The caller owns the transaction and must
+    keep it open through proposal/approval/claim writes. It uses the same participation
+    lock as shortlist replacement and snapshot deletion so source references cannot
+    change between validation and the caller's commit.
+    """
+    participation = _authority(db, actor, participation_id, lock=True)
+    shortlist = db.scalar(select(SupplierShortlist).where(
+        SupplierShortlist.id == shortlist_id,
+        SupplierShortlist.owner_id == actor.id,
+        SupplierShortlist.participation_id == participation_id).with_for_update())
+    if shortlist is None:
+        raise AIError("not_found")
+    if shortlist.revision != expected_revision:
+        raise AIError("stale_source")
+    selected = {(entry.get("snapshotId"), entry.get("offerId")) for entry in shortlist.selected_offers}
+    result = []
+    for item in items:
+        snapshot_id, offer_id = str(item["snapshotId"]), str(item["offerId"])
+        if (snapshot_id, offer_id) not in selected:
+            raise AIError("not_found")
+        snapshot = db.scalar(select(SupplierResearchSnapshot).where(
+            SupplierResearchSnapshot.id == item["snapshotId"],
+            SupplierResearchSnapshot.owner_id == actor.id,
+            SupplierResearchSnapshot.participation_id == participation_id)
+            .with_for_update().execution_options(populate_existing=True))
+        if snapshot is None:
+            raise AIError("not_found")
+        offer = next((entry for entry in snapshot.offers if str(entry.get("id")) == offer_id), None)
+        if offer is None:
+            raise AIError("not_found")
+        source_ids = {str(source.get("sourceId")) for source in snapshot.sources}
+        if any(str(evidence.get("sourceId")) not in source_ids
+               for evidence in offer.get("evidenceByField", [])):
+            raise AIError("stale_source")
+        # Return a detached, read-only value contract rather than supplier ORM rows.
+        source_snapshot = {"id": snapshot.id, "revision": snapshot.revision,
+            "request": dict(snapshot.request), "sources": [dict(source) for source in snapshot.sources]}
+        result.append({"snapshot": source_snapshot, "offer": dict(offer)})
+    return {"shortlist": {"id": shortlist.id, "revision": shortlist.revision}, "items": result}
+
+
 def replace_shortlist(db, actor, participation_id, body):
     db.scalar(select(User).where(User.id == actor.id).with_for_update().execution_options(populate_existing=True))
     _authority(db, actor, participation_id, lock=True)

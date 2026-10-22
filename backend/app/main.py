@@ -23,6 +23,8 @@ from app.setup.routes import router as setup_router
 from app.preparation_drafts.routes import router as draft_router
 from app.promotional_concepts.routes import router as promotional_concepts_router
 from app.supplier_research.routes import router as supplier_research_router
+from app.external_actions.routes import router as external_actions_router
+from app.external_actions.problems import ActionError, problem_response as action_problem_response
 from app.database import engine
 from app.settings import Settings
 
@@ -39,6 +41,7 @@ app.include_router(setup_router)
 app.include_router(draft_router)
 app.include_router(promotional_concepts_router)
 app.include_router(supplier_research_router)
+app.include_router(external_actions_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
@@ -46,6 +49,11 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
 @app.exception_handler(ApplicationError)
 async def application_problem(request: Request, exc: ApplicationError):
     return application_problem_response(request, exc.code, current_application=exc.current_application)
+
+
+@app.exception_handler(ActionError)
+async def external_action_problem(request: Request, exc: ActionError):
+    return action_problem_response(request, exc.code)
 
 
 @app.exception_handler(AIError)
@@ -67,6 +75,8 @@ async def setup_problem(request: Request, exc: SetupError):
 
 @app.exception_handler(HTTPException)
 async def http_problem(request: Request, exc: HTTPException):
+    if request.url.path.startswith(("/api/v1/business/action-proposals", "/api/v1/business/action-approvals")) and exc.status_code in {404, 405}:
+        return action_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
     if is_setup_path(request.url.path) and exc.status_code in {404, 405}:
         return setup_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
     if is_preparation_path(request.url.path) and exc.status_code in {404, 405}:
@@ -83,6 +93,8 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith(("/api/v1/business/action-proposals", "/api/v1/business/action-approvals")):
+        return action_problem_response(request, "validation_error")
     if "preparation-drafts" in request.url.path or "promotional-concepts" in request.url.path or "supplier-research" in request.url.path or "supplier-shortlist" in request.url.path:
         return ai_problem_response(request, "validation_error")
     if is_setup_path(request.url.path):
