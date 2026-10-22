@@ -7,7 +7,7 @@
 | Specification revision / status | 2 / Draft |
 | Product roles / roadmap | Attendee, organiser trigger; [phase 4](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Pending human approval of exact revision 2 and recipient contract |
-| Review / run record | Pending |
+| Review / run record | Partial implementation, test and independent review evidence in the [F05 run record](../../workflow/agents/runs/2026-10-21-organiser-disruptions.md); real F02 integration and human approval pending |
 
 Sources: [standard](../README.md), catalogue, [RD04/RD05](../../docs/project.md#accepted-review-decisions), [security](../../docs/security.md), [architecture](../../docs/architecture.md) updated 2026-10-21, and the attendee itinerary Draft at [manage preferences and itineraries](../attendee-planning/manage-preferences-and-itineraries.md). Per the orchestrator's task brief, the user approved the implementation plan; that plan approval is separate from approval of this exact specification revision and its contracts, which remains pending.
 
@@ -53,11 +53,11 @@ Consumes [programme changes](change-published-activities.md), `ProgrammeChanged 
 
 ## Verification and evidence
 
-Independent test design/baseline/reviews and integrated concurrency, delayed delivery and lifecycle checks are pending. All criteria remain unverified. Human teammate and online environment checks remain pending.
+The explicit disabled/missing-F02 rejection gate, notification persistence/routes/UI and independent protected tests/reviews are recorded in [the F05 run](../../workflow/agents/runs/2026-10-21-organiser-disruptions.md). The real F02 producer is absent: recipient selection, acceptance/change concurrency, actual private delivery/read lifecycle and full criterion verification remain blocked. No fabricated recipient set or successful empty inbox substitutes for integration. Human teammate and online environment checks remain pending.
 
 ## Project gates
 
-This notice capability does not itself provide an LLM feature; attendee AI remains scoped to its itinerary and event-question stories, organiser AI to the separate announcement capability, and business AI to business preparation. Actual SDD specialist handoffs and reviewed acceptance baseline are pending. Applicable privacy/security checks are linked above; online deployment with separate development/production data and credentials and human teammate review remain pending under the [project completion gates](../../docs/project.md#mandatory-completion-gates).
+This notice capability does not itself provide an LLM feature; attendee AI remains scoped to its itinerary and event-question stories, organiser AI to the separate announcement capability, and business AI to business preparation. Actual specialist handoffs, reviewed baselines and bounded gate/security evidence are linked above, not completion of RD05. Real F02 integration, exact-written-revision approval, online deployment with separate development/production data and credentials and human teammate review remain pending under the [project completion gates](../../docs/project.md#mandatory-completion-gates).
 
 ## Revision history
 

@@ -120,7 +120,7 @@ def stored_findings(current_event, room, item):
 
 
 def published_reference(db, event_id, venue_id=None, room_id=None):
-    statement = select(models.ProgrammeItem.id).where(models.ProgrammeItem.event_id == event_id, models.ProgrammeItem.state == "published")
+    statement = select(models.ProgrammeItem.id).where(models.ProgrammeItem.event_id == event_id, models.ProgrammeItem.state.in_(["published", "cancelled"]))
     if room_id is not None:
         statement = statement.where(models.ProgrammeItem.room_id == room_id)
     if venue_id is not None:

@@ -20,6 +20,8 @@ The repository contains a React role-entry/workspace UI and FastAPI/PostgreSQL a
 
 ## Run locally
 
+The F05 branch adds published programme changes/cancellation and manual/AI-assisted announcements. Apply migration `20261021_0006` before running it. Follow [F05 testing and teammate handoff](DisruptionsTesting.md) for the new flows and the explicit F02 notification integration gate. Itinerary notifications are not complete merely because their tables and screens exist.
+
 Prerequisites: Python 3.12, [uv](https://docs.astral.sh/uv/), Docker Desktop, and Node.js `^20.19.0` or `>=22.12.0`. Use separate terminals. The Docker commands below work in PowerShell, bash and zsh. Start the database and backend first; Vite proxies API requests to `127.0.0.1:8000` and will report proxy errors until the backend is running.
 
 ### 1. Start PostgreSQL and the backend

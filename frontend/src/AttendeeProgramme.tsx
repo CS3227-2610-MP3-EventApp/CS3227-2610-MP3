@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Button, FormControl, InputLabel, Link as MuiLink, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, FormControl, InputLabel, Link as MuiLink, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "./api";
 import { useAuth } from "./Auth";
@@ -33,6 +33,7 @@ function EventCard({ event }: { event: EventSummary }) {
 
 function ItemCard({ eventId, item }: { eventId: string; item: PublishedProgrammeItem }) {
   return <Paper component="article" variant="outlined" sx={{ p: 2.5 }}>
+    {item.state === "cancelled" && <Chip label="Cancelled" color="warning" sx={{mb: 1}}/>}
     <Typography component="h3" variant="h2" sx={{ fontSize: 24 }}><MuiLink component={Link} underline="hover" color="inherit" to={itemPath(eventId, item.id)}>{item.title}</MuiLink></Typography>
     <Typography color="text.secondary" sx={{ mt: 1 }}>{types.find(([, token]) => token === item.type)?.[0] ?? "Activity"} · {localTime(item.startsAt, item.event.timezone)} – {localTime(item.endsAt, item.event.timezone)}</Typography>
     <Typography sx={{ mt: 1 }}><span>{price(item.priceMinorUnits)}</span> · Capacity: {item.capacity}</Typography>
@@ -118,6 +119,7 @@ export function AttendeeProgramme() {
         {view === "events" ? "Back to workspace" : view === "detail" ? "Back to activities" : "Back to events"}
       </Button>
     </Stack>
+    <Stack direction="row" sx={{gap: 2, flexWrap: "wrap", mb: 2}}><Button component={Link} to="/attendee/notifications">Notifications</Button>{eventId && <Button component={Link} to={`/attendee/events/${eventId}/announcements`}>Event announcements</Button>}</Stack>
     {view === "items" && selectedEvent && <Typography color="text.secondary" sx={{ mb: 2 }}>{selectedEvent.timezone} · {localTime(selectedEvent.startsAt, selectedEvent.timezone)} – {localTime(selectedEvent.endsAt, selectedEvent.timezone)}</Typography>}
     {view === "items" && <Box component="form" onSubmit={(event) => { event.preventDefault(); applyFilters(); }} sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 1fr 1fr auto" }, gap: 1.5, mb: 2.5, alignItems: "center" }}>
       <TextField label="Search activity titles" value={titleDraft} onChange={(event) => setTitleDraft(event.target.value)} />
@@ -132,6 +134,7 @@ export function AttendeeProgramme() {
     {!loading && !error && view === "events" && <Stack spacing={1.5}>{events.map((event) => <EventCard key={event.id} event={event} />)}</Stack>}
     {!loading && !error && view === "items" && <Stack spacing={1.5}>{items.map((item) => <ItemCard key={item.id} eventId={eventId ?? item.eventId} item={item} />)}</Stack>}
     {!loading && !error && view === "detail" && detail && <Paper component="article" variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
+      {detail.state === "cancelled" && <Alert severity="warning" sx={{mb: 2}}>This activity has been cancelled. {detail.cancellationReason} Existing itinerary entries are retained until you change your plan.</Alert>}
       <Typography color="text.secondary">{types.find(([, token]) => token === detail.type)?.[0] ?? "Activity"} · {detail.event.timezone}</Typography>
       <Typography sx={{ mt: 1 }}>{localTime(detail.startsAt, detail.event.timezone)} – {localTime(detail.endsAt, detail.event.timezone)}</Typography>
       <Typography sx={{ mt: 1 }}>{price(detail.priceMinorUnits)} · Capacity: {detail.capacity}</Typography>

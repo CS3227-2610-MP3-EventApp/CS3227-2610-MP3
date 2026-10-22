@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-21 Dylan organiser disruptions](dylan/2026-10-21-organiser-disruptions.md): F05 staged changes/announcements, actual specialist handoffs, protected regressions, corrected review findings, invented-data provider check and pending F02 integration; human verification pending.
+
 - [2026-10-21 Dylan organiser AI analysis](dylan/2026-10-21-organiser-ai-analysis.md): approved-plan implementation, SoCLaaS synthetic-data boundary, actual specialist handoffs, protected tests and verification status; human verification pending.
 
 - [2026-10-15–16 coordination discussion and repository sync](yikbing/2026-10-16-yik-bing-coordination-history.md): retrospective from the visible chat and Git evidence; earlier project-planning conversations are unavailable, and no claim of their complete coverage is made.

@@ -125,7 +125,10 @@ class AnalysisReport(Input):
 class AnalysisJob(Input):
     id: UUID
     eventId: UUID
-    applicationId: UUID
+    applicationId: UUID | None
+    kind: Literal["application_analysis", "announcement_draft"] = "application_analysis"
+    sourceChangeId: UUID | None = None
+    announcementDraftId: UUID | None = None
     state: Literal["pending", "running", "completed", "failed", "cancelled"]
     createdAt: datetime
     updatedAt: datetime

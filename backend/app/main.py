@@ -16,6 +16,8 @@ from app.applications.routes import router as application_router
 from app.applications.problems import ApplicationError, is_application_path, problem_response as application_problem_response
 from app.programme.problems import ProgrammeProblem, field_errors, invalid, problem_response as programme_problem_response
 from app.programme.routes import router as programme_router
+from app.disruptions.routes import router as disruption_router
+from app.disruptions.ai import router as announcement_ai_router
 from app.database import engine
 from app.settings import Settings
 
@@ -26,6 +28,8 @@ settings = Settings()
 app.include_router(router)
 app.include_router(application_router)
 app.include_router(programme_router)
+app.include_router(announcement_ai_router)
+app.include_router(disruption_router)
 app.include_router(ai_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
@@ -55,7 +59,7 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
-    if "/analysis" in request.url.path or request.url.path.endswith("analysis-rubric"):
+    if "/analysis" in request.url.path or request.url.path.endswith(("analysis-rubric", "/announcements/generate")):
         return ai_problem_response(request, "validation_error")
     if is_application_path(request.url.path):
         return application_problem_response(request, "validation_error", exc.errors())

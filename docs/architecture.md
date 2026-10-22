@@ -170,6 +170,18 @@ The [project roadmap](project.md) owns phase priority. These groups describe dep
 
 Run the shared [multi-agent process](../workflow/agents/README.md) within each task: independent test design and adequacy review precede implementation, and independent behavior/security review follows it. Record actual contributions and handoffs instead of assuming planned participation occurred. Fixtures permit parallel progress, but completion requires the delivered producer revision and real integration. Security tests and online delivery with separate development/production environments apply throughout.
 
+## F05 staged implementation contract
+
+Migration `20261021_0006` retains the programme item identity and uniqueness by item/revision, replacing the old one-snapshot-per-item restriction. Published edits and final cancellation append immutable `programme_item_revisions` and `programme_changes`, recording old/new facts, actor, reason and revision. Current attendee reads join the item's current revision, so historical snapshots do not duplicate current results. Cancelled items retain their location references and public visibility.
+
+`announcement_drafts` holds author-private versioned text and immutable published text. `announcement_publication_previews` binds the exact author/text/audience/draft/source revision for 15 minutes. Source freshness, permission and preview binding are rechecked on publish; replay of the same successful preview returns its original publication. A partial unique index enforces one published announcement per change.
+
+Announcement jobs extend the existing durable worker with explicit `kind=announcement_draft`, a real `source_change_id`, and an optional resulting draft ID. Application-analysis jobs keep their existing submission/rubric references. Both kinds share quotas, deadlines, cancellation and provider-attempt limits. OpenAPI and committed TypeScript types define the physical API.
+
+F02 is not present on this branch. `app.disruptions.notifications.accepted_itinerary_provider` is the integration boundary: the teammate-owned implementation must return currently accepted `recipient_user_id` / `accepted_revision_id` records inside the caller's event-locked transaction. Acceptance must lock that same event before reading programme facts and reject cancelled activities. F05 never writes itinerary tables. With planning disabled, changes explicitly record `blocked_f02`; those historical changes are never backfilled from later plans. With planning enabled but no provider, changes fail closed with 503. Enable planning and recipient capture together only after real integration tests.
+
+`attendee_notifications` deduplicates recipient/change and stores accepted revision plus immutable historical facts. When integrated, insertion constitutes in-app delivery and shares the change transaction; failure rolls back the entire change. Inbox reads are owner-scoped. No email, push, broker, retention cleanup or accepted-plan mutation is introduced.
+
 ## Migration and merge convention
 
 Use separate local development databases per developer with the same reviewed migrations and synthetic fixtures. A shared development database would create avoidable data interference; production remains one database.

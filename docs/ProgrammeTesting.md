@@ -2,6 +2,8 @@
 
 Contract: [programme revision 6](../specs/programme/create-and-publish-programme.md). This guide describes the intended test flows; actual passing evidence and remaining checks belong in the [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md).
 
+F05 adds a separate explicit change/cancellation workflow after initial publication; follow [disruptions testing](DisruptionsTesting.md) for that extension. Published items still cannot use draft-edit/delete endpoints, and historical snapshots remain immutable.
+
 ## Start locally
 
 Follow [DeveloperGuide](DeveloperGuide.md) to start PostgreSQL, apply `uv run alembic upgrade head` in `backend/`, then run FastAPI and the frontend separately. New programme tables require the latest migration before using the screens. Do not reset an existing development database or use it for automated tests.
@@ -15,7 +17,7 @@ Use the existing trusted bootstrap CLI to create an event and assign an organise
 3. Create a draft workshop in that room, inside the event's dates, capacity 30 and price SGD `12.50`. Use the start/end calendar and time controls in the displayed event timezone. Save, select it again and refresh: the draft should persist and remain private, with the same SGD dollar price.
 4. Try capacity 31, a negative price, a price with three decimal places, missing title and an end time before the start. Expect actionable errors and no accepted invalid changes. Price `0` is valid; `0.29` must become exactly 29 API cents, without rounding. Two otherwise valid items may overlap in the same room.
 5. Validate a draft. This must not publish or increment its revision. Open publication confirmation and cancel: nothing should publish. Confirm publication: the item becomes read-only with a new revision.
-6. Try editing/deleting that published item or changing its room/venue. Expect rejection. Venue/room pencil and trash icons have tooltips and keyboard-accessible names. An unused room can be deleted; a referenced room cannot. Delete a different draft from its selected details only after explicit confirmation; cancelling deletion preserves it. Delete unused rooms before deleting their venue.
+6. Try editing/deleting that published item through the original draft endpoints or changing its room/venue record. Expect rejection. F05's **Edit published activity** creates a separate new revision instead. Venue/room pencil and trash icons have tooltips and keyboard-accessible names. An unused room can be deleted; a referenced room cannot. Delete a different draft from its selected details only after explicit confirmation; cancelling deletion preserves it. Delete unused rooms before deleting their venue.
 7. Open the same draft in two tabs. Save an edit in the first, then save/publish the old revision in the second. Expect a conflict and an explicit reload/review step, not silent overwrite.
 8. Switch events while editing. Selected item, unsaved inputs and old field errors must clear. Check both appearance modes and keyboard operation. Displayed times must use the selected event's timezone, even when your computer uses another timezone.
 
