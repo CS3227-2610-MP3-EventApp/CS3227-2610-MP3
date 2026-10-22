@@ -37,6 +37,7 @@ LEGACY_DOMAIN_TABLES = {"application_approvals", "event_participations", "submis
 DOMAIN_TABLES = LEGACY_DOMAIN_TABLES | {"application_settings", "application_decisions"}
 PROGRAMME_TABLES = {"venues", "rooms", "programme_items", "programme_item_revisions"}
 ATTENDEE_PLANNING_TABLES = {"attendee_planning_states", "attendee_bookmarks", "attendee_draft_items", "attendee_accepted_versions"}
+AI_TABLES = {"analysis_rubric_versions", "ai_jobs", "ai_reports", "ai_provider_attempts"}
 ACTIONS = {"application_settings_update", "application_decide", "application_create", "application_edit", "application_submit"}
 CONTENT_KEYS = {"participantType", "description", "requestedSpace", "contactName", "contactEmail"}
 APPLICATION_KEYS = {"id", "businessId", "businessName", "eventId", "eventTitle", "participationId", "status", "revision", "content", "frozenSubmittedContentRevision", "submittedAt", "decision"}
@@ -759,8 +760,7 @@ def reset_schema():
 def assert_current_schema(historical=False):
     with connect() as connection:
         tables = {row[0] for row in connection.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")}
-        # F02-TCR-02: current head adds only the reviewed attendee-planning tables.
-        expected_domain_tables = LEGACY_DOMAIN_TABLES if historical else DOMAIN_TABLES | PROGRAMME_TABLES | ATTENDEE_PLANNING_TABLES
+        expected_domain_tables = LEGACY_DOMAIN_TABLES if historical else DOMAIN_TABLES | PROGRAMME_TABLES | ATTENDEE_PLANNING_TABLES | AI_TABLES
         assert tables == AUTH_TABLES | expected_domain_tables | {"alembic_version"}
         assert connection.execute("SELECT is_nullable FROM information_schema.columns WHERE table_schema='public' AND table_name='audit_events' AND column_name='resource_revision'").fetchone() == ("YES",)
         references = {"application_approvals": {"events", "businesses", "users"}, "event_participations": {"events", "businesses"}, "submissions": {"event_participations", "users"}}

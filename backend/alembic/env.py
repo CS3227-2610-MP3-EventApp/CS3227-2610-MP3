@@ -10,6 +10,7 @@ from app.business import models as business_models  # noqa: F401
 from app.applications import models as application_models  # noqa: F401
 from app.programme import models as programme_models  # noqa: F401 -- register programme tables
 from app.attendee_planning import models as planning_models  # noqa: F401 -- register planning tables
+from app.ai import models as ai_models  # noqa: F401 -- register analysis tables
 
 
 config = context.config

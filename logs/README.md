@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-21 Dylan organiser AI analysis](dylan/2026-10-21-organiser-ai-analysis.md): approved-plan implementation, SoCLaaS synthetic-data boundary, actual specialist handoffs, protected tests and verification status; human verification pending.
+
 - [2026-10-15–16 coordination discussion and repository sync](yikbing/2026-10-16-yik-bing-coordination-history.md): retrospective from the visible chat and Git evidence; earlier project-planning conversations are unavailable, and no claim of their complete coverage is made.
 - [2026-10-16 workflow implementation](yikbing/2026-10-16-yik-bing-agent-workflow.md): branch setup, agent definitions, protected-test procedure, log requirement, validation and review evidence.
 - [2026-10-17 Yik Bing specification scoping](yikbing/2026-10-17-yik-bing-spec-scoping.md): story-level specification scoping review and limits.
@@ -42,3 +44,4 @@ Each teammate must add summaries for their own earlier sessions and verify the h
 - [2026-10-21 Yik Bing attendee F01 integration](yikbing/2026-10-21-attendee-integration.md): approved start-date contract alignment, independent test baseline/review, generated consumer integration, real HTTP/Chrome/PostgreSQL restart evidence and explicit remaining gates. Human verification pending.
 
 - [2026-10-21 Yik Bing F02 attendee planning](yikbing/2026-10-21-attendee-planning-start.md): approved scope, branch coordination, protected baseline, implementation/review handoffs, frontend/backend/migration/restart evidence and remaining release gates; human verification pending.
+- [2026-10-22 Yik Bing F02 and organiser AI integration](yikbing/2026-10-22-f02-ai-integration.md): merge of master into the F02 feature branch, conflict resolutions preserving both features, schema/migration checks, focused frontend and provider verification, and remaining full-suite/database limitations; human verification pending.
