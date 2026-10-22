@@ -5,7 +5,7 @@
 - Branch/source: `itzxitzx/specs-proposal`, `f6b6de974a5cd5f5f1b78286ec2c8b7e5398f259`; working tree initially clean.
 - Source coverage: visible conversation and repository documentation. Earlier unavailable conversations are not reconstructed.
 - AI factual check: checked against file reads, actual delegation results and command output.
-- Human verification: Pending. Reviewer/date/corrections not supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

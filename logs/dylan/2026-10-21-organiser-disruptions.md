@@ -4,7 +4,7 @@
 - Branch/source: `feat/organiser-disruptions`, clean local master `3c5ff1e`.
 - Coverage: visible approved plan, actual agent messages, working files and command output. Earlier conversations are context, not reconstructed transcripts.
 - AI factual check: checked against the evidence below; final verification results are in the linked run record.
-- Human verification: Pending. Dylan has not yet checked this summary.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

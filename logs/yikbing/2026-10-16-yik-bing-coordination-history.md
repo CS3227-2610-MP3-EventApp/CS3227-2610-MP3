@@ -4,7 +4,7 @@
 - Owner: Yik Bing.
 - Source: visible conversation for this task, tool outputs, and repository history through `19448a7`.
 - AI factual check: checked against those sources; this is a retrospective summary, not a verbatim transcript.
-- Human verification: Pending. No human correctness sign-off has been supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

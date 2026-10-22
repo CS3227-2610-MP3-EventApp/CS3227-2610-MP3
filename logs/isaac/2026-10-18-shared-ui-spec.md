@@ -4,7 +4,7 @@
 - Scope: Cross-role EventApp UI capability, `navigate-eventapp-workspaces` revision 1 Draft, and log organization; uncommitted working tree.
 - Sources: This visible conversation, repository files, agent messages and actual checks; unavailable earlier interactions are not reconstructed.
 - AI factual check: Checked against the visible requests, changed files, reviewer messages and commands below.
-- Human verification: Pending; reviewer/date/corrections not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

@@ -4,7 +4,7 @@
 - Branch/base revision: `itzxitzx/specs-proposal`, `f6b6de974a5cd5f5f1b78286ec2c8b7e5398f259`.
 - Source coverage: current visible conversation, working-tree documents and actual tool/agent results. Earlier unavailable conversations are not reconstructed.
 - AI factual check: checked against file reads, diff, command results and actual delegation messages.
-- Human verification: Pending. Reviewer/date/corrections not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and decisions
 

@@ -3,7 +3,7 @@
 - Date/timezone: 2026-10-18, Asia/Singapore. Requesting session owner: Isaac.
 - Source: visible user request, existing uncommitted root-spec-standard work, current file reads and actual tool/agent results. Earlier unavailable history is not reconstructed.
 - AI factual check: checked against the evidence recorded below.
-- Human verification: Pending; reviewer/date/corrections not supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and decisions
 

@@ -3,7 +3,7 @@
 - Feature/task, branch and source revision: Manual issue fixes on `feat/organiser-disruptions`, starting from `e78ba84`
 - Source coverage (visible chat/tool output, external history unavailable): Visible conversation and repository inspection only.
 - AI factual check: checked against stated tool output below.
-- Human verification: Pending. Reviewer/date/corrections: not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 The user reported three manual issues: attendee accessibility values appeared missing, organiser activity details closed when switching tabs, and AI announcement drafting failed with `invalid_output`.
@@ -24,7 +24,7 @@ The user reported three manual issues: attendee accessibility values appeared mi
 - The live database evidence indicates room/venue accessibility must be entered before publication (or the published programme must be republished through the supported workflow); this session did not alter live data.
 
 ## Reflection and next steps
-The AI failure was compatible with a provider formatting difference rather than a schema/grounding failure. The organiser selection fix covers component remounts and browser-tab return, but a full browser-flow check should still confirm the exact user interaction. Human verification remains pending.
+The AI failure was compatible with a provider formatting difference rather than a schema/grounding failure. The organiser selection fix covers component remounts and browser-tab return, but a full browser-flow check should still confirm the exact user interaction. Human verification was approved by the team on 2026-10-22.
 
 The organiser date/time picker was then tightened to use full event-window date-time bounds, with visible allowed-window, earliest-start, and latest-end guidance. The first UI wording caused two existing acceptance-test query collisions; replacing the informational Alert and repeated timezone labels resolved them without weakening the guidance.
 

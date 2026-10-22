@@ -4,7 +4,7 @@
 - Feature/task, branch and source revision: Claude Code model recommendations for the existing six-role SDD workflow; branch `chore/agent-model-configuration` at base `13b768b` with the earlier uncommitted Codex model changes still present.
 - Source coverage: visible prompt, assistant responses and tool output in this Claude chat. The earlier Codex/ChatGPT discussion is summarised in [the previous session log](2026-10-19-agent-model-discussion-and-workspace-preparation.md) and is not re-covered here.
 - AI factual check: checked against the repository files read and the official Anthropic pages fetched on 2026-10-19 (listed below).
-- Human verification: Pending. Reviewer/date/corrections: not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 
@@ -92,7 +92,7 @@ Session: Claude Code desktop app (Code tab), main chat on Opus 5.5 (`claude-opus
   - No unit tests were added for the new validator checks; the fault checks above were one-off runs on temporary copies.
   - `$draft-spec` and `.agents/skills/` are Codex-specific and were not adapted for Claude Code.
   - Nothing was committed or pushed.
-- Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Follow-up: discovery smoke check in a new Claude Code session
 
@@ -103,4 +103,4 @@ The user started a new Claude Code session in the repository root and reported t
 - The user then ran the smoke-check prompt, which delegated one read-only task each to `specification_analyst` and `behaviour_verifier` with no model or effort override. According to the user, the background-tasks view showed Sonnet 5.5 and Opus 5.5 respectively. This matches the role frontmatter and indicates that both project subagents were discovered.
 - Effort was not visible in the background-tasks view, so the configured efforts (high for the analyst, medium for the verifier) remain unverified at runtime. The workflow README says that view shows model and effort; this observation contradicts that for effort.
 - The subagents' replies were not reported here. The other four roles, a Sonnet 5.5 main chat and Codex discovery remain unchecked.
-- Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
