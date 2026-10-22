@@ -24,10 +24,19 @@ def lock_attendee(db: Session, owner_id: UUID) -> bool:
     return row is not None
 
 
-def published_facts(db: Session, event_id: UUID) -> list[PublishedProgramme]:
-    rows = db.scalars(select(ProgrammeItemRevision).where(ProgrammeItemRevision.event_id == event_id)).all()
-    facts = [PublishedProgramme.model_validate(row.snapshot) for row in rows]
+def current_facts(rows) -> list[PublishedProgramme]:
+    """Latest revision of each activity, without cancelled ones, in chronological order."""
+    latest = {}
+    for row in rows:
+        if row.item_id not in latest or row.revision > latest[row.item_id].revision:
+            latest[row.item_id] = row
+    facts = [PublishedProgramme.model_validate(row.snapshot) for row in latest.values()]
+    facts = [fact for fact in facts if fact.state == "published"]
     return sorted(facts, key=lambda fact: (fact.startsAt, fact.endsAt, str(fact.id)))
+
+
+def published_facts(db: Session, event_id: UUID) -> list[PublishedProgramme]:
+    return current_facts(db.scalars(select(ProgrammeItemRevision).where(ProgrammeItemRevision.event_id == event_id)).all())
 
 
 def planning_row(db: Session, owner_id: UUID, event_id: UUID):
