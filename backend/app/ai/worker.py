@@ -13,6 +13,7 @@ from app.ai import service
 from app.ai.models import AIProviderAttempt, AnalysisJob, AnalysisReport, AnalysisRubricVersion
 from app.ai.provider import ProviderFailure, SoCLaaSProvider
 from app.ai.schemas import AnalysisPayload
+from app.attendee_ai import worker as attendee_worker
 from app.applications.models import Submission
 from app.auth.models import AuditEvent, utcnow
 from app.business.models import EventParticipation
@@ -224,7 +225,7 @@ def run_once(provider=None) -> bool:
     _recover_overdue()
     claimed = _claim()
     if claimed is None:
-        return False
+        return attendee_worker.run_once(provider, sleeper=sleep)
     job_id, event_id, _, sources, criteria = claimed
     if not _dispatch(job_id):
         return True

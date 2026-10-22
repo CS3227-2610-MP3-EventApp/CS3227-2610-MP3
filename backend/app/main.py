@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException
 from app.auth.problems import AuthProblem, problem_response
 from app.auth.routes import router
 from app.ai.routes import router as ai_router
+from app.attendee_ai.routes import router as attendee_ai_router
 from app.ai.service import AIError, problem_response as ai_problem_response
 from app.applications.routes import router as application_router
 from app.applications.problems import ApplicationError, is_application_path, problem_response as application_problem_response
@@ -30,6 +31,7 @@ app.include_router(application_router)
 app.include_router(programme_router)
 app.include_router(planning_router)
 app.include_router(ai_router)
+app.include_router(attendee_ai_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
@@ -64,6 +66,8 @@ async def auth_problem(request: Request, exc: AuthProblem):
 async def invalid_request(request: Request, exc: RequestValidationError):
     if request.url.path.startswith("/api/v1/attendee/events/") and "/planning" in request.url.path:
         return planning_problem_response(request, validation_problem(exc.errors()))
+    if "itinerary-generations" in request.url.path:
+        return ai_problem_response(request, "validation_error")
     if "/analysis" in request.url.path or request.url.path.endswith("analysis-rubric"):
         return ai_problem_response(request, "validation_error")
     if is_application_path(request.url.path):
