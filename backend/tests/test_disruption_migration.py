@@ -48,7 +48,9 @@ def test_disruption_upgrade_preserves_populated_programme_and_application_ai(ai_
     migration("downgrade", "20261021_0005")
     try:
         with connect() as connection:
-            assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "20261021_0005"
+            assert {row[0] for row in connection.execute("SELECT version_num FROM alembic_version").fetchall()} == {
+                "20261021_0005", "20261021_f02",
+            }
             columns = {table: [row[0] for row in connection.execute(
                 "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=%s ORDER BY ordinal_position", (table,))]
                 for table in tables}
