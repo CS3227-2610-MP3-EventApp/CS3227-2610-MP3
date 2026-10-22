@@ -1,5 +1,6 @@
 """Developer-owned supplier validation checks; excluded from the protected baseline."""
 import json
+import time
 from uuid import uuid4
 
 import pytest
@@ -469,3 +470,106 @@ def test_model_unknown_field_reasons_are_never_echoed():
     assert "notAllowed" not in [item["field"] for item in unknown]
     assert all("model delivery text" != item["reason"] for item in unknown)
     assert "91234567" not in json.dumps(result) and "evil" not in json.dumps(result)
+
+
+# r5/D07 repair helpers and per-offer rejection
+from app.supplier_research.service import _repair_name, _repair_quote
+
+
+def test_repair_quote_snaps_whitespace_to_exact_page_span():
+    page = "Intro. Invented  Printer offers\nFlyer Pack. More."
+    assert _repair_quote("Invented Printer offers Flyer Pack.", page) == "Invented  Printer offers\nFlyer Pack."
+    assert _repair_quote("Invented Printer offers Flyer Pack.", "Invented Printer offers Flyer Pack.") \
+        == "Invented Printer offers Flyer Pack."
+
+
+def test_repair_quote_never_invents_text():
+    page = "Invented Printer offers Flyer Pack."
+    assert _repair_quote("Invented Printer sells Flyer Pack.", page) == "Invented Printer sells Flyer Pack."
+    assert _repair_quote("   ", page) == "   "
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("Invented Printer Ltd", "Invented Printer"), ("Invented Printer Pte. Ltd.", "Invented Printer"),
+    ("invented printer, LLC", "invented printer"), ("Invented Printer Co", "Invented Printer"),
+    ("Invented Printer Limited", "Invented Printer"), ("Invented Printer Inc.", "Invented Printer"),
+    ("Invented Printer Corp", "Invented Printer Corp"), ("Other Printer Ltd", "Other Printer Ltd"),
+    ("Invented Printer", "Invented Printer")])
+def test_repair_name_only_drops_trailing_corporate_suffix(name, expected):
+    assert _repair_name(name, ["Invented Printer offers Flyer Pack."], allow_suffix=True) == expected
+
+
+def test_repair_name_without_quotes_is_unchanged():
+    assert _repair_name("Invented Printer Ltd", []) == "Invented Printer Ltd"
+
+
+def test_repair_name_snaps_whitespace_to_quoted_span():
+    assert _repair_name("Flyer Pack", ["Printer offers  Flyer\nPack."]) == "Flyer Pack"
+    assert _repair_name("Flyer Pack", ["Printer offers Flyer\tPack."]) == "Flyer Pack"
+
+
+def test_repair_quote_gap_and_bounds():
+    assert _repair_quote("A B", "A \t B") == "A \t B"
+    assert _repair_quote("A B", "A\r\n  B") == "A\r\n  B"
+    assert _repair_quote("A B", "A\n\nB") == "A B"
+    assert _repair_quote("A B", "A\u00a0B") == "A B"
+    assert _repair_quote("Z B", "A  B") == "Z B"
+    many = " ".join(f"w{i}" for i in range(61))
+    assert _repair_quote(many, many.replace(" ", "  ")) == many
+    ok = " ".join(f"w{i}" for i in range(60))
+    assert _repair_quote(ok, ok.replace(" ", "  ")) == ok.replace(" ", "  ")
+    long_tokens = " ".join(["x" * 30] * 40)
+    assert _repair_quote(long_tokens, long_tokens.replace(" ", "  ")) == long_tokens
+
+
+def test_repair_quote_pathological_page_is_fast():
+    page = "a " * (512 * 1024)
+    quote = " ".join(["a"] * 59 + ["b"])
+    started = time.monotonic()
+    assert _repair_quote(quote, page) == quote
+    assert time.monotonic() - started < 1.5
+
+
+def test_repair_name_suffix_only_for_supplier_name_and_word_boundaries():
+    quotes = ["Invented Printer offers Flyer Pack."]
+    assert _repair_name("Flyer Pack Ltd", quotes) == "Flyer Pack Ltd"
+    assert _repair_name("Flyer Pack Ltd", quotes, allow_suffix=True) == "Flyer Pack"
+    assert _repair_name("Invent Ltd", quotes, allow_suffix=True) == "Invent Ltd"
+    assert _repair_name("Printer Pte.\nLtd.", quotes, allow_suffix=True) == "Printer"
+    assert _repair_name("Invented  Printer Ltd", quotes, allow_suffix=True) == "Invented Printer"
+
+
+def test_rejected_offer_still_lists_source_with_saved_offer_as_failure():
+    page = "Invented Printer offers Flyer Pack. SGD 2.05 per 10 units. Delivery 3 days."
+    raw, research = fixture(page)
+    data = json.loads(raw)
+    bad = json.loads(raw)["offers"][0]
+    for citation in bad["evidenceByField"]:
+        citation["evidenceQuote"] = "Fabricated claim not on the page."
+    data["offers"].insert(0, bad)
+    result = validate_extraction(json.dumps(data), research)
+    assert len(result["offers"]) == 1
+    assert result["status"] == "partial"
+    assert result["sourceFailures"] == [{"sourceId": research["sources"][0]["sourceId"], "code": "fetch_failed",
+        "displayMessage": "An offer from this source could not be verified and was omitted."}]
+
+
+def test_bad_offer_is_dropped_with_safe_source_failure_and_forged_source_fails_all():
+    page = "Invented Printer offers Flyer Pack. SGD 2.05 per 10 units. Delivery 3 days."
+    raw, research = fixture(page)
+    data = json.loads(raw)
+    bad = json.loads(raw)["offers"][0]
+    other = str(uuid4())
+    research["sources"].append({"sourceId": other})
+    research["pageById"][other] = "Other page."
+    for citation in bad["evidenceByField"]:
+        citation["sourceId"] = other
+        citation["evidenceQuote"] = "Fabricated claim not on the page."
+    data["offers"].append(bad)
+    result = validate_extraction(json.dumps(data), research)
+    assert len(result["offers"]) == 1 and result["status"] == "partial"
+    assert [f["code"] for f in result["sourceFailures"]] == ["fetch_failed"]
+    assert "Fabricated" not in json.dumps(result)
+    data["offers"][1]["evidenceByField"][0]["sourceId"] = str(uuid4())
+    with pytest.raises(ValueError, match="invalid_output"):
+        validate_extraction(json.dumps(data), research)

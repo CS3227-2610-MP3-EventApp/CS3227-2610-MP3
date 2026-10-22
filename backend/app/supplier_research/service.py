@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 import json
+import logging
 import re
 import time
 from types import SimpleNamespace
@@ -251,7 +252,9 @@ def messages(research):
         "evidenceQuote for both supplierName and productDescription; separate quotes are fine only if both come from the same "
         "fetched page (same sourceId), and never mix pages within one offer; then copy a short supplier name and a short "
         "product phrase character-for-character out of those quotes (never add words such as 'Inc', 'Ltd' or a category label "
-        "that is not in the quote). Do not rewrite, normalize, "
+        "that is not in the quote). An offer whose quote is not on its page, whose names are not literally in its quotes, "
+        "or whose name is a currency amount, URL, email or phone number is dropped on its own, so omit offers you cannot "
+        "quote exactly rather than guessing; a cited sourceId that was not supplied invalidates the entire output. Do not rewrite, normalize, "
         "summarize, add punctuation, or combine separate text. The server checks literal substring inclusion. If an exact "
         "quote cannot support a field, mark that field unknown while retaining any other independently supported datum. "
         "Each quote must support its cited field. Supplier and product citations must "
@@ -441,7 +444,97 @@ def _delivery_context_supports(quote, estimate, supplier_name, product_descripti
     return False
 
 
+logger = logging.getLogger(__name__)
+
+_NAME_SUFFIX = re.compile(r"^(?P<stem>.*\S)[\s,]+(?:ltd|limited|pte|inc|llc|co)\.?\s*$", re.I | re.S)
+
+
+_MAX_REPAIR_TOKENS = 60
+_MAX_REPAIR_CHARS = 1000
+_REPAIR_STEP_BUDGET = 200_000
+_QUOTE_GAP = re.compile(r"[ \t]*(?:\r?\n[ \t]*)?")
+
+
+class _OfferDefect(Exception):
+    """A defect confined to one offer; carries a content-free reason code."""
+
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = code
+
+
+def _repair_quote(quote, page):
+    """Replace a quote differing from the page only by whitespace with the exact page span."""
+    if quote in page:
+        return quote
+    tokens = quote.split()
+    if not tokens or len(tokens) > _MAX_REPAIR_TOKENS:
+        return quote
+    first = tokens[0]
+    budget = _REPAIR_STEP_BUDGET
+    start = page.find(first)
+    while start != -1 and budget > 0:
+        pos = start + len(first)
+        for token in tokens[1:]:
+            budget -= 1
+            gap = _QUOTE_GAP.match(page, pos)
+            if gap is None or gap.end() == pos or not page.startswith(token, gap.end()):
+                break
+            pos = gap.end() + len(token)
+            if pos - start > _MAX_REPAIR_CHARS:
+                break
+        else:
+            return page[start:pos] if pos - start <= _MAX_REPAIR_CHARS else quote
+        budget -= 1
+        start = page.find(first, start + 1)
+    return quote
+
+
+def _repair_name(name, quotes, allow_suffix=False):
+    """Shorten a name to quoted wording when it is that wording plus a trailing corporate suffix."""
+    folded = [quote.casefold() for quote in quotes]
+    if not folded or any(name.casefold() in quote for quote in folded):
+        return name
+    tokens = name.split()
+    if tokens:
+        spaced = re.compile(r"\s+".join(re.escape(token) for token in tokens), re.I)
+        for quote in quotes:
+            found = spaced.search(quote)
+            if found is not None:
+                return " ".join(found.group(0).split())
+    if not allow_suffix:
+        return name
+    candidate = name
+    while True:
+        match = _NAME_SUFFIX.match(candidate)
+        if match is None:
+            return name
+        candidate = " ".join(match.group("stem").rstrip(" \t\r\n,.").split())
+        if len(candidate) >= 2:
+            bounded = re.compile(r"(?<!\w)" + re.escape(candidate.casefold()) + r"(?!\w)")
+            if any(bounded.search(quote) for quote in folded):
+                return " ".join(candidate.split())
+
+
+def _contains(quote, name):
+    """Case-insensitive containment ignoring whitespace layout."""
+    return " ".join(name.split()).casefold() in " ".join(quote.split()).casefold()
+
+
+def _repair_offer(item, pages):
+    for citation in item.evidenceByField:
+        page = pages.get(str(citation.sourceId))
+        if page is not None:
+            citation.evidenceQuote = _repair_quote(citation.evidenceQuote, page)
+    for field, attribute in (("supplierName", "supplierName"), ("productDescription", "productDescription")):
+        quotes = [c.evidenceQuote for c in item.evidenceByField if c.field == field]
+        setattr(item, attribute, _repair_name(getattr(item, attribute), quotes, allow_suffix=field == "supplierName"))
+
+
 def validate_extraction(raw, research):
+    """Validate model output. Malformed output, a forged sourceId or zero surviving offers
+    fails the whole extraction; any other per-offer defect rejects only that offer and is
+    recorded as a safe source failure. Only reason codes are logged."""
     if not isinstance(raw, str) or len(raw) > 40_000:
         raise ValueError("invalid_output")
     try:
@@ -450,164 +543,35 @@ def validate_extraction(raw, research):
         raise ValueError("invalid_output") from exc
     source_map = {UUID(item["sourceId"]): item for item in research["sources"]}
     pages = research["pageById"]
+    if any(citation.sourceId not in source_map for item in parsed.offers for citation in item.evidenceByField):
+        logger.warning("supplier_extraction_rejected code=forged_source")
+        raise ValueError("invalid_output")
     normalized, represented_sources, omitted_sources = [], set(), set()
+    rejected_sources = []
     any_listing_only = False
-    for item in parsed.offers:
-        if any(_IDENTITY_FORBIDDEN.search(text) for text in (item.supplierName, item.productDescription)):
-            raise ValueError("invalid_output")
-        evidence = []
-        for citation in item.evidenceByField:
-            source = source_map.get(citation.sourceId)
-            if source is None or citation.evidenceQuote not in pages[str(citation.sourceId)]:
-                raise ValueError("invalid_output")
-            evidence.append(citation)
-
-        valid_identity = [citation for citation in evidence if
-            (citation.field == "supplierName" and item.supplierName.casefold() in citation.evidenceQuote.casefold())
-            or (citation.field == "productDescription" and item.productDescription.casefold() in citation.evidenceQuote.casefold())]
-        if not any(c.field == "supplierName" for c in valid_identity) or not any(
-                c.field == "productDescription" for c in valid_identity):
-            raise ValueError("invalid_output")
-
-        def product_context(citation):
-            quote = citation.evidenceQuote.casefold()
-            return item.supplierName.casefold() in quote and item.productDescription.casefold() in quote
-
-        delivery_evidence = [citation for citation in evidence if
-            citation.field == "deliveryEstimate" and product_context(citation)
-            and _delivery_context_supports(citation.evidenceQuote, item.deliveryEstimate,
-                item.supplierName, item.productDescription, research["request"].get("deliveryArea", ""))]
-        useful_delivery = bool(delivery_evidence)
-        price_fields = {"listedPrice.amountMinorUnits", "listedPrice.currency", "listedPrice.unitLabel", "listedPrice.quantityBasis"}
-        price_citations = [citation for citation in evidence if citation.field in price_fields]
-        price = item.listedPrice
-        basis = price.quantityBasis
-        expected = (price.amountMinorUnits, price.currency, basis)
-        # A price must be attributable to this exact supplier/product in one
-        # fetched quote. Never combine separate citations or accept one of
-        # several prices from a page as though it described this offer.
-        valid_price_citations = []
-        for amount_citation in price_citations:
-            if amount_citation.field != "listedPrice.amountMinorUnits":
-                continue
-            quote = amount_citation.evidenceQuote
-            if item.supplierName.casefold() not in quote.casefold() or item.productDescription.casefold() not in quote.casefold():
-                continue
-            same_quote = [citation for citation in price_citations
-                if citation.sourceId == amount_citation.sourceId and citation.evidenceQuote == quote]
-            fields = {citation.field for citation in same_quote}
-            prices_in_quote = _money_in_text(quote)
-            if ("listedPrice.currency" in fields and len(prices_in_quote) == 1
-                    and expected in prices_in_quote
-                    and (basis is None or "listedPrice.quantityBasis" in fields)
-                    and (price.unitLabel is None or price.unitLabel.casefold() in quote.casefold())):
-                valid_price_citations = same_quote
-                break
-        consistent_price = bool(valid_price_citations)
-        listing_only = not useful_delivery and not consistent_price
-        if len(item.supplierName.strip()) < 2 or len(item.productDescription.strip()) < 2:
-            raise ValueError("invalid_output")
-        if listing_only:
-            supplier_sources = {c.sourceId for c in valid_identity if c.field == "supplierName"}
-            product_sources = {c.sourceId for c in valid_identity if c.field == "productDescription"}
-            if not supplier_sources & product_sources:
-                raise ValueError("invalid_output")
-        any_listing_only = any_listing_only or listing_only or not consistent_price
-        # Model-authored reasons are never persisted; only allowlisted field names
-        # survive, each with fixed server wording.
-        unknown = []
-        for entry in item.unknownFields:
-            if entry.field in _MODEL_UNKNOWN_FIELDS and entry.field not in _SERVER_UNKNOWN_FIELDS:
-                _unknown(unknown, entry.field, _GENERIC_UNKNOWN_REASON[entry.field])
-        if not consistent_price:
-            price_out = {"amountMinorUnits": None, "currency": None, "unitLabel": None, "quantityBasis": None}
-            _unknown(unknown, "listedPrice", "Fetched evidence does not establish an exact price and basis.")
-            subtotal = currency = None
-        else:
-            price_out = price.model_dump(mode="json", by_alias=True)
-            exact_sgd = price.currency == "SGD" and basis is not None
-            subtotal = None
-            currency = None
-            minimum_order = item.minimumOrderQuantity
-            quantity = research["request"]["quantity"]
-            if (exact_sgd and quantity % int(basis) == 0
-                    and (minimum_order is None or quantity >= minimum_order)):
-                subtotal = str(int(price.amountMinorUnits) * (research["request"]["quantity"] // int(basis)))
-                currency = "SGD"
-            else:
-                _unknown(unknown, "estimatedItemSubtotalMinorUnits",
-                    "The requested quantity, minimum order, or currency does not support an exact SGD estimate.")
-        delivery = item.deliveryEstimate if useful_delivery else None
-        if item.deliveryEstimate is not None and delivery is None:
-            _unknown(unknown, "deliveryEstimate", "Fetched evidence does not support this delivery statement.")
-        minimum_evidence = [c for c in evidence if c.field == "minimumOrderQuantity"]
-        minimum_order = item.minimumOrderQuantity if item.minimumOrderQuantity is not None and any(
-            product_context(c) and re.search(rf"(?<!\d){item.minimumOrderQuantity}(?!\d)", c.evidenceQuote)
-            for c in minimum_evidence) else None
-        if item.minimumOrderQuantity is not None and minimum_order is None:
-            _unknown(unknown, "minimumOrderQuantity", "Fetched evidence does not attribute this minimum to the selected product.")
-        availability_evidence = [c for c in evidence if c.field == "availability"]
-        availability = item.availability if item.availability is not None and any(
-            product_context(c) and item.availability.casefold() in c.evidenceQuote.casefold()
-            for c in availability_evidence) else None
-        if item.availability is not None and availability is None:
-            _unknown(unknown, "availability", "Fetched evidence does not attribute availability to the selected product.")
-        qualifications = []
-        for value in item.qualifications:
-            if any(c.field == "qualifications" and product_context(c)
-                    and value.casefold() in c.evidenceQuote.casefold() for c in evidence):
-                qualifications.append(value)
-        if len(qualifications) != len(item.qualifications) and not listing_only:
-            _unknown(unknown, "qualifications", "Some terms were not attributable to the selected product.")
-        retained_evidence = valid_identity + valid_price_citations + delivery_evidence
-        if listing_only:
-            # Identity-only offer: nothing beyond the identity citations is retained.
-            minimum_order = availability = None
-            qualifications = []
-            minimum_evidence = []
-            availability_evidence = []
-            for field, present in (("minimumOrderQuantity", item.minimumOrderQuantity is not None),
-                    ("availability", item.availability is not None)):
-                if present:
-                    _unknown(unknown, field, "Only the listing identity is supported by fetched evidence.")
-        if minimum_order is not None:
-            retained_evidence.extend(c for c in minimum_evidence if product_context(c)
-                and re.search(rf"(?<!\d){minimum_order}(?!\d)", c.evidenceQuote))
-        elif item.minimumOrderQuantity is not None:
-            retained_evidence.extend([])
-        if availability is not None:
-            retained_evidence.extend(c for c in availability_evidence if product_context(c)
-                and availability.casefold() in c.evidenceQuote.casefold())
-        for value in qualifications:
-            retained_evidence.extend(c for c in evidence if c.field == "qualifications"
-                and product_context(c) and value.casefold() in c.evidenceQuote.casefold())
-        evidence_out = []
-        evidence_keys = set()
-        for citation in retained_evidence:
-            key = (citation.field, citation.sourceId, citation.evidenceQuote)
-            if key in evidence_keys:
-                continue
-            evidence_keys.add(key)
-            item_out = citation.model_dump(mode="json", by_alias=True)
-            item_out["sourceLocator"] = None
-            evidence_out.append(item_out)
-            represented_sources.add(str(citation.sourceId))
-        for field, value in (("listedPrice", price_out["amountMinorUnits"]), ("deliveryEstimate", delivery),
-                ("minimumOrderQuantity", minimum_order), ("availability", availability),
-                ("estimatedItemSubtotalMinorUnits", subtotal)):
-            if value is None and not (field == "estimatedItemSubtotalMinorUnits" and price_out["amountMinorUnits"] is None):
-                _unknown(unknown, field, _UNSUPPORTED_REASON[field])
-        offer = SupplierOffer(id=uuid4(), supplierName=item.supplierName,
-            productDescription=item.productDescription, evidenceByField=evidence_out,
-            listedPrice=price_out, estimatedItemSubtotalMinorUnits=subtotal,
-            estimatedCurrency=currency, deliveryEstimate=delivery,
-            minimumOrderQuantity=minimum_order, availability=availability,
-            unknownFields=unknown, qualifications=qualifications)
-        normalized.append(offer.model_dump(mode="json", by_alias=True))
+    for parsed_item in parsed.offers:
+        try:
+            offer_out, offer_sources, offer_listing_only = _validate_offer(parsed_item, research, source_map, pages)
+        except _OfferDefect as defect:
+            logger.warning("supplier_offer_rejected code=%s", defect.code)
+            for citation in parsed_item.evidenceByField:
+                source_id = str(citation.sourceId)
+                if source_id not in rejected_sources:
+                    rejected_sources.append(source_id)
+            continue
+        normalized.append(offer_out)
+        represented_sources |= offer_sources
+        any_listing_only = any_listing_only or offer_listing_only
     if not normalized:
+        logger.warning("supplier_extraction_rejected code=no_valid_offer")
         raise ValueError("invalid_output")
     failures = list(research["sourceFailures"])
     failed_ids = {item["sourceId"] for item in failures}
+    for source_id in rejected_sources:
+        if source_id not in failed_ids:
+            failed_ids.add(source_id)
+            failures.append({"sourceId": source_id, "code": "fetch_failed",
+                "displayMessage": "An offer from this source could not be verified and was omitted."})
     for source in research["sources"]:
         source_id = source["sourceId"]
         if source_id not in represented_sources:
@@ -615,9 +579,165 @@ def validate_extraction(raw, research):
     for source_id in sorted(omitted_sources - failed_ids):
         failures.append({"sourceId": source_id, "code": "fetch_failed",
             "displayMessage": "This retrieved source did not establish a useful supported offer."})
-    partial = bool(failures) or any_listing_only
+    partial = bool(failures) or any_listing_only or bool(rejected_sources)
     return {"status": "partial" if partial else "complete", "request": research["request"],
         "offers": normalized, "sources": research["sources"], "sourceFailures": failures}
+
+
+def _validate_offer(item, research, source_map, pages):
+    """Validate one offer; returns (offer dict, represented source ids, listing_only)."""
+    represented_sources = set()
+    _repair_offer(item, pages)
+    if any(_IDENTITY_FORBIDDEN.search(text) for text in (item.supplierName, item.productDescription)):
+        raise _OfferDefect("bad_name")
+    evidence = []
+    for citation in item.evidenceByField:
+        if citation.evidenceQuote not in pages[str(citation.sourceId)]:
+            raise _OfferDefect("quote_not_in_page")
+        evidence.append(citation)
+
+    valid_identity = [citation for citation in evidence if
+        (citation.field == "supplierName" and _contains(citation.evidenceQuote, item.supplierName))
+        or (citation.field == "productDescription" and _contains(citation.evidenceQuote, item.productDescription))]
+    if not any(c.field == "supplierName" for c in valid_identity) or not any(
+            c.field == "productDescription" for c in valid_identity):
+        raise _OfferDefect("identity_unsupported")
+
+    def product_context(citation):
+        quote = citation.evidenceQuote
+        return _contains(quote, item.supplierName) and _contains(quote, item.productDescription)
+
+    delivery_evidence = [citation for citation in evidence if
+        citation.field == "deliveryEstimate" and product_context(citation)
+        and _delivery_context_supports(citation.evidenceQuote, item.deliveryEstimate,
+            item.supplierName, item.productDescription, research["request"].get("deliveryArea", ""))]
+    useful_delivery = bool(delivery_evidence)
+    price_fields = {"listedPrice.amountMinorUnits", "listedPrice.currency", "listedPrice.unitLabel", "listedPrice.quantityBasis"}
+    price_citations = [citation for citation in evidence if citation.field in price_fields]
+    price = item.listedPrice
+    basis = price.quantityBasis
+    expected = (price.amountMinorUnits, price.currency, basis)
+    # A price must be attributable to this exact supplier/product in one
+    # fetched quote. Never combine separate citations or accept one of
+    # several prices from a page as though it described this offer.
+    valid_price_citations = []
+    for amount_citation in price_citations:
+        if amount_citation.field != "listedPrice.amountMinorUnits":
+            continue
+        quote = amount_citation.evidenceQuote
+        if not _contains(quote, item.supplierName) or not _contains(quote, item.productDescription):
+            continue
+        same_quote = [citation for citation in price_citations
+            if citation.sourceId == amount_citation.sourceId and citation.evidenceQuote == quote]
+        fields = {citation.field for citation in same_quote}
+        prices_in_quote = _money_in_text(quote)
+        if ("listedPrice.currency" in fields and len(prices_in_quote) == 1
+                and expected in prices_in_quote
+                and (basis is None or "listedPrice.quantityBasis" in fields)
+                and (price.unitLabel is None or price.unitLabel.casefold() in quote.casefold())):
+            valid_price_citations = same_quote
+            break
+    consistent_price = bool(valid_price_citations)
+    listing_only = not useful_delivery and not consistent_price
+    if len(item.supplierName.strip()) < 2 or len(item.productDescription.strip()) < 2:
+        raise _OfferDefect("bad_name")
+    if listing_only:
+        supplier_sources = {c.sourceId for c in valid_identity if c.field == "supplierName"}
+        product_sources = {c.sourceId for c in valid_identity if c.field == "productDescription"}
+        if not supplier_sources & product_sources:
+            raise _OfferDefect("identity_split_sources")
+    listing_flag = listing_only or not consistent_price
+    # Model-authored reasons are never persisted; only allowlisted field names
+    # survive, each with fixed server wording.
+    unknown = []
+    for entry in item.unknownFields:
+        if entry.field in _MODEL_UNKNOWN_FIELDS and entry.field not in _SERVER_UNKNOWN_FIELDS:
+            _unknown(unknown, entry.field, _GENERIC_UNKNOWN_REASON[entry.field])
+    if not consistent_price:
+        price_out = {"amountMinorUnits": None, "currency": None, "unitLabel": None, "quantityBasis": None}
+        _unknown(unknown, "listedPrice", "Fetched evidence does not establish an exact price and basis.")
+        subtotal = currency = None
+    else:
+        price_out = price.model_dump(mode="json", by_alias=True)
+        exact_sgd = price.currency == "SGD" and basis is not None
+        subtotal = None
+        currency = None
+        minimum_order = item.minimumOrderQuantity
+        quantity = research["request"]["quantity"]
+        if (exact_sgd and quantity % int(basis) == 0
+                and (minimum_order is None or quantity >= minimum_order)):
+            subtotal = str(int(price.amountMinorUnits) * (research["request"]["quantity"] // int(basis)))
+            currency = "SGD"
+        else:
+            _unknown(unknown, "estimatedItemSubtotalMinorUnits",
+                "The requested quantity, minimum order, or currency does not support an exact SGD estimate.")
+    delivery = item.deliveryEstimate if useful_delivery else None
+    if item.deliveryEstimate is not None and delivery is None:
+        _unknown(unknown, "deliveryEstimate", "Fetched evidence does not support this delivery statement.")
+    minimum_evidence = [c for c in evidence if c.field == "minimumOrderQuantity"]
+    minimum_order = item.minimumOrderQuantity if item.minimumOrderQuantity is not None and any(
+        product_context(c) and re.search(rf"(?<!\d){item.minimumOrderQuantity}(?!\d)", c.evidenceQuote)
+        for c in minimum_evidence) else None
+    if item.minimumOrderQuantity is not None and minimum_order is None:
+        _unknown(unknown, "minimumOrderQuantity", "Fetched evidence does not attribute this minimum to the selected product.")
+    availability_evidence = [c for c in evidence if c.field == "availability"]
+    availability = item.availability if item.availability is not None and any(
+        product_context(c) and item.availability.casefold() in c.evidenceQuote.casefold()
+        for c in availability_evidence) else None
+    if item.availability is not None and availability is None:
+        _unknown(unknown, "availability", "Fetched evidence does not attribute availability to the selected product.")
+    qualifications = []
+    for value in item.qualifications:
+        if any(c.field == "qualifications" and product_context(c)
+                and value.casefold() in c.evidenceQuote.casefold() for c in evidence):
+            qualifications.append(value)
+    if len(qualifications) != len(item.qualifications) and not listing_only:
+        _unknown(unknown, "qualifications", "Some terms were not attributable to the selected product.")
+    retained_evidence = valid_identity + valid_price_citations + delivery_evidence
+    if listing_only:
+        # Identity-only offer: nothing beyond the identity citations is retained.
+        minimum_order = availability = None
+        qualifications = []
+        minimum_evidence = []
+        availability_evidence = []
+        for field, present in (("minimumOrderQuantity", item.minimumOrderQuantity is not None),
+                ("availability", item.availability is not None)):
+            if present:
+                _unknown(unknown, field, "Only the listing identity is supported by fetched evidence.")
+    if minimum_order is not None:
+        retained_evidence.extend(c for c in minimum_evidence if product_context(c)
+            and re.search(rf"(?<!\d){minimum_order}(?!\d)", c.evidenceQuote))
+    elif item.minimumOrderQuantity is not None:
+        retained_evidence.extend([])
+    if availability is not None:
+        retained_evidence.extend(c for c in availability_evidence if product_context(c)
+            and availability.casefold() in c.evidenceQuote.casefold())
+    for value in qualifications:
+        retained_evidence.extend(c for c in evidence if c.field == "qualifications"
+            and product_context(c) and value.casefold() in c.evidenceQuote.casefold())
+    evidence_out = []
+    evidence_keys = set()
+    for citation in retained_evidence:
+        key = (citation.field, citation.sourceId, citation.evidenceQuote)
+        if key in evidence_keys:
+            continue
+        evidence_keys.add(key)
+        item_out = citation.model_dump(mode="json", by_alias=True)
+        item_out["sourceLocator"] = None
+        evidence_out.append(item_out)
+        represented_sources.add(str(citation.sourceId))
+    for field, value in (("listedPrice", price_out["amountMinorUnits"]), ("deliveryEstimate", delivery),
+            ("minimumOrderQuantity", minimum_order), ("availability", availability),
+            ("estimatedItemSubtotalMinorUnits", subtotal)):
+        if value is None and not (field == "estimatedItemSubtotalMinorUnits" and price_out["amountMinorUnits"] is None):
+            _unknown(unknown, field, _UNSUPPORTED_REASON[field])
+    offer = SupplierOffer(id=uuid4(), supplierName=item.supplierName,
+        productDescription=item.productDescription, evidenceByField=evidence_out,
+        listedPrice=price_out, estimatedItemSubtotalMinorUnits=subtotal,
+        estimatedCurrency=currency, deliveryEstimate=delivery,
+        minimumOrderQuantity=minimum_order, availability=availability,
+        unknownFields=unknown, qualifications=qualifications)
+    return offer.model_dump(mode="json", by_alias=True), represented_sources, listing_flag
 
 
 _CURRENCY_CODES = r"(?:SGD|USD|EUR|GBP|AUD|MYR|CNY|RMB|JPY|HKD|INR|IDR|THB|NZD|CAD)"
