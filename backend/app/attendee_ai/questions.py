@@ -30,14 +30,19 @@ SYSTEM = (
     'answer return {"outcome":"answered","summary":"one short plain sentence or null","claims":[{"itemId":"...",'
     '"itemRevision":1,"field":"title|type|startsAt|endsAt|room|venueName|venueAddress|price|capacity|'
     'accessibility|state|cancellationReason","value":...}]}. Every claim must copy the exact itemId, revision '
-    "and value of the supplied activity, with field one of the names listed above: price is priceMinorUnits, accessibility is accessibilityDetails (null "
-    "when not provided), times are the supplied ISO strings. In the summary write times only as the supplied "
-    "startsAtLocal and endsAtLocal text (the event's own time zone), never as ISO strings. The summary must not "
-    "contain links, markup or numbers that are not in your claims. If the programme lacks the information, items conflict, or the "
+    "and value of the supplied activity, with field exactly one of the names listed above: field price carries the "
+    "integer priceMinorUnits, field accessibility carries accessibilityDetails (null when not provided), and "
+    "times are the supplied ISO strings. In the summary write times only as the supplied startsAtLocal and "
+    "endsAtLocal text (the event's own time zone) and prices only as the supplied priceText, never as ISO "
+    "strings or cents. The summary must not contain links, markup or numbers that are not in your claims or "
+    "those texts. If the programme lacks the information, items conflict, or the "
     'question is not about this programme, return {"outcome":"unknown","reason":'
     '"insufficient_evidence|conflicting_evidence|out_of_scope"}. Do not add any other keys.')
 
-_LOCAL_ALIASES = {"startsAtLocal": "startsAt", "endsAtLocal": "endsAt"}
+# Names from the activity records that the model may use as claim fields; each is verified like the real field.
+_ALIASES = {"startsAtLocal": "startsAt", "endsAtLocal": "endsAt", "priceMinorUnits": "price",
+            "accessibilityDetails": "accessibility"}
+_LOCAL_FIELDS = {"startsAtLocal", "endsAtLocal"}
 _URL = re.compile(r"(?i)(?<![a-z0-9])[a-z][a-z0-9+.\-]+:[^\s]|//|(?<![a-z0-9])www\.|(?<![a-z0-9-])[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?![a-z0-9])")
 _EMAIL = re.compile(r"\S+@\S+")
 _ISO_TIME = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}")
@@ -134,12 +139,18 @@ def local_time(fact: PublishedProgramme, value: datetime) -> str:
         return value.isoformat()
 
 
+def price_text(minor_units: int) -> str:
+    """Price text such as 'SGD 10.00' or 'Free', as the programme page shows it."""
+    return "Free" if minor_units == 0 else f"SGD {minor_units // 100}.{minor_units % 100:02d}"
+
+
 def build_messages(facts: list[PublishedProgramme], question: str) -> list[dict[str, str]]:
     activities = [{"itemId": str(fact.id), "revision": fact.revision, "title": fact.title, "type": fact.type,
                    "state": fact.state, "startsAt": fact.startsAt.isoformat(), "endsAt": fact.endsAt.isoformat(),
                    "startsAtLocal": local_time(fact, fact.startsAt), "endsAtLocal": local_time(fact, fact.endsAt),
                    "room": fact.room.name, "venueName": fact.venue.name, "venueAddress": fact.venue.address,
-                   "priceMinorUnits": fact.priceMinorUnits, "capacity": fact.capacity,
+                   "priceMinorUnits": fact.priceMinorUnits, "priceText": price_text(fact.priceMinorUnits),
+                   "capacity": fact.capacity,
                    "accessibilityDetails": fact.accessibilityDetails, "cancellationReason": fact.cancellationReason}
                   for fact in facts]
     user = json.dumps({"programme": {"eventTitle": facts[0].event.title, "timeZone": facts[0].event.timezone,
@@ -212,9 +223,9 @@ def validate_output(raw: str, facts: list[PublishedProgramme]) -> dict:
         fact = by_id.get(str(claim.itemId))
         if fact is None or claim.itemRevision != fact.revision:
             raise service.invalid_output()
-        field = _LOCAL_ALIASES.get(claim.field, claim.field)
+        field = _ALIASES.get(claim.field, claim.field)
         actual = _record(fact, field)
-        if field != claim.field:  # the model quoted the event-local text we supplied for the summary
+        if claim.field in _LOCAL_FIELDS:  # the model quoted the event-local text we supplied for the summary
             matches = isinstance(claim.value, str) and (claim.value == local_time(fact, actual) or _matches(claim.value, actual))
         else:
             matches = _matches(claim.value, actual)
@@ -227,5 +238,6 @@ def validate_output(raw: str, facts: list[PublishedProgramme]) -> dict:
     cited = [by_id[item_id].title for item_id in observed]
     local_times = [local_time(by_id[item_id], when) for item_id in observed
                    for when in (by_id[item_id].startsAt, by_id[item_id].endsAt)]
+    local_times += [price_text(by_id[item_id].priceMinorUnits) for item_id in observed]
     return {"outcome": "answered", "summary": _summary(answered.summary, [c["value"] for c in claims], cited, local_times),
             "claims": claims, "observedProgrammeRevisions": observed}

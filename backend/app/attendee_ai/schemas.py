@@ -55,7 +55,8 @@ class ModelInfeasible(BaseModel):
 QuestionField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
                         "capacity", "accessibility", "state", "cancellationReason"]
 RawField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
-                  "capacity", "accessibility", "state", "cancellationReason", "startsAtLocal", "endsAtLocal"]
+                  "capacity", "accessibility", "state", "cancellationReason", "startsAtLocal", "endsAtLocal", "priceMinorUnits",
+                  "accessibilityDetails"]
 UnknownReason = Literal["insufficient_evidence", "conflicting_evidence", "out_of_scope"]
 
 

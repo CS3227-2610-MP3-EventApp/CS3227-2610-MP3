@@ -78,3 +78,20 @@ def test_local_time_claims_are_verified_and_normalised_to_the_real_instant():
     for wrong in ("01 Jan 2027, 11:00", "01 Jan 2027, 10:01", "tomorrow", None, 10):
         with pytest.raises(ValueError):
             questions.validate_output(_answer(fact, "startsAtLocal", wrong), [fact])
+
+
+def test_record_key_names_are_accepted_as_claim_fields_and_still_verified():
+    fact = _fact()
+    result = questions.validate_output(_answer(fact, "priceMinorUnits", 0), [fact])
+    assert (result["claims"][0]["field"], result["claims"][0]["value"]) == ("price", 0)
+    result = questions.validate_output(_answer(fact, "accessibilityDetails", None), [fact])
+    assert (result["claims"][0]["field"], result["claims"][0]["value"]) == ("accessibility", None)
+    for field, wrong in (("priceMinorUnits", 1000), ("priceMinorUnits", "0"), ("accessibilityDetails", "ramp")):
+        with pytest.raises(ValueError):
+            questions.validate_output(_answer(fact, field, wrong), [fact])
+
+
+def test_price_text_matches_the_programme_page_and_grounds_summary_digits():
+    assert questions.price_text(0) == "Free" and questions.price_text(1000) == "SGD 10.00" and questions.price_text(1250) == "SGD 12.50"
+    assert questions._summary("test1 costs SGD 10.00", [1000], ["test1"], ["SGD 10.00"]) == "test1 costs SGD 10.00"
+    assert questions._summary("test1 costs SGD 11.00", [1000], ["test1"], ["SGD 10.00"]) is None
