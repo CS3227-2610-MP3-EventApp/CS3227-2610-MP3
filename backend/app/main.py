@@ -18,6 +18,8 @@ from app.programme.problems import ProgrammeProblem, field_errors, invalid, prob
 from app.programme.routes import router as programme_router
 from app.disruptions.routes import router as disruption_router
 from app.disruptions.ai import router as announcement_ai_router
+from app.attendee_planning.routes import router as planning_router
+from app.attendee_planning.problems import PlanningProblem, validation_problem, problem_response as planning_problem_response
 from app.database import engine
 from app.settings import Settings
 
@@ -30,10 +32,15 @@ app.include_router(application_router)
 app.include_router(programme_router)
 app.include_router(announcement_ai_router)
 app.include_router(disruption_router)
+app.include_router(planning_router)
 app.include_router(ai_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
+
+@app.exception_handler(PlanningProblem)
+async def planning_problem(request: Request, exc: PlanningProblem):
+    return planning_problem_response(request, exc)
 
 @app.exception_handler(ApplicationError)
 async def application_problem(request: Request, exc: ApplicationError):
@@ -59,6 +66,8 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith("/api/v1/attendee/events/") and "/planning" in request.url.path:
+        return planning_problem_response(request, validation_problem(exc.errors()))
     if "/analysis" in request.url.path or request.url.path.endswith(("analysis-rubric", "/announcements/generate")):
         return ai_problem_response(request, "validation_error")
     if is_application_path(request.url.path):

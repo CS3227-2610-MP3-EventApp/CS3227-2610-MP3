@@ -89,6 +89,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attendee/events/{event_id}/planning": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_attendee_events__event_id__planning_get"];
+        put?: never;
+        post?: never;
+        /** Clear */
+        delete: operations["clear_api_v1_attendee_events__event_id__planning_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendee/events/{event_id}/planning/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept */
+        post: operations["accept_api_v1_attendee_events__event_id__planning_accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendee/events/{event_id}/planning/accepted/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accepted */
+        get: operations["accepted_api_v1_attendee_events__event_id__planning_accepted__version_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendee/events/{event_id}/planning/bookmarks/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Add Bookmark */
+        put: operations["add_bookmark_api_v1_attendee_events__event_id__planning_bookmarks__item_id__put"];
+        post?: never;
+        /** Remove Bookmark */
+        delete: operations["remove_bookmark_api_v1_attendee_events__event_id__planning_bookmarks__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendee/events/{event_id}/planning/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Draft */
+        put: operations["draft_api_v1_attendee_events__event_id__planning_draft_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendee/events/{event_id}/planning/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Preferences */
+        put: operations["preferences_api_v1_attendee_events__event_id__planning_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attendee/events/{event_id}/programme": {
         parameters: {
             query?: never;
@@ -856,6 +960,83 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptCommand */
+        AcceptCommand: {
+            /** Expecteddraftrevision */
+            expectedDraftRevision: number;
+            /** Expectedpreferencerevision */
+            expectedPreferenceRevision: number;
+            /** Expectedstaterevision */
+            expectedStateRevision: number;
+        };
+        /** AcceptedDetail */
+        AcceptedDetail: {
+            /**
+             * Acceptedat
+             * Format: date-time
+             */
+            acceptedAt: string;
+            /**
+             * Currency
+             * @default SGD
+             * @constant
+             */
+            currency: "SGD";
+            /** Draftrevision */
+            draftRevision: number;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["AcceptedItem"][];
+            /** Needsattention */
+            needsAttention: boolean;
+            /** Preferencerevision */
+            preferenceRevision: number;
+            preferencesSnapshot: components["schemas"]["PreferenceValues"];
+            /** Totalminorunits */
+            totalMinorUnits: number;
+            /** Version */
+            version: number;
+        };
+        /** AcceptedItem */
+        AcceptedItem: {
+            acceptedItem: components["schemas"]["PublishedProgramme"];
+            /** Accessibilityconfirmed */
+            accessibilityConfirmed: boolean;
+            /** Changed */
+            changed: boolean;
+            currentItem: components["schemas"]["PublishedProgramme"] | null;
+            /** Observedprogrammerevision */
+            observedProgrammeRevision: number;
+            /**
+             * Programmeitemid
+             * Format: uuid
+             */
+            programmeItemId: string;
+        };
+        /** AcceptedSummary */
+        AcceptedSummary: {
+            /**
+             * Acceptedat
+             * Format: date-time
+             */
+            acceptedAt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version */
+            version: number;
+        };
         /** AnalysisComparison */
         AnalysisComparison: {
             /**
@@ -1488,6 +1669,54 @@ export interface components {
             /** Reason */
             reason: string | null;
         };
+        /** Draft */
+        Draft: {
+            /** Items */
+            items: components["schemas"]["DraftItem"][];
+            /** Preferencerevision */
+            preferenceRevision: number;
+            /** Revision */
+            revision: number;
+            validation: components["schemas"]["Validation"];
+        };
+        /** DraftCommand */
+        DraftCommand: {
+            /** Expectedpreferencerevision */
+            expectedPreferenceRevision: number;
+            /** Expectedstaterevision */
+            expectedStateRevision: number;
+            /** Items */
+            items: components["schemas"]["DraftInput"][];
+        };
+        /** DraftInput */
+        DraftInput: {
+            /** Accessibilityconfirmed */
+            accessibilityConfirmed: boolean;
+            /** Observedprogrammerevision */
+            observedProgrammeRevision: number;
+            /**
+             * Programmeitemid
+             * Format: uuid
+             */
+            programmeItemId: string;
+        };
+        /** DraftItem */
+        DraftItem: {
+            /** Accessibilityconfirmed */
+            accessibilityConfirmed: boolean;
+            /** Changed */
+            changed: boolean;
+            currentItem: components["schemas"]["PublishedProgramme"];
+            /** Currentprogrammerevision */
+            currentProgrammeRevision: number;
+            /** Observedprogrammerevision */
+            observedProgrammeRevision: number;
+            /**
+             * Programmeitemid
+             * Format: uuid
+             */
+            programmeItemId: string;
+        };
         /** EditDraft */
         EditDraft: {
             /** Body */
@@ -1594,6 +1823,16 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Issue */
+        Issue: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "overlap" | "minimum_gap" | "budget_exceeded" | "accessibility_unconfirmed" | "stale_programme" | "stale_preferences" | "empty_itinerary";
+            /** Itemids */
+            itemIds: string[];
         };
         /** ItemFields */
         ItemFields: {
@@ -1838,6 +2077,133 @@ export interface components {
              * Format: password
              */
             newPassword: string;
+        };
+        /** PlanningProblemBody */
+        PlanningProblemBody: {
+            /** Code */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Errors */
+            errors?: {
+                [key: string]: string[];
+            } | null;
+            /** Fielderrors */
+            fieldErrors?: components["schemas"]["AuthFieldError"][] | null;
+            /** Instance */
+            instance: string;
+            /** Issues */
+            issues?: components["schemas"]["Issue"][] | null;
+            /** Status */
+            status: number;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @default about:blank
+             * @constant
+             */
+            type: "about:blank";
+        };
+        /** PlanningState */
+        PlanningState: {
+            /** Acceptedversions */
+            acceptedVersions: components["schemas"]["AcceptedSummary"][];
+            /** Bookmarks */
+            bookmarks: string[];
+            /** Currentacceptedversionid */
+            currentAcceptedVersionId: string | null;
+            draft: components["schemas"]["Draft"];
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            preferences: components["schemas"]["Preferences"];
+            /** Staterevision */
+            stateRevision: number;
+        };
+        /** PreferenceCommand */
+        PreferenceCommand: {
+            /**
+             * Accessibilityneeds
+             * @default
+             */
+            accessibilityNeeds: string;
+            /** Budgetminorunits */
+            budgetMinorUnits?: number | null;
+            /**
+             * Currency
+             * @default SGD
+             * @constant
+             */
+            currency: "SGD";
+            /** Expectedstaterevision */
+            expectedStateRevision: number;
+            /**
+             * Interests
+             * @default
+             */
+            interests: string;
+            /**
+             * Minimumgapminutes
+             * @default 0
+             */
+            minimumGapMinutes: number;
+        };
+        /** PreferenceValues */
+        PreferenceValues: {
+            /**
+             * Accessibilityneeds
+             * @default
+             */
+            accessibilityNeeds: string;
+            /** Budgetminorunits */
+            budgetMinorUnits?: number | null;
+            /**
+             * Currency
+             * @default SGD
+             * @constant
+             */
+            currency: "SGD";
+            /**
+             * Interests
+             * @default
+             */
+            interests: string;
+            /**
+             * Minimumgapminutes
+             * @default 0
+             */
+            minimumGapMinutes: number;
+        };
+        /** Preferences */
+        Preferences: {
+            /**
+             * Accessibilityneeds
+             * @default
+             */
+            accessibilityNeeds: string;
+            /** Budgetminorunits */
+            budgetMinorUnits?: number | null;
+            /**
+             * Currency
+             * @default SGD
+             * @constant
+             */
+            currency: "SGD";
+            /**
+             * Interests
+             * @default
+             */
+            interests: string;
+            /**
+             * Minimumgapminutes
+             * @default 0
+             */
+            minimumGapMinutes: number;
+            /** Revision */
+            revision: number;
         };
         /** Preview */
         Preview: {
@@ -2185,6 +2551,11 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** StateCommand */
+        StateCommand: {
+            /** Expectedstaterevision */
+            expectedStateRevision: number;
+        };
         /** SubmitApplication */
         SubmitApplication: {
             /** Expectedrevision */
@@ -2196,6 +2567,21 @@ export interface components {
             applicationsOpen: boolean;
             /** Expectedrevision */
             expectedRevision: number;
+        };
+        /** Validation */
+        Validation: {
+            /**
+             * Currency
+             * @default SGD
+             * @constant
+             */
+            currency: "SGD";
+            /** Issues */
+            issues: components["schemas"]["Issue"][];
+            /** Totalminorunits */
+            totalMinorUnits: number;
+            /** Valid */
+            valid: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -2761,6 +3147,639 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProgrammeProblem"];
                     "application/problem+json": components["schemas"]["ProgrammeProblem"];
+                };
+            };
+        };
+    };
+    read_api_v1_attendee_events__event_id__planning_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    clear_api_v1_attendee_events__event_id__planning_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StateCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    accept_api_v1_attendee_events__event_id__planning_accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    accepted_api_v1_attendee_events__event_id__planning_accepted__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptedDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    add_bookmark_api_v1_attendee_events__event_id__planning_bookmarks__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StateCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    remove_bookmark_api_v1_attendee_events__event_id__planning_bookmarks__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StateCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    draft_api_v1_attendee_events__event_id__planning_draft_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+        };
+    };
+    preferences_api_v1_attendee_events__event_id__planning_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferenceCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningProblemBody"];
                 };
             };
         };
