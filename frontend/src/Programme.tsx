@@ -1,3 +1,4 @@
+import { displayDate } from "./displayDate";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Stack, SvgIcon, TextField, Tooltip, Typography } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -156,7 +157,7 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
     setConfirmation(null);
   }
   const blocked = pending || conflict || forbidden;
-  const displayInstant = (value: string) => new Intl.DateTimeFormat(undefined, { timeZone: event.timezone, dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  const displayInstant = (value: string) => displayDate(value, event.timezone);
   return <Stack spacing={3}>
     <Typography color="text.secondary">Times use {event.timezone}. Event runs {displayInstant(event.startsAt)} – {displayInstant(event.endsAt)}.</Typography>
     {loading ? <Typography role="status">Loading programme…</Typography> : loadError ? <Alert severity="error" action={<Button onClick={() => setAttempt((value) => value + 1)}>Reload</Button>}>{loadError}</Alert> : <>
@@ -321,8 +322,8 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
       {roomId && <Typography variant="body2" color="text.secondary">Venue: {venues.find((venue) => venue.id === rooms.find((room) => room.id === roomId)?.venueId)?.name ?? "Unknown"}. Capacity is per item; activities may overlap in the same room.</Typography>}
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
-          <Stack spacing={2}><DateTimePicker label="Starts at" value={startValue} onChange={(value) => { setStartValue(value); if (pickerWallClock(value) !== startsAt) setStartChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-start", ...fieldError(errors, "startsAt") } }} />{offsetField("Start", startChoices, startChoice, setStartChoice)}</Stack>
-          <Stack spacing={2}><DateTimePicker label="Ends at" value={endValue} onChange={(value) => { setEndValue(value); if (pickerWallClock(value) !== endsAt) setEndChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-end", ...fieldError(errors, "endsAt") } }} />{offsetField("End", endChoices, endChoice, setEndChoice)}</Stack>
+          <Stack spacing={2}><DateTimePicker label="Starts at" value={startValue} onChange={(value) => { setStartValue(value); if (pickerWallClock(value) !== startsAt) setStartChoice(""); changed(); }} timezone="UTC" format="DD MMM YYYY HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-start", ...fieldError(errors, "startsAt") } }} />{offsetField("Start", startChoices, startChoice, setStartChoice)}</Stack>
+          <Stack spacing={2}><DateTimePicker label="Ends at" value={endValue} onChange={(value) => { setEndValue(value); if (pickerWallClock(value) !== endsAt) setEndChoice(""); changed(); }} timezone="UTC" format="DD MMM YYYY HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-end", ...fieldError(errors, "endsAt") } }} />{offsetField("End", endChoices, endChoice, setEndChoice)}</Stack>
         </Box>
       </LocalizationProvider>
       <TextField id="item-capacity" label="Capacity" type="number" value={capacity} onChange={(event) => { setCapacity(event.target.value); changed(); }} disabled={disabled} slotProps={{ htmlInput: { min: 1, max: 2147483647, step: 1 } }} {...fieldError(errors, "capacity")} />

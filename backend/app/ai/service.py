@@ -176,10 +176,10 @@ def create_job(db: Session, owner, event_id: UUID, application_id: UUID, body):
     if latest is None or latest.revision != body.expectedRubricRevision or submission.frozen_submitted_content_revision != body.expectedSubmittedRevision:
         raise AIError("revision_conflict")
     settings = Settings()
-    if (not settings.ai_enabled or not settings.ai_synthetic_only
+    if (not settings.ai_enabled or not (settings.ai_synthetic_only or settings.ai_real_data_enabled)
             or settings.environment == "production" or not settings.soclaas_api_key
-            or not settings.soclaas_model or event_id not in settings.synthetic_event_ids
-            or not body.syntheticDataConfirmed):
+            or not settings.soclaas_model or event_id not in settings.allowed_event_ids
+            or (body.syntheticDataConfirmed is not True and body.dataSharingConfirmed is not True)):
         raise AIError("service_unavailable")
     active = db.scalar(select(AnalysisJob.id).where(AnalysisJob.owner_id == owner.id,
         AnalysisJob.state.in_(["pending", "running"])).limit(1))
@@ -218,6 +218,10 @@ def _report_view(db, report):
 
 
 def job_view(db, job):
+    if job.workflow == "preparation":
+        from app.preparation_drafts.schemas import BusinessPreparationJob
+        from app.preparation_drafts.service import get_draft_for_job
+        return BusinessPreparationJob(id=job.id, eventId=job.event_id, participationId=job.business_participation_id, state=job.state, createdAt=job.created_at, updatedAt=job.updated_at, completedAt=job.completed_at, failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run, draft=get_draft_for_job(db, job))
     # A newer report must not be paired with an older in-memory running state.
     report = db.scalar(select(AnalysisReport).where(AnalysisReport.job_id == job.id)) if job.state == "completed" else None
     return JobView(id=job.id, eventId=job.event_id, applicationId=job.application_id,
@@ -265,7 +269,8 @@ def cancel_job(db, owner, job_id):
 
 
 def _business_job(db, actor, job):
-    from app.ai.schemas import BusinessPreparationJob
+    from app.preparation_drafts.service import get_draft_for_job
+    from app.preparation_drafts.schemas import BusinessPreparationJob
 
     if actor.mustChangePassword:
         raise AIError("password_change_required")
@@ -289,7 +294,7 @@ def _business_job(db, actor, job):
         participationId=participation.id, state=job.state, createdAt=job.created_at,
         updatedAt=job.updated_at, completedAt=job.completed_at,
         failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run,
-        draft=None)
+        draft=get_draft_for_job(db, job))
 
 
 def _cancel_business_job(db, actor, job):
@@ -358,6 +363,10 @@ def problem_response(request, code):
     from fastapi.responses import JSONResponse
 
     mapping = {
+        "source_changed": (409, "Source facts changed. Review or regenerate the draft."),
+        "already_adopted": (409, "This draft has already been adopted."),
+        "request_conflict": (409, "Request identifier already used for different inputs."),
+        "quota_exceeded": (429, "The daily job limit has been reached."),
         "forbidden": (403, "Access is not permitted."), "not_found": (404, "Resource not found."),
         "revision_conflict": (409, "The analysis inputs changed."), "active_job": (409, "An analysis is already active."),
         "daily_limit": (429, "The daily analysis limit has been reached."),

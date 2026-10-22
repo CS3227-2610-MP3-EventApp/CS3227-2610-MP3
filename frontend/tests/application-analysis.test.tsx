@@ -133,24 +133,24 @@ describe("organiser application analysis acceptance", () => {
     expect(requests.filter((request) => request.url === rubricPath && request.method === "PUT")).toHaveLength(1);
   });
 
-  test("AC01 and AC09 require explicit synthetic-data confirmation before creating a job", async () => {
+  test("AC01 and AC09 require explicit review of data sharing before creating a job", async () => {
     const requests = installApi();
     await openAnalysis();
     await userEvent.setup().click(await screen.findByRole("button", { name: /analy[sz]e application/i }));
     const dialog = await screen.findByRole("dialog");
     const confirm = within(dialog).getByRole("button", { name: /start analysis|confirm/i });
-    expect(within(dialog).getByText(/synthetic|invented/i)).toBeVisible();
-    expect(confirm).toBeDisabled();
+    expect(within(dialog).getByText(/shared with the AI provider/i)).toBeVisible();
+    expect(within(dialog).queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(confirm).toBeEnabled();
     expect(requests.filter((request) => request.url === analysesPath && request.method === "POST")).toHaveLength(0);
 
-    await userEvent.setup().click(within(dialog).getByRole("checkbox", { name: /synthetic|invented/i }));
     await userEvent.setup().click(confirm);
     await waitFor(() => expect(requests.some((request) => request.url === analysesPath && request.method === "POST")).toBe(true));
     const create = requests.find((request) => request.url === analysesPath && request.method === "POST");
     expect(create?.body).toMatchObject({
       expectedRubricRevision: 4,
       expectedSubmittedRevision: 1,
-      syntheticDataConfirmed: true,
+      dataSharingConfirmed: true,
     });
     expect((create?.body as { requestId?: string }).requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   });
@@ -164,7 +164,6 @@ describe("organiser application analysis acceptance", () => {
     await openAnalysis();
     await userEvent.setup().click(await screen.findByRole("button", { name: /analy[sz]e application/i }));
     const dialog = await screen.findByRole("dialog");
-    await userEvent.setup().click(within(dialog).getByRole("checkbox", { name: /synthetic|invented/i }));
     await userEvent.setup().click(within(dialog).getByRole("button", { name: /start analysis|confirm/i }));
 
     expect(await screen.findByText(/pending/i)).toBeVisible();
@@ -195,7 +194,6 @@ describe("organiser application analysis acceptance", () => {
     await openAnalysis("dark");
     await userEvent.setup().click(await screen.findByRole("button", { name: /analy[sz]e application/i }));
     const dialog = await screen.findByRole("dialog");
-    await userEvent.setup().click(within(dialog).getByRole("checkbox", { name: /synthetic|invented/i }));
     await userEvent.setup().click(within(dialog).getByRole("button", { name: /start analysis|confirm/i }));
 
     expect(await screen.findByText(/stale/i)).toBeVisible();
@@ -223,7 +221,6 @@ describe("organiser application analysis acceptance", () => {
     await openAnalysis();
     await userEvent.setup().click(await screen.findByRole("button", { name: /analy[sz]e application/i }));
     const dialog = await screen.findByRole("dialog");
-    await userEvent.setup().click(within(dialog).getByRole("checkbox", { name: /synthetic|invented/i }));
     await userEvent.setup().click(within(dialog).getByRole("button", { name: /start analysis|confirm/i }));
 
     expect(await screen.findByText(/failed|unavailable|could not/i)).toBeVisible();

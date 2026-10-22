@@ -42,6 +42,8 @@ def _projection(participation_id: UUID, record: PreparationDocument | None):
     return {"participationId": participation_id, "revision": record.revision if record else 1,
             "tasks": tasks,
             "budget": {"currency": "SGD", "lines": lines,
+                       "overallLimitMinorUnits": record.overall_limit_minor_units if record else None,
+                       "remainingMinorUnits": str(record.overall_limit_minor_units - subtotal) if record and record.overall_limit_minor_units is not None and complete else None,
                        "knownSubtotalMinorUnits": str(subtotal),
                        "totalMinorUnits": str(subtotal) if complete else None,
                        "isComplete": complete}}
@@ -87,7 +89,26 @@ def replace_preparation(db: Session, actor: CurrentActor, participation_id: UUID
         record.budget_lines = lines
         record.updated_by_user_id = actor.id
         record.updated_at = utcnow()
+    if "overallLimitMinorUnits" in body.budget.model_fields_set:
+        record.overall_limit_minor_units = body.budget.overallLimitMinorUnits
     db.add(AuditEvent(user_id=actor.id, action="preparation_update", resource_id=participation.id,
                       resource_revision=next_revision, outcome="success"))
     db.flush()
     return _projection(participation.id, record)
+
+
+def append_draft_items(db, actor, participation_id, expected_revision, tasks, lines):
+    """Append reviewed copies through the manual domain, within the caller transaction."""
+    from app.preparation.schemas import ReplacePreparation
+    participation = _participation(db, actor, participation_id, lock=True)
+    record = db.get(PreparationDocument, participation.id)
+    current = _projection(participation.id, record)
+    if current["revision"] != expected_revision:
+        raise PreparationError("revision_conflict", current_revision=current["revision"])
+    if len(current["tasks"]) + len(tasks) > 200 or len(current["budget"]["lines"]) + len(lines) > 200:
+        raise PreparationError("validation_error")
+    import json
+    body = ReplacePreparation.model_validate_json(json.dumps({
+        "expectedRevision": expected_revision, "tasks": current["tasks"] + tasks,
+        "budget": {"currency": "SGD", "lines": current["budget"]["lines"] + lines}}))
+    return replace_preparation(db, actor, participation.id, body)

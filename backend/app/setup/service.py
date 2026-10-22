@@ -38,7 +38,7 @@ def _assigned_accepted(db: Session, actor: CurrentActor, event_id: UUID,
 def get_organiser_setup(db: Session, actor: CurrentActor, event_id: UUID, participation_id: UUID):
     participation = _assigned_accepted(db, actor, event_id, participation_id)
     record = db.get(ParticipationSetup, participation.id)
-    return _setup_projection(participation, record)
+    return _organiser_projection(participation, record)
 
 
 def save_organiser_setup(db: Session, actor: CurrentActor, event_id: UUID,
@@ -63,7 +63,7 @@ def save_organiser_setup(db: Session, actor: CurrentActor, event_id: UUID,
     db.add(AuditEvent(user_id=actor.id, action="setup_save", resource_id=participation.id,
                       resource_revision=next_revision, outcome="success"))
     db.flush()
-    return _setup_projection(participation, record)
+    return _organiser_projection(participation, record)
 
 
 def get_business_setup(db: Session, actor: CurrentActor, participation_id: UUID):
@@ -80,4 +80,34 @@ def get_business_setup(db: Session, actor: CurrentActor, participation_id: UUID)
     accepted = db.scalar(select(Submission.id).where(
         Submission.participation_id == participation.id, Submission.status == "accepted"))
     record = db.get(ParticipationSetup, participation.id) if accepted else None
-    return _setup_projection(participation, record)
+    return published_projection(participation, record)
+
+
+def published_projection(participation, record):
+    return {"participationId": participation.id, "eventId": participation.event_id,
+            "revision": record.published_revision if record else 1,
+            "boothLabel": record.published_booth_label if record else None,
+            "setupInstructions": record.published_setup_instructions if record else None,
+            "updatedAt": record.published_at if record else None}
+
+
+def _organiser_projection(participation, record):
+    published = published_projection(participation, record)
+    return {**_setup_projection(participation, record), "publishedRevision": published["revision"],
+            "published": published, "hasUnpublishedChanges": bool(record and record.published_draft_revision != record.revision)}
+
+
+def publish_organiser_setup(db, actor, event_id, participation_id, body):
+    participation = _assigned_accepted(db, actor, event_id, participation_id, lock=True)
+    record = db.get(ParticipationSetup, participation.id)
+    if record is None or body.expectedRevision != record.revision:
+        raise SetupError("revision_conflict", current_revision=record.revision if record else 1)
+    if record.published_draft_revision != record.revision:
+        record.published_revision += 1
+        record.published_draft_revision = record.revision
+        record.published_booth_label = record.booth_label
+        record.published_setup_instructions = record.setup_instructions
+        record.published_at = utcnow()
+        db.add(AuditEvent(user_id=actor.id, action="setup_publish", resource_id=participation.id, resource_revision=record.published_revision, outcome="success"))
+        db.flush()
+    return _organiser_projection(participation, record)

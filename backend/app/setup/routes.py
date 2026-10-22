@@ -9,7 +9,7 @@ from app.auth.schemas import CurrentActor
 from app.database import get_db
 from app.setup import service
 from app.setup.problems import SetupError
-from app.setup.schemas import SaveSetup, SetupDetails, SetupProblem
+from app.setup.schemas import SaveSetup, SetupDetails, SetupProblem, PublishSetup, OrganiserSetupDetails
 
 
 router = APIRouter(prefix="/api/v1", tags=["Business setup"], responses={
@@ -30,12 +30,12 @@ def command(db: Session, operation, *args):
         raise
 
 
-@router.get("/organiser/events/{event_id}/participations/{participation_id}/setup", response_model=SetupDetails)
+@router.get("/organiser/events/{event_id}/participations/{participation_id}/setup", response_model=OrganiserSetupDetails)
 def organiser_get(event_id: UUID, participation_id: UUID, actor: Organizer, db: DB):
     return service.get_organiser_setup(db, actor, event_id, participation_id)
 
 
-@router.put("/organiser/events/{event_id}/participations/{participation_id}/setup", response_model=SetupDetails)
+@router.put("/organiser/events/{event_id}/participations/{participation_id}/setup", response_model=OrganiserSetupDetails)
 def organiser_save(event_id: UUID, participation_id: UUID, body: SaveSetup, actor: Organizer, db: DB):
     return command(db, service.save_organiser_setup, actor, event_id, participation_id, body)
 
@@ -43,3 +43,8 @@ def organiser_save(event_id: UUID, participation_id: UUID, body: SaveSetup, acto
 @router.get("/business/participations/{participation_id}/setup", response_model=SetupDetails)
 def business_get(participation_id: UUID, actor: Owner, db: DB):
     return service.get_business_setup(db, actor, participation_id)
+
+
+@router.post("/organiser/events/{event_id}/participations/{participation_id}/setup/publish", response_model=OrganiserSetupDetails)
+def publish_setup(event_id: UUID, participation_id: UUID, body: PublishSetup, actor: Organizer, db: DB):
+    return command(db, service.publish_organiser_setup, actor, event_id, participation_id, body)

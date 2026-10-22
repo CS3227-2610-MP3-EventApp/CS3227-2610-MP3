@@ -65,3 +65,7 @@ uv run python -m app.ai.worker --cleanup
 ```
 
 Automated fake-provider tests validate application behavior and PostgreSQL persistence. Only a successful deliberate SoCLaaS probe establishes live-provider connectivity; neither establishes lecturer acceptance, semantic correctness or production privacy approval.
+
+## 2026-10-22 data-sharing refinement
+
+The current UI uses a normal confirmation disclosure and Start analysis; it no longer asks for an invented-data pledge. For explicitly authorized development real-data use, set AI_ENABLED=true, AI_SYNTHETIC_ONLY=false, AI_REAL_DATA_ENABLED=true and AI_ALLOWED_EVENT_IDS to the exact event UUID list in both API and worker processes. Keep key/model backend-only. Use the root-safe Python3.12 worker command in [DeveloperGuide](DeveloperGuide.md). Contacts remain excluded, but free text can contain personal data; provider retention is unverified and local deletion does not delete provider copies. Production deployment/calls remain disabled. Earlier synthetic-only steps above are retained historical configuration; the current refinement supersedes their UI confirmation instruction.

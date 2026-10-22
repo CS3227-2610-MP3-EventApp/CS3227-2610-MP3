@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Box, Button, Typography } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { api, ApiError } from "./api";
@@ -6,7 +6,9 @@ import type { CurrentActor } from "./session";
 import type { DraftMemory, OrganiserDraftMemory } from "./applications/model";
 import type { PreparationMemory } from "./preparation/api";
 import type { SetupDraftMemory } from "./setup/api";
+import type { DraftMemory as PreparationDraftMemory } from "./preparationDrafts/api";
 interface AuthValue {
+  draftMemory: Map<string, PreparationDraftMemory>;
   actor: CurrentActor | null; setActor: (actor: CurrentActor | null) => void;
   sessionNotice: string; setSessionNotice: (notice: string) => void;
   revalidate: () => void; memory: Map<string, DraftMemory>; destinations: Map<string, string>;
@@ -22,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const memory = useRef(new Map<string, DraftMemory>());
   const organiserMemory = useRef(new Map<string, OrganiserDraftMemory>());
   const preparationMemory = useRef(new Map<string, PreparationMemory>());
+  const draftMemory = useRef(new Map<string, PreparationDraftMemory>());
   const setupMemory = useRef(new Map<string, SetupDraftMemory>());
   const destinations = useRef(new Map<string, string>());
   const [loading, setLoading] = useState(true), [error, setError] = useState("");
@@ -29,11 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionNotice, setSessionNotice] = useState("");
   const [attempt, setAttempt] = useState(0);
   const epoch = useRef(0);
+  const scrollRestore = useRef<{x:number;y:number;height:number} | null>(null);
+  const [preservedHeight, setPreservedHeight] = useState(0);
   const location = useLocation();
-  function setActor(value: CurrentActor | null) {
+  const setActor = useCallback((value: CurrentActor | null) => {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
-      memory.current.clear(); organiserMemory.current.clear(); preparationMemory.current.clear(); setupMemory.current.clear(); destinations.current.clear();
+      draftMemory.current.clear(); memory.current.clear(); organiserMemory.current.clear(); preparationMemory.current.clear(); setupMemory.current.clear(); destinations.current.clear();
       if (identity(value) !== identity(actorRef.current)) setSessionNotice("");
     } else {
       const owns = (businessId: string) => value.businessMemberships.some((membership) => membership.businessId === businessId && membership.status === "active" && membership.role === "owner");
@@ -50,6 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (actorId !== value.id || role !== value.role || role === "business" && !owns(businessId) || role === "organiser" && !assigned(eventId)) {
           memory.current.delete(key); lostScope = true;
         }
+      }
+      for (const key of draftMemory.current.keys()) {
+        const [actorId, role, businessId] = key.split(":");
+        if (actorId !== value.id || value.role !== "business" || role !== "business" || !owns(businessId) || value.mustChangePassword) draftMemory.current.delete(key);
       }
       for (const key of preparationMemory.current.keys()) {
         const [actorId, role, businessId] = key.split(":");
@@ -72,8 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (lostScope || actorRef.current?.businessMemberships.some((membership) => !owns(membership.businessId)) || actorRef.current?.eventMemberships.some((membership) => !assigned(membership.eventId))) setSessionNotice("");
     }
     actorRef.current = value; updateActor(value);
-  }
-  function revalidate() { epoch.current++; setLoading(true); setAttempt((value) => value + 1); }
+  }, []);
+  const revalidate = useCallback(() => { scrollRestore.current = {x: window.scrollX, y: window.scrollY, height: document.documentElement.scrollHeight}; setPreservedHeight(document.documentElement.scrollHeight); epoch.current++; setLoading(true); setAttempt((value) => value + 1); }, []);
   useEffect(() => {
     const listener = () => revalidate();
     window.addEventListener("focus", listener); window.addEventListener("pageshow", listener);
@@ -94,7 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).finally(() => { if (active && epoch.current === completionEpoch) { clearTimeout(timer); setStillLoading(false); setLoading(false); } });
     return () => { active = false; clearTimeout(timer); epoch.current++; };
   }, [attempt, location.pathname, location.search]);
-  const value = { actor, setActor, sessionNotice, setSessionNotice, revalidate, memory: memory.current, organiserMemory: organiserMemory.current, preparationMemory: preparationMemory.current, setupMemory: setupMemory.current, destinations: destinations.current };
-  return <AuthContext.Provider value={value}>{loading ? <Box component="main" sx={{ p: 4 }}><Typography role="status">{stillLoading ? "Still in progress — checking your session…" : "In progress — checking your session…"}</Typography></Box> : error ? <Box component="main" sx={{ p: 4 }}><Typography component="h1" variant="h2">Check EventApp access</Typography><Alert severity="error" sx={{ my: 2 }}>{error}</Alert><Button onClick={revalidate}>Try again</Button></Box> : children}</AuthContext.Provider>;
+  useEffect(() => {
+    if (loading || !scrollRestore.current) return;
+    const saved = scrollRestore.current;
+    const frame = requestAnimationFrame(() => { if (saved.x || saved.y) window.scrollTo(saved.x, saved.y); });
+    const timer = setTimeout(() => { setPreservedHeight(0); scrollRestore.current = null; }, 1500);
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
+  }, [loading]);
+  const value = { draftMemory: draftMemory.current, actor, setActor, sessionNotice, setSessionNotice, revalidate, memory: memory.current, organiserMemory: organiserMemory.current, preparationMemory: preparationMemory.current, setupMemory: setupMemory.current, destinations: destinations.current };
+  return <AuthContext.Provider value={value}><Box sx={{ minHeight: preservedHeight || undefined }}>{loading ? <Box component="main" sx={{ p: 4 }}><Typography role="status">{stillLoading ? "Still in progress — checking your session…" : "In progress — checking your session…"}</Typography></Box> : error ? <Box component="main" sx={{ p: 4 }}><Typography component="h1" variant="h2">Check EventApp access</Typography><Alert severity="error" sx={{ my: 2 }}>{error}</Alert><Button onClick={revalidate}>Try again</Button></Box> : children}</Box></AuthContext.Provider>;
 }
 export function useAuth() { const auth = useContext(AuthContext); if (!auth) throw new Error("Authentication context is unavailable."); return auth; }

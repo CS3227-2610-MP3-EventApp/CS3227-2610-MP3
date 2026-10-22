@@ -13,7 +13,7 @@ ERRORS = {
     "internal_error": (500, "Request could not be completed."),
 }
 FIELDS = {"expectedRevision", "tasks", "title", "status", "dueDate", "budget", "currency", "lines",
-          "description", "quantity", "unitPriceMinorUnits", "priceBasis", "quotationBasis", "id"}
+          "description", "quantity", "unitPriceMinorUnits", "priceBasis", "quotationBasis", "id", "category", "overallLimitMinorUnits"}
 
 
 class PreparationError(Exception):

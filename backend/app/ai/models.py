@@ -31,6 +31,7 @@ class AnalysisJob(Base):
     workflow: Mapped[str] = mapped_column(String(24), nullable=False,
         default="analysis", server_default=text("'analysis'"), index=True)
     business_participation_id: Mapped[UUID | None] = mapped_column(ForeignKey("event_participations.id"), index=True)
+    source_snapshot: Mapped[dict | None] = mapped_column(JSON)
     application_id: Mapped[UUID | None] = mapped_column(ForeignKey("submissions.id"), index=True)
     request_id: Mapped[UUID]
     source_revision: Mapped[int | None] = mapped_column(Integer)

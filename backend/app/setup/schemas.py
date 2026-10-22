@@ -60,3 +60,12 @@ class SetupProblem(BaseModel):
     code: str
     fieldErrors: list[dict[str, str]] | None = None
     currentRevision: int | None = None
+
+
+class PublishSetup(Input):
+    expectedRevision: Revision
+
+class OrganiserSetupDetails(SetupDetails):
+    publishedRevision: int
+    published: SetupDetails
+    hasUnpublishedChanges: bool

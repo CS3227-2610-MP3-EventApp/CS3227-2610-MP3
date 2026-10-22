@@ -1,3 +1,4 @@
+import { displayDate } from "./displayDate";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Box, Button, FormControl, InputLabel, Link as MuiLink, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -13,7 +14,7 @@ const itemPath = (eventId: string, itemId: string) => `${eventPath(eventId)}/ite
 
 function localTime(value: string, timezone: string) {
   try {
-    return new Intl.DateTimeFormat("en-GB", { timeZone: timezone, day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(value));
+    return displayDate(value, timezone);
   } catch { return "Time unavailable"; }
 }
 

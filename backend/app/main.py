@@ -20,6 +20,7 @@ from app.preparation.problems import PreparationError, is_preparation_path, prob
 from app.preparation.routes import router as preparation_router
 from app.setup.problems import SetupError, is_setup_path, problem_response as setup_problem_response
 from app.setup.routes import router as setup_router
+from app.preparation_drafts.routes import router as draft_router
 from app.database import engine
 from app.settings import Settings
 
@@ -33,6 +34,7 @@ app.include_router(programme_router)
 app.include_router(ai_router)
 app.include_router(preparation_router)
 app.include_router(setup_router)
+app.include_router(draft_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
@@ -72,11 +74,13 @@ async def http_problem(request: Request, exc: HTTPException):
 
 @app.exception_handler(AuthProblem)
 async def auth_problem(request: Request, exc: AuthProblem):
-    return problem_response(request, exc.code)
+    return problem_response(request, exc.code, exc.fields)
 
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
+    if "preparation-drafts" in request.url.path:
+        return ai_problem_response(request, "validation_error")
     if is_setup_path(request.url.path):
         return setup_problem_response(request, "validation_error", exc.errors())
     if is_preparation_path(request.url.path):
@@ -107,7 +111,7 @@ async def unexpected_failure(request: Request, exc: Exception):
 
 @app.middleware("http")
 async def auth_boundary(request: Request, call_next):
-    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/", "/api/v1/ai/")) or is_application_path(request.url.path) or is_preparation_path(request.url.path) or is_setup_path(request.url.path):
+    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/", "/api/v1/ai/")) or is_application_path(request.url.path) or is_preparation_path(request.url.path) or is_setup_path(request.url.path) or "preparation-drafts" in request.url.path:
         if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("origin") not in settings.trusted_origins:
             return problem_response(request, "forbidden")
         response = await call_next(request)

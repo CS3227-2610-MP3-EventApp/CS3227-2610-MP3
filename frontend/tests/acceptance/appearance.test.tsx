@@ -361,7 +361,7 @@ describe("revision 2 AC09 representative typography and palette", () => {
     expectMinimumTextSize(screen.getByLabelText(/^password$/i), 24);
     expectMinimumTextSize(screen.getByLabelText(/confirm password/i), 24);
     expectMinimumTextSize(screen.getByRole("button", { name: /create account/i }), 21);
-    auth.failure = { status: 409, detail: "Registration could not be completed." };
+    auth.failure = { status: 409, detail: "An account already exists with this username or email, or the business name is already registered." };
     await user.type(screen.getByLabelText(/display name/i), "Readable Person");
     await user.type(screen.getByLabelText(/^username$/i), "readable-user");
     await user.type(screen.getByLabelText(/^email$/i), "readable@example.test");
@@ -370,7 +370,7 @@ describe("revision 2 AC09 representative typography and palette", () => {
     await user.type(screen.getByLabelText(/confirm password/i), "Readable-123");
     await user.click(screen.getByRole("button", { name: /create account/i }));
     const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("Registration could not be completed.");
+    expect(alert).toHaveTextContent("An account already exists with this username or email, or the business name is already registered.");
     expectReadableAlertText(alert);
     expect(window.location.pathname).toBe(`/register/${kind}`);
     expect(auth.current).toBeNull();

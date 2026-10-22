@@ -63,6 +63,15 @@ class TaskInput(Input):
 
 
 class BudgetLineInput(Input):
+    category: Annotated[str | None, Field(max_length=80)] = None
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def category_text(cls, value):
+        if value is None: return None
+        if not isinstance(value, str) or not value.strip(): raise ValueError("Invalid category")
+        return value.strip()
+
     id: OptionalIdentifier = None
     description: Annotated[str, Field(min_length=1, max_length=160)]
     quantity: Annotated[int, Field(strict=True, ge=1, le=1_000_000)]
@@ -104,6 +113,7 @@ class BudgetLineInput(Input):
 
 
 class BudgetInput(Input):
+    overallLimitMinorUnits: Annotated[int | None, Field(strict=True, ge=0, le=100_000_000_000)] = None
     currency: Literal["SGD"]
     lines: Annotated[list[BudgetLineInput], Field(max_length=200)]
 
@@ -122,6 +132,7 @@ class TaskView(BaseModel):
 
 
 class BudgetLineView(BaseModel):
+    category: str | None = None
     id: UUID
     description: str
     quantity: int
@@ -131,6 +142,8 @@ class BudgetLineView(BaseModel):
 
 
 class BudgetView(BaseModel):
+    overallLimitMinorUnits: int | None = None
+    remainingMinorUnits: str | None = None
     currency: Literal["SGD"]
     lines: list[BudgetLineView]
     totalMinorUnits: str | None

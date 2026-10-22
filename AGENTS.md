@@ -4,9 +4,9 @@ Use EventApp as the product name. Historical commits may use Converge.
 
 ## Start here
 - Read `workflow/README.md`, `specs/README.md`, the relevant capability specification under root `specs/`, and applicable rules in `docs/security.md`.
-- Follow `workflow/agents/README.md` for the team's multi-agent development process. The main agent is the orchestrator; use actual subagent tools, not simulated role dialogue.
+<!-- - Follow `workflow/agents/README.md` for the team's multi-agent development process. The main agent is the orchestrator; use actual subagent tools, not simulated role dialogue.
 - Use the six shared roles, defined for Codex in `.codex/agents/*.toml` and for Claude Code in `.claude/agents/*.md` with identical responsibilities and only tool-specific model settings. Read the relevant role definition when assigning it. Role names are orchestrator, specification_analyst, test_case_designer, developer, behaviour_verifier, and security_reviewer.
-- Delegate bounded tasks with the specification revision, expected output, permitted files, and dependencies. Record actual agent identities, assignments, handoffs, findings, and results. If delegation is unavailable, report that limitation; do not claim a multi-agent run.
+- Delegate bounded tasks with the specification revision, expected output, permitted files, and dependencies. Record actual agent identities, assignments, handoffs, findings, and results. If delegation is unavailable, report that limitation; do not claim a multi-agent run. -->
 
 ## Specifications and protected tests
 - Derive scoped capabilities from `docs/UserStoriesAndFeatures.md`, following `specs/README.md` and the canonical `specs/TEMPLATE.md`. Store draft and approved capability specs together under root `specs/`; status and recorded human approval distinguish them. The phase roadmap and accepted decisions remain in `docs/project.md`; shared contracts remain in `docs/architecture.md`. Do not create competing templates or duplicate specs under workflow/.

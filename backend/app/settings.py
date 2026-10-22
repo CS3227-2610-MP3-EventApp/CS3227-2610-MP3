@@ -16,12 +16,14 @@ class Settings(BaseSettings):
     ])
     ai_enabled: bool = False
     ai_synthetic_only: bool = False
+    ai_real_data_enabled: bool = False
+    ai_allowed_event_ids: str = "[]"
     ai_synthetic_event_ids: str = "[]"
     soclaas_api_key: SecretStr | None = None
     soclaas_model: str | None = None
     soclaas_requests_per_minute: int = Field(default=30, ge=1, le=90)
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
 
     @model_validator(mode="after")
     def validate_origins(self):
@@ -51,3 +53,15 @@ class Settings(BaseSettings):
             return {UUID(value) for value in values}
         except (ValueError, TypeError, AttributeError) as exc:
             raise ValueError("AI_SYNTHETIC_EVENT_IDS must be a JSON UUID list") from exc
+
+
+    @property
+    def allowed_event_ids(self) -> set[UUID]:
+        if self.ai_real_data_enabled:
+            try:
+                values = json.loads(self.ai_allowed_event_ids)
+                if not isinstance(values, list): raise ValueError()
+                return {UUID(value) for value in values}
+            except (ValueError, TypeError, AttributeError):
+                raise ValueError("AI_ALLOWED_EVENT_IDS must be a JSON UUID list") from None
+        return self.synthetic_event_ids

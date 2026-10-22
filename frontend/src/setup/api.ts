@@ -1,6 +1,6 @@
 import type { components } from "../api-schema";
 
-export type SetupDetails = components["schemas"]["SetupDetails"];
+export type SetupDetails = components["schemas"]["SetupDetails"] & Partial<Pick<components["schemas"]["OrganiserSetupDetails"], "publishedRevision" | "published" | "hasUnpublishedChanges">>;
 
 export interface SetupDraftMemory {
   base: SetupDetails;
@@ -28,7 +28,7 @@ export class SetupApiError extends Error {
   }
 }
 
-async function call<T>(path: string, method: "GET" | "PUT", body?: SetupWrite): Promise<T> {
+async function call<T>(path: string, method: "GET" | "PUT" | "POST", body?: SetupWrite | {expectedRevision:number}): Promise<T> {
   let response: Response;
   try {
     response = await fetch(path, {
@@ -69,6 +69,10 @@ export const setupApi = {
   organiserSave(eventId: string, participationId: string, body: SetupWrite) {
     validScope(eventId, participationId);
     return call<unknown>(`/api/v1/organiser/events/${encodeURIComponent(eventId)}/participations/${encodeURIComponent(participationId)}/setup`, "PUT", body);
+  },
+  organiserPublish(eventId: string, participationId: string, expectedRevision: number) {
+    validScope(eventId, participationId);
+    return call<unknown>(`/api/v1/organiser/events/${encodeURIComponent(eventId)}/participations/${encodeURIComponent(participationId)}/setup/publish`, "POST", {expectedRevision});
   },
   businessGet(participationId: string) {
     if (!uuid.test(participationId)) throw new SetupApiError(422, "validation_error");

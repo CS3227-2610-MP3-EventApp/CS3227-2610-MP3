@@ -61,21 +61,21 @@ def accepted(world):
     return accept(world,create(world))
 
 
-def test_empty_reads_have_no_side_effect_then_publish_update_clear_and_reconnect(world,accepted):
+def test_empty_reads_have_no_side_effect_then_private_draft_update_clear_and_reconnect(world,accepted):
     success(request(world.x,"PUT",f"/api/v1/business/participations/{accepted['participationId']}/preparation",json={"expectedRevision":1,"tasks":[{"title":"Existing private preparation","status":"done","dueDate":None}],"budget":{"currency":"SGD","lines":[]}}))
     before=rows()
     empty={"participationId":accepted["participationId"],"eventId":accepted["eventId"],"revision":1,"boothLabel":None,"setupInstructions":None,"updatedAt":None}
-    assert success(world.oa.get(organiser(accepted))) == empty
+    assert success(world.oa.get(organiser(accepted))) == {**empty,"publishedRevision":1,"published":empty,"hasUnpublishedChanges":False}
     assert success(world.x.get(business(accepted))) == empty
     assert rows() == before
     for revision,label,instructions in [(1," A1 "," Setup at 08:00 "),(2,"A1","Setup at 08:00"),(3,None," "),(4,"",None)]:
         value=success(request(world.oa,"PUT",organiser(accepted),json=body(expectedRevision=revision,boothLabel=label,setupInstructions=instructions)))
-        assert set(value) == set(empty)
+        assert set(value) == set(empty) | {"publishedRevision","published","hasUnpublishedChanges"}
         assert value["revision"] == revision+1
         assert value["boothLabel"] == ((label or "").strip() or None)
         assert value["setupInstructions"] == ((instructions or "").strip() or None)
         assert datetime.fromisoformat(value["updatedAt"].replace("Z","+00:00")).utcoffset().total_seconds() == 0
-        assert success(world.x.get(business(accepted))) == value
+        assert success(world.x.get(business(accepted))) == value["published"]
         assert success(world.oa.get(organiser(accepted))) == value
     unchanged_domains(before)
     assert success(world.x.get(own_path(accepted))) == accepted
@@ -89,7 +89,7 @@ def test_first_and_existing_save_races_have_one_winner_and_attributable_audit(wo
         assert sorted(r.status_code for r in responses) == [200,409]
         winner=next(r.json() for r in responses if r.status_code == 200)
         assert winner["revision"] == revision+1
-        assert success(world.x.get(business(accepted))) == winner
+        assert success(world.x.get(business(accepted))) == winner["published"]
         conflict=problem(next(r for r in responses if r.status_code == 409),409,"revision_conflict")
         # Optional current revision is only visible to this normally authorised caller.
         if "currentRevision" in conflict: assert conflict["currentRevision"] == revision+1
@@ -113,7 +113,7 @@ def test_strict_validation_preserves_saved_setup_and_other_domains(world,accepte
     before=rows()
     invalid=body(expectedRevision=2);invalid[field]=value
     problem(request(world.oa,"PUT",route,json=invalid),422,"validation_error")
-    assert success(world.x.get(business(accepted))) == saved
+    assert success(world.x.get(business(accepted))) == saved["published"]
     unchanged_domains(before)
 
 
@@ -130,7 +130,7 @@ def test_unicode_limits_required_fields_origin_and_audit_failure(world,accepted)
         response=request(world.oa,"PUT",route,json=body(expectedRevision=2,boothLabel=None,setupInstructions=None))
         assert response.status_code in {500,503}
         problem(response,response.status_code,"internal_error" if response.status_code == 500 else "service_unavailable")
-    assert success(world.x.get(business(accepted))) == saved
+    assert success(world.x.get(business(accepted))) == saved["published"]
 
 
 def test_first_save_audit_failure_preserves_virtual_empty_and_creates_no_row(world,accepted):
@@ -174,7 +174,7 @@ def test_current_authority_and_no_cross_domain_access(world,accepted):
     with connect() as connection: connection.execute("UPDATE password_credentials SET must_change_password=true WHERE user_id=%s",(world.xuser,))
     problem(world.x.get(business(accepted)),403,"password_change_required")
     with connect() as connection: connection.execute("UPDATE password_credentials SET must_change_password=false WHERE user_id=%s",(world.xuser,))
-    assert success(world.x.get(business(accepted))) == saved
+    assert success(world.x.get(business(accepted))) == saved["published"]
 
 
 def test_nonaccepted_targets_empty_business_view_and_organiser_denial(world):
@@ -196,6 +196,6 @@ def test_same_business_two_events_and_duplicate_labels_are_independent(world,acc
     other=accept(world,create(world,business=world.yid,client=world.y),actor=world.y)
     for record,owner,viewer in [(second,world.ob,world.x),(other,world.oa,world.y)]:
         saved=success(request(owner,"PUT",organiser(record),json=body(boothLabel="A1")))
-        assert success(viewer.get(business(record))) == saved
-        assert success(world.x.get(business(accepted))) == first
+        assert success(viewer.get(business(record))) == saved["published"]
+        assert success(world.x.get(business(accepted))) == first["published"]
     problem(world.oa.get(organiser(second,event=world.a)),404,"not_found")

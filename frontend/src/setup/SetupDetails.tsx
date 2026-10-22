@@ -14,11 +14,16 @@ function parseSetup(value: unknown, eventId: string, participationId: string): D
   const record = value as Record<string, unknown>;
   const keys = ["participationId", "eventId", "revision", "boothLabel", "setupInstructions", "updatedAt"];
   const timestampValid = record.updatedAt === null || typeof record.updatedAt === "string" && /Z$/.test(record.updatedAt) && Number.isFinite(Date.parse(record.updatedAt));
-  if (Object.keys(record).length !== keys.length || keys.some((key) => !Object.hasOwn(record, key)) ||
+  if (Object.keys(record).some(key => ![...keys,"publishedRevision","published","hasUnpublishedChanges"].includes(key)) || keys.some((key) => !Object.hasOwn(record, key)) ||
       record.participationId !== participationId || record.eventId !== eventId || !uuid.test(String(record.participationId)) || !uuid.test(String(record.eventId)) ||
       !Number.isSafeInteger(record.revision) || Number(record.revision) < 1 || !plainText(record.boothLabel, 100) || !plainText(record.setupInstructions, 5000) ||
       !timestampValid || (record.revision === 1 ? record.boothLabel !== null || record.setupInstructions !== null || record.updatedAt !== null : record.updatedAt === null)) {
     throw new SetupApiError(0, "invalid_response");
+  }
+  if (Object.hasOwn(record,"published")) {
+    if (!Number.isSafeInteger(record.publishedRevision) || Number(record.publishedRevision)<1 || typeof record.hasUnpublishedChanges !== "boolean") throw new SetupApiError(0,"invalid_response");
+    const published = parseSetup(record.published,eventId,participationId);
+    if (published.revision !== record.publishedRevision) throw new SetupApiError(0,"invalid_response");
   }
   return value as Details;
 }
@@ -180,8 +185,25 @@ export function SetupDetails({ mode, eventId, participationId, onDirtyChange }: 
     dirtyCallback.current?.(next.dirty);
   }
 
+  async function saveDraft() {
+    if (!draft || !details || busy || draft.conflict) return;
+    const version = generation.current;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      if (!await refreshOrganiserAuthority(version, actor!.id)) return;
+      const raw = await setupApi.organiserSave(eventId, participationId, {expectedRevision:details.revision,boothLabel:normalize(draft.boothLabel),setupInstructions:normalize(draft.setupInstructions)});
+      if (!isCurrent(version)) return;
+      adopt(parseSetup(raw,eventId,participationId)); setNotice("Setup draft saved. Publish it when ready to share with the business.");
+    } catch (failure) {
+      if (!isCurrent(version)) return;
+      if (failure instanceof SetupApiError && [0,500,503].includes(failure.status)) { await reconcile({expectedRevision:details.revision,boothLabel:normalize(draft.boothLabel),setupInstructions:normalize(draft.setupInstructions)},version,actor!.id); }
+      else { if (failure instanceof SetupApiError) { concealAccessLoss(failure.status); if(failure.status === 422) setFieldErrors(Object.fromEntries(failure.fields.map(field=>[field,"Check this field."]))); } setError(failure instanceof SetupApiError ? failure.message : "Unable to save setup."); }
+    } finally { if(isCurrent(version)) setBusy(false); }
+  }
+
   function validateAndConfirm() {
     if (!draft || !details || busy || checking || draft.conflict) return;
+    if (draft.dirty) { setError("Save the setup draft before publishing."); return; }
     const errors: Record<string, string> = {};
     if (Array.from(draft.boothLabel.trim()).length > 100) errors.boothLabel = "Use no more than 100 characters.";
     if (Array.from(draft.setupInstructions.trim()).length > 5000) errors.setupInstructions = "Use no more than 5,000 characters.";
@@ -204,14 +226,15 @@ export function SetupDetails({ mode, eventId, participationId, onDirtyChange }: 
     } finally { if (alive.current && generation.current === version) { setChecking(false); setConcealed(!loaded); } }
   }
 
-  async function reconcile(body: SetupWrite, version: number, expectedActorId: string) {
+  async function reconcile(body: SetupWrite, version: number, expectedActorId: string, publication = false) {
     try {
       if (!await refreshOrganiserAuthority(version, expectedActorId) || !isCurrent(version)) return;
       const latest = await retrieve(version);
       if (!latest || !isCurrent(version) || !hasOrganiserAuthority(actorRef.current, expectedActorId)) return;
       setDetails(latest);
-      if (matchesWrite(body, latest)) {
-        adopt(latest); setNotice("Setup publication confirmed from the latest saved details.");
+      const publicationState = latest as Details & {published?: Details; hasUnpublishedChanges?: boolean};
+      if (matchesWrite(body, latest) && (!publication || publicationState.hasUnpublishedChanges === false && !!publicationState.published && matchesWrite(body, publicationState.published))) {
+        adopt(latest); setNotice(publication ? "Setup publication confirmed from the latest published details." : "Setup draft save confirmed from the latest saved details. Review before publishing.");
       } else {
         const current = draft;
         if (current) { const next = { ...current, conflict: true }; setDraft(next); remember(next); dirtyCallback.current?.(true); }
@@ -236,10 +259,10 @@ export function SetupDetails({ mode, eventId, participationId, onDirtyChange }: 
       if (actorRef.current?.id !== expectedActorId || !hasOrganiserAuthority(actorRef.current, expectedActorId)) {
         loseFreshAuthority(version); return;
       }
-      const raw = await setupApi.organiserSave(eventId, participationId, body);
+      const raw = await setupApi.organiserPublish(eventId, participationId, body.expectedRevision);
       if (!isCurrent(version) || !hasOrganiserAuthority(actorRef.current, expectedActorId)) { loseFreshAuthority(version); return; }
       const response = parseSetup(raw, eventId, participationId);
-      if (response.revision !== details.revision + 1 || !matchesWrite(body, response)) throw new SetupApiError(0, "invalid_response");
+      if (response.revision !== details.revision || !matchesWrite(body, response)) throw new SetupApiError(0, "invalid_response");
       if (!isCurrent(version) || !hasOrganiserAuthority(actorRef.current, expectedActorId)) { loseFreshAuthority(version); return; }
       adopt(response); setNotice("Setup details published.");
     } catch (failure) {
@@ -253,7 +276,7 @@ export function SetupDetails({ mode, eventId, participationId, onDirtyChange }: 
         if (draft) { const conflicted = { ...draft, conflict: true }; setDraft(conflicted); remember(conflicted); dirtyCallback.current?.(true); }
       } else if (failure instanceof SetupApiError && (failure.status === 0 || failure.status >= 500)) {
         setConfirmation(null); setNotice("Publication outcome not confirmed. Checking the latest setup.");
-        await reconcile(body, version, expectedActorId);
+        await reconcile(body, version, expectedActorId, true);
       } else {
         if (failure instanceof SetupApiError) concealAccessLoss(failure.status);
         setConfirmation(null); setError(failure instanceof SetupApiError ? failure.message : "Request could not be completed.");
@@ -272,11 +295,12 @@ export function SetupDetails({ mode, eventId, participationId, onDirtyChange }: 
       <Typography sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}><strong>Setup instructions:</strong> {details.setupInstructions ?? "No setup instructions yet"}</Typography>
     </Stack>}
     {visible && mode === "organiser" && draft && details && <Stack spacing={2}>
-      <Typography>Setup revision {details.revision}</Typography>
+      <Typography>Setup draft revision {details.revision}</Typography>
+      <Typography>{details.hasUnpublishedChanges ? "Unpublished changes. The business still sees the last published setup." : (details.publishedRevision ?? 1)>1 ? "Published setup is current." : "Setup has not been published."}</Typography>
       <TextField label="Booth label" value={draft.boothLabel} onChange={(event) => change("boothLabel", event.target.value)} error={!!fieldErrors.boothLabel} helperText={fieldErrors.boothLabel ?? "Optional. Maximum 100 characters."} />
       <TextField label="Setup instructions" multiline minRows={3} value={draft.setupInstructions} onChange={(event) => change("setupInstructions", event.target.value)} error={!!fieldErrors.setupInstructions} helperText={fieldErrors.setupInstructions ?? "Optional. Maximum 5,000 characters."} />
       {draft.conflict && <Button onClick={() => void reviewLatest()}>Reload latest setup</Button>}
-      <Button variant="contained" onClick={validateAndConfirm} disabled={busy || checking || draft.conflict}>Save setup</Button>
+      <Stack direction="row" spacing={2}><Button variant="outlined" onClick={() => void saveDraft()} disabled={busy || checking || draft.conflict}>Save setup</Button><Button variant="contained" onClick={validateAndConfirm} disabled={busy || checking || draft.conflict || draft.dirty || details.revision === 1}>Publish setup</Button></Stack>
       {notice && <Typography role="status" aria-live="polite">{notice}</Typography>}
       {confirmation && <Dialog open transitionDuration={0} aria-labelledby="setup-confirmation-title" onClose={() => !busy && setConfirmation(null)}>
         <DialogTitle id="setup-confirmation-title">Confirm setup details</DialogTitle>

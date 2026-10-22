@@ -1,13 +1,14 @@
 # Generate preparation drafts
 
+> Current revision 4: the **Approved current revision 4 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | generate-preparation-drafts |
 | Covered stories | [F06-US04](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 3 / Ready |
+| Specification revision / status | 4 / In review |
 | Product roles / roadmap | Active business owners; AI for every role |
 | Product and contract approval | Isaac approved provider/data/estimate/adoption defaults3/5 and related specification/implementation amendments6 on2026-10-21; limits approved with30 dispatches/min. This revision records that direction. |
-| Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); independent tests/baseline and runtime evidence pending |
+| Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); [Phase 5 implementation and evidence](../../workflow/agents/runs/2026-10-22-preparation-drafts-implementation.md); independent implementation/human review pending |
 
 ## Product outcome, users and scope
 
@@ -52,7 +53,7 @@ Safe failures include401 unauthenticated,403 forbidden/password_change_required,
 
 ## Constraints, security and non-functional requirements
 
-RD01/RD07; SEC01–04/06/08/10/11/12. Requesting owner and current business membership are required at read/write/worker boundaries; organiser membership grants no private draft access. Generation is tool-free with the existing fixed SoCLaaS provider, configured model and safe transport; no autonomous actions. Strict schema/source validation precedes result persistence/display. Both prompt and generated text are untrusted plain text. Minimise provider/log payloads and redact secrets. Adopt through the preparation module's approved domain write service, never arbitrary cross-module table writes.
+RD01/RD07; SEC01â€“04/06/08/10/11/12. Requesting owner and current business membership are required at read/write/worker boundaries; organiser membership grants no private draft access. Generation is tool-free with the existing fixed SoCLaaS provider, configured model and safe transport; no autonomous actions. Strict schema/source validation precedes result persistence/display. Both prompt and generated text are untrusted plain text. Minimise provider/log payloads and redact secrets. Adopt through the preparation module's approved domain write service, never arbitrary cross-module table writes.
 
 Shared limits:10 jobs/user/UTC day, one active,60s provider timeout,180s total deadline,40000 outbound codepoints,4000 output tokens,40000 response-content characters,2 in-flight provider calls per worker, shared `SOCLAAS_REQUESTS_PER_MINUTE=30`, existing bounded502/503 retry only and30-day terminal job/draft retention. Production AI remains disabled. Provider failure/cancellation/quota exhaustion never blocks manual tasks/budgets.
 
@@ -69,7 +70,7 @@ Shared limits:10 jobs/user/UTC day, one active,60s provider timeout,180s total d
 
 ## External interfaces and dependencies
 
-Consumes manual preparation r3 and SetupDetails v1, current permitted event facts and shared business jobs r3. Reuse producer APIs/services, preserve existing organiser AI contracts. Additive migrations preserve identities, frozen applications, decisions, setup/manual records and organiser jobs/reports. Schema and generated frontend API types move together. AI drafts are separate domain records; they are not the sole manual source of truth.
+Consumes manual preparation r5 (retaining r3 numeric bounds and legacy fields) and published-only Business SetupDetails v1, current permitted event facts and shared business jobs r3. Reuse producer APIs/services, preserve existing organiser AI contracts. Additive migrations preserve identities, frozen applications, decisions, setup/manual records and organiser jobs/reports. Schema and generated frontend API types move together. AI drafts are separate domain records; they are not the sole manual source of truth.
 
 ## Decisions and approval
 
@@ -77,12 +78,34 @@ Isaac approved provider/data limits, model estimates without supplier research, 
 
 ## Verification and evidence
 
-Independent preimplementation test design/adequacy/baseline, developer implementation, independent behaviour/security reviews and actual selected-provider/browser/restart evidence remain pending in the phase run. All AC01–06 are unverified as completion until applicable evidence is recorded. Human teammate/accessibility/summary verification, deployment and cross-role project release gates remain separate. Fake-provider tests do not satisfy actual business LLM integration. Session logs under logs/isaac record real handoffs and results.
+Independent preimplementation test design/adequacy/baseline, developer implementation, independent behaviour/security reviews and actual selected-provider/browser/restart evidence remain pending in the phase run. All AC01â€“06 are unverified as completion until applicable evidence is recorded. Human teammate/accessibility/summary verification, deployment and cross-role project release gates remain separate. Fake-provider tests do not satisfy actual business LLM integration. Session logs under logs/isaac record real handoffs and results.
+
+### Current implementation evidence (2026-10-22 continuation)
+
+Implementation now exposes private generation/history/read/edit/adoption, integrates the shared worker and additive0010 storage, and delivers the business UI. The existing approved r3 contract and preimplementation baseline77cbabb were reused; no new product choice was introduced. Manual r3 shapes/numeric bounds remain retained in manual r4. This continuation uses no subagents at Isaac's explicit direction; self-checks are not independent implementation reviews.
+
+The frozen Phase5 UI25 cases pass; full/affected regression results and exact final commands belong in the linked phase run. Supplemental developer-owned unit checks verify aggregate arithmetic, canonical dates, strict confirmation and server-controlled model fields. A real invented-data HTTP journey passed application submission, accepted setup, manual preparation, actual SoCLaaS draft generation, separate edit, selected append and API restart retrieval. AI opt-in/allowlist were process-local; no production/real-data enablement occurred. That HTTP check is not a real-browser or human accessibility result.
+
+A protected UI fixture type-inference error required one explicit type annotation, approved by Isaac in this continuation; no assertions or fixture values changed. DRAFTS-TCR-03 records the delta and pending independent test-owner/verifier review. The original baseline remains authoritative with that separately recorded authorized delta; no replacement commit was made. Independent behaviour/security review, human teammate/accessibility/summary verification, real browser journey and online release gates remain pending. This capability is not Verified or Completed.
 
 ## Revision history
 
 | Revision/date | Change | Evidence impact |
 | --- | --- | --- |
 | 1 /2026-10-18 | Initial F06-US04 Draft | Approval/verification pending historically |
-| 2 /2026-10-21 | Recorded Isaac's approved AI defaults, bounded source/output/API contracts, shared30/min jobs, exact arithmetic and append-only confirmed adoption; retained AC01–06 | Product direction authorised; independent baseline and implementation evidence pending |
-| 3 /2026-10-22 | Made nested source facts/revisions, history, draft lifecycle and adoption response shapes explicit for independent consumers | Bounded contract clarification under Isaac's specification-amendment authority; no new policy or runtime evidence; AC01–06 retained |
+| 2 /2026-10-21 | Recorded Isaac's approved AI defaults, bounded source/output/API contracts, shared30/min jobs, exact arithmetic and append-only confirmed adoption; retained AC01â€“06 | Product direction authorised; independent baseline and implementation evidence pending |
+| 3 /2026-10-22 | Made nested source facts/revisions, history, draft lifecycle and adoption response shapes explicit for independent consumers | Bounded contract clarification under Isaac's specification-amendment authority; no new policy or runtime evidence; AC01â€“06 retained |
+
+## Approved current revision 4 amendment - 2026-10-22
+
+Status: proposed exact contract for the user-requested refinement; earlier approved revision/evidence above remains historical and is not reapproved by this appendix. User direction authorises the requested product changes; independent test adequacy/baseline and exact amendment review are pending. No independent agents are used, per Isaac.
+
+This is F06-US04, not F09. Remove the invented-data-only checkbox and disabled-button dependency. Normal product disclosure explains that generation sends event/setup facts, needs and only selected manual preparation details to the configured AI provider; contacts/account names/IDs remain excluded. Generate is the explicit request acknowledgement, sent as dataSharingConfirmed:true; legacy synthetic confirmation remains accepted only in synthetic operator mode during compatibility. Real development data requires explicit AI_REAL_DATA_ENABLED=true plus AI_ENABLED and configured provider, operator-allowed event IDs and current authority. Production deployment remains disabled; no deployment authorization is implied. App job/draft retention stays30days; provider retention is unverified and clearing local data does not remove provider copies. No claim of anonymisation or verified provider deletion. AC07 normal disclosure/explicit acknowledgement/no synthetic wording and bounded outbound set; AC08 published-only setup source/freshness; AC09 one checkbox context row per item and useful generation-disabled/failure reasons. Editable draft item/category presentation follows manual budget terminology; adoption never changes the spending limit.
+
+## Approved current revision 4 amendment - 2026-10-22
+
+Isaac explicitly approved these amendments and the refinement acceptance plan on2026-10-22. This current amendment supersedes conflicting wording/criteria in the retained previous revision below; unchanged requirements remain authoritative. Historical approvals/evidence are not transferred to new behavior. New executable tests are written by root against the human-reviewed scenarios; independent executable-delta/implementation review remains pending. No subagents or commits.
+
+F06-US04, not F09. AC07: remove invented-data-only checkbox/dependency. Disclose configured AI sharing of event/setup facts, needs and explicitly selected manual details; contacts/account names/IDs excluded. Generate is explicit acknowledgement dataSharingConfirmed:true, not a synthetic-data assertion. Legacy synthetic confirmation accepted only in operator synthetic mode. Dev real-data use additionally requires explicit AI_REAL_DATA_ENABLED=true, configured provider, AI_ENABLED and operator event allowlist; production stays disabled. App retention30days; provider retention unverified, local DB deletion does not remove provider copies. No anonymisation/deletion guarantee. AC08: setup source is published-only; draft saves do not stale AI, publication does. AC09: each source checkbox has its own row; disabled generation and failures explain missing needs/participation/active job/configuration. Optional cost-breakdown categories supported in saved drafts; adoption never changes spending limit.
+
+Revision 4 /2026-10-22: user-approved Business refinements; test-first failures and implementation/results belong in [the refinement run](../../workflow/agents/runs/2026-10-22-business-refinements-test-plan.md). Human implementation/accessibility review remains pending.

@@ -1,10 +1,11 @@
 # Submit business applications
 
+> Current revision 5: the **Approved current revision 5 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | submit-business-applications |
 | Covered stories | [F06-US01](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 4 / In review |
+| Specification revision / status | 5 / In review |
 | Product roles / roadmap | Active business owners and assigned event organisers; [manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Historical exact r2 backend and r3 frontend approval by Isaac on 2026-10-20/21 remains bound to those revisions and recorded below. On 2026-10-21 the user approved replacing known-ID eligibility with one application/participation request and organiser-controlled open applications. Current r4 checks are recorded below; human verification remains pending. |
 | Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
@@ -137,7 +138,7 @@ Root owns the run and [session summary](../../logs/isaac/2026-10-20-foundation-f
 | Revision / date | Change, retired or moved criterion IDs and successor mapping | Approval / evidence impact |
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial bounded Draft from F06-US01 and RD/SEC rules | Historical approval/verification pending |
-| 2 / 2026-10-20 | Recorded actual defaults/approval-first correction/backend exception; completed API/CAS/ownership/audit/frozen producer contract; preserved AC01–05 and added AC06–08 | Isaac approved exact saved r2; backend implemented; independent behaviour/security review and protected checks pass; human review pending (continued 2026-10-21) |
+| 2 / 2026-10-20 | Recorded actual defaults/approval-first correction/backend exception; completed API/CAS/ownership/audit/frozen producer contract; preserved AC01â€“05 and added AC06â€“08 | Isaac approved exact saved r2; backend implemented; independent behaviour/security review and protected checks pass; human review pending (continued 2026-10-21) |
 | 3 / 2026-10-21 | Added approved frontend browser journeys AC09-17; r2 backend contracts unchanged | Exact amendment and live-card test evolution approved; human checks pending continuation authorized; frontend delivered; independent automated behaviour/security reviews pass; browser evidence below; human review pending |
 
 
@@ -160,3 +161,17 @@ Active protected baseline: `254bc0507788c0ef1c255ad2238e3894eb4e798b`, all17 pat
 | Remaining AC16 / release gates | Chrome+NVDA, actual400% browser zoom, reduced-motion checks, comprehensive accessibility/production visual sign-off, human teammate and summary correctness review | Pending; automated AX/layout checks do not establish WCAG conformance; no production delivery claimed |
 
 Use the [Git Bash website/API guide](../../docs/BusinessApplicationsTesting.md) for manual review. Actual identities, defects, protected-test correction history and residual checks are in the [frontend run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md) and [session log](../../logs/isaac/2026-10-21-complete-business-applications.md). No push, merge or deployment.
+
+## Approved current revision 5 amendment - 2026-10-22
+
+Status: proposed exact contract for the user-requested refinement; earlier approved revision/evidence above remains historical and is not reapproved by this appendix. User direction authorises the requested product changes; independent test adequacy/baseline and exact amendment review are pending. No independent agents are used, per Isaac.
+
+New application contactName/contactEmail default to the signed-in Business owner's displayName/email, fetched through own ContactProfile v1. Defaults are editable and never replace existing saved or dirty inputs. A failed profile lookup leaves manual entry usable; account departure suppresses late profile results. Visible dates obey shared UI date presentation; event metadata/ISO API values stay unchanged. Realistic development event names replace only known generated smoke titles through an explicit rename tool; never silently delete events/applications or alter frozen submissions. AC20 contact defaults/current-actor/typing preservation; AC21 readable event date presentation (shared UI authority).
+
+## Approved current revision 5 amendment - 2026-10-22
+
+Isaac explicitly approved these amendments and the refinement acceptance plan on2026-10-22. This current amendment supersedes conflicting wording/criteria in the retained previous revision below; unchanged requirements remain authoritative. Historical approvals/evidence are not transferred to new behavior. New executable tests are written by root against the human-reviewed scenarios; independent executable-delta/implementation review remains pending. No subagents or commits.
+
+AC20: New application contactName/contactEmail default to the current owner displayName/email through own ContactProfile v1. Defaults remain editable; never overwrite saved/dirty input or accept late departed-actor results. Profile failure leaves manual entry usable. AC21: displayed dates follow shared UI r5. Known helper event titles may be explicitly renamed to realistic names with event revision advancement, preserving associations and frozen submissions; never delete records or censor arbitrary legitimate titles.
+
+Revision 5 /2026-10-22: user-approved Business refinements; test-first failures and implementation/results belong in [the refinement run](../../workflow/agents/runs/2026-10-22-business-refinements-test-plan.md). Human implementation/accessibility review remains pending.

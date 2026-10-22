@@ -75,7 +75,7 @@ test("AC02 exact huge currency totals render without floating point loss", async
   expect(screen.getAllByLabelText(/^unit price/i)[0]).toHaveValue(1000000000);
 });
 
-test("AC02 odd huge totals and line amounts retain the final cent", async () => {
+test("AC02 odd huge totals and item amounts retain the final cent", async () => {
   const value = fixture([{id:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",description:"Odd huge line",quantity:999999,unitPriceMinorUnits:99999999999,priceBasis:"estimate",quotationBasis:null}]);
   value.budget.totalMinorUnits = "99999899999000001";
   value.budget.knownSubtotalMinorUnits = "99999899999000001";

@@ -1,10 +1,11 @@
 # Assign booths and publish setup details
 
+> Current revision 2: the **Approved current revision 2 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | assign-booths-and-publish-setup-details |
 | Covered stories | [F06-US02](../../docs/UserStoriesAndFeatures.md), booth/setup portion only; status/reason stays in decision r2 |
-| Specification revision / status | 1 / In review |
+| Specification revision / status | 2 / In review |
 | Product roles / roadmap | Assigned organisers and active business owners; manual journeys |
 | Product and contract approval | Isaac approved booth/setup default 2 and implementation/specification-amendment authority default 6 on 2026-10-21. This contract records those choices; human teammate review is separate. |
 | Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); test baseline and implementation pending |
@@ -62,9 +63,9 @@ Independent design/reviews established initial baseline2db4a2f, reviewed fixture
 
 | Criterion | Current evidence | Limitation |
 | --- | --- | --- |
-| AC01–AC04 | HTTP/PostgreSQL role/state/bounds/CAS/audit rollback and domain preservation cases;18 focused/320 full backend tests; independent server source reviews | Local evidence, not deployment/human signoff |
-| AC05 | UI confirmation/cancel/edit invalidation/unknown-write recovery/inert text/foreign-reference/identity swap cases;18 focused/296 full pass; both affected independent reviews pass; real Chrome organiser publication→business visibility | Human keyboard/NVDA/400% pending |
-| AC06 | Retained0006→0007 migration, every old table's row fingerprint unchanged; actual database/API restart preserved setup and manual preparation without reseeding | Synthetic local environment; online delivery remains separate |
+| AC01â€“AC04 | HTTP/PostgreSQL role/state/bounds/CAS/audit rollback and domain preservation cases;18 focused/320 full backend tests; independent server source reviews | Local evidence, not deployment/human signoff |
+| AC05 | UI confirmation/cancel/edit invalidation/unknown-write recovery/inert text/foreign-reference/identity swap cases;18 focused/296 full pass; both affected independent reviews pass; real Chrome organiser publicationâ†’business visibility | Human keyboard/NVDA/400% pending |
+| AC06 | Retained0006â†’0007 migration, every old table's row fingerprint unchanged; actual database/API restart preserved setup and manual preparation without reseeding | Synthetic local environment; online delivery remains separate |
 
 Preimplementation contract review: actual security reviewer `/root/preparation_security` reported no blocking specification findings; test designer `/root/preparation_scenarios` supplied positive/adverse/race/atomicity/UI scenarios and the path/confirmation/reconciliation clarifications above. These are read-only contract reviews, not runtime or executable-test adequacy evidence. Both remain to be performed at the phase baseline.
 
@@ -72,4 +73,18 @@ Preimplementation contract review: actual security reviewer `/root/preparation_s
 
 | Revision/date | Change | Evidence impact |
 | --- | --- | --- |
-| 1 / 2026-10-21 | Contract for approved booth/setup defaults; new IDs AC01–06, no reuse of retired decision AC06 | Product direction authorised; independent baseline and implementation gates pending |
+| 1 / 2026-10-21 | Contract for approved booth/setup defaults; new IDs AC01â€“06, no reuse of retired decision AC06 | Product direction authorised; independent baseline and implementation gates pending |
+
+## Approved current revision 2 amendment - 2026-10-22
+
+Status: proposed exact contract for the user-requested refinement; earlier approved revision/evidence above remains historical and is not reapproved by this appendix. User direction authorises the requested product changes; independent test adequacy/baseline and exact amendment review are pending. No independent agents are used, per Isaac.
+
+Supersedes r1 save-is-publication behavior: Save setup persists an organiser-only draft; Publish setup explicitly confirms and publishes the exact saved draft and revision. Business readers and AI consume only the last published facts, never an unpublished draft. Existing published records migrate as published; further draft edits leave them visible. Separate draft revision and published revision; CAS on both, expected draft revision on publish, current assigned-organiser and accepted-participation checks. POST organiser setup path /publish accepts {expectedRevision}; no content in publish payload. Concurrent/stale/replayed publication cannot duplicate effects; same already published draft is an idempotent read. First draft save does not create published facts; business revision remains1 until first publication. Published revision advances only on actual publish. AI freshness is bound to published revision: draft save does not stale AI, publication does. Business DTO SetupDetails v1 remains published-only; organiser GET/PUT returns draft details plus publishedRevision and published facts/state. Save/publish/audit/rollback remain domain-owned transactions. AC07 draft save never publishes, published preservation/restart; AC08 exact confirmed publish/CAS/ownership/AI freshness.
+
+## Approved current revision 2 amendment - 2026-10-22
+
+Isaac explicitly approved these amendments and the refinement acceptance plan on2026-10-22. This current amendment supersedes conflicting wording/criteria in the retained previous revision below; unchanged requirements remain authoritative. Historical approvals/evidence are not transferred to new behavior. New executable tests are written by root against the human-reviewed scenarios; independent executable-delta/implementation review remains pending. No subagents or commits.
+
+Supersedes r1 save-is-publication. AC07: Save setup persists an organiser-only draft; Business and AI read only last published facts. Existing records migrate as published. Draft edits never change published content/revision or stale AI. AC08: separate Publish setup confirmation publishes the exact saved draft revision through POST organiser setup path /publish {expectedRevision}; current assigned organiser/accepted participation, Origin, CAS and atomic audit enforced. Publishing the same saved revision again is idempotent. First draft save leaves Business empty revision1; published revision advances only on publication. Organiser DTO extends draft details with publishedRevision/published facts/state; Business SetupDetails v1 remains published-only. Publish changes, not draft saves, invalidate AI source freshness.
+
+Revision 2 /2026-10-22: user-approved Business refinements; test-first failures and implementation/results belong in [the refinement run](../../workflow/agents/runs/2026-10-22-business-refinements-test-plan.md). Human implementation/accessibility review remains pending.

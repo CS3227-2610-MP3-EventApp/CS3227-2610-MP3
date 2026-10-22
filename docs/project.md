@@ -20,6 +20,10 @@ Approved manual caps are200 tasks/lines, quantity1–1,000,000 and unit price up
 
 Isaac approved access/shared UI r4, submit r4 and bounded decision r2 before edits. Businesses browse named open events and submit one frozen application as the participation request; organisers open/close applications and decide submitted requests without exchanging business IDs. Settings default closed; closure blocks new drafts/submission while preserving editable own drafts and reviewable submissions. Rejection reason is required (1-1000 trimmed characters), acceptance reason optional (maximum1000). Legacy grants remain history only. No automatic date cutoff, resubmission, reconsideration or booth/setup assignment is included. RD01-RD07 remain authoritative. See [current evidence](../workflow/agents/runs/2026-10-21-open-participation-requests.md); implementation and required human verification remain separately tracked.
 
+### F06 Phase 5 continuation (2026-10-22)
+
+Isaac requested completion of the in-progress approved AI preparation capability without subagents and with all files staged, no commit. This supersedes the earlier local-commit instruction for this session. Existing specification revision3 and reviewed preimplementation baseline77cbabb are reused. Actual SoCLaaS generation/edit/selected append/API restart is evidenced using invented records and process-local opt-in only; independent implementation review and human/browser/accessibility/deployment gates remain outstanding in the Phase5 run. No production AI enablement or supplier/order/payment scope is added.
+
 ## Accepted review decisions
 
 These decisions supersede conflicting earlier recommendations. They approve the specified behavior, not every feature or physical schema detail. Dylan, Yik Bing, and Isaac approved them on 2026-10-15; feature-specific approval records remain to be assigned.
@@ -216,3 +220,7 @@ FastAPI provides [OAuth2 scope integration](https://fastapi.tiangolo.com/advance
 | 2026-10-15 | Accepted RD01-RD07 and confirmed deadline; implementation remained deferred. |
 | 2026-10-17 | Consolidated stories/scopes into the canonical catalogue; adopted one phase-priority roadmap and task-based coordination; permitted concurrent same-room activities and clarified attendee warnings. |
 | 2026-10-19 | Recorded requesting teammate's shared-authentication plan and current backend foundation; replaced provider/multiple-role/temporary-expiry assumptions with the bounded one-role CLI/cookie contract; RD01–RD07 unchanged. |
+
+## 2026-10-22 Business refinement approval
+
+Isaac requested and approved canonical contract/test amendments for duplicate account feedback, realistic event display names, regional dates everywhere, own contact defaults, separate setup Save/Publish, compact full-width checklists, overall budget limits/optional breakdowns, context-preserving Back navigation, block context selections, scroll-preserving access revalidation and professional AI wording. He selected spending limit plus optional breakdowns and development real-data intent. No subagents, commits, merge, push or deployment authorized. Root verified worker import with Python3.12 from the backend project and a configured DATABASE_URL; F06-US04 generation does not depend on F09. Minimal real-data dev opt-in/allowlisting and unverified provider retention are explicit. Shared/story/architecture/testing docs are updated with the canonical existing specs, preserving RD01-RD07 and prior evidence.

@@ -16,26 +16,30 @@ function install(role:"business"|"organiser"="organiser", mode:"normal"|"lost"|"
   applications.records=[submitted({status:"accepted",revision:3,decision:{outcome:"accepted",reason:null,decidedAt:"2026-10-21T03:00:00Z"}})];
   const fallback=globalThis.fetch, writes:Record<string,unknown>[]=[];
   const hooks:{afterWrite?:()=>void}={};
-  let value=setup(),reads=0,gate:Promise<void>|undefined;
+  let published=setup(),value=setup(),reads=0,gate:Promise<void>|undefined;
   vi.stubGlobal("fetch",vi.fn(async (input:string|URL|Request,init?:RequestInit) => {
     const url=new URL(typeof input === "object" && "url" in input ? input.url:String(input),location.origin);
-    if (![organiserPath,businessPath].includes(url.pathname)) return fallback(input,init);
+    if (![organiserPath,businessPath,organiserPath+"/publish"].includes(url.pathname)) return fallback(input,init);
     const held=gate;
-    if ((init?.method ?? "GET") === "PUT") {
-      const payload=JSON.parse(String(init?.body));writes.push(payload);
-      hooks.afterWrite?.();
+    const method=init?.method ?? "GET";
+    if (method === "PUT") {
+      const payload=JSON.parse(String(init?.body));
+      value={...value,revision:value.revision+1,boothLabel:typeof payload.boothLabel === "string" ? payload.boothLabel.trim()||null:null,setupInstructions:typeof payload.setupInstructions === "string" ? payload.setupInstructions.trim()||null:null,updatedAt:"2026-10-21T04:00:00Z"};
+    } else if (method === "POST") {
+      const payload=JSON.parse(String(init?.body)); writes.push(payload); hooks.afterWrite?.();
       expect(init?.credentials).toBe("same-origin");
       if (mode === "invalid") return new Response(JSON.stringify({code:"validation_error",detail:"PRIVATE-RAW-SERVER-EXCEPTION <script>execute()</script>",fieldErrors:[{field:"boothLabel",code:"invalid"}]}),{status:422,headers:{"Content-Type":"application/problem+json","Cache-Control":"no-store"}});
-      if (mode === "conflict") return new Response(JSON.stringify({code:"revision_conflict",currentRevision:2}),{status:409,headers:{"Content-Type":"application/problem+json"}});
-      value={...value,revision:value.revision+1,boothLabel:typeof payload.boothLabel === "string" ? payload.boothLabel.trim()||null:null,setupInstructions:typeof payload.setupInstructions === "string" ? payload.setupInstructions.trim()||null:null,updatedAt:"2026-10-21T04:00:00Z"};
+      if (mode === "conflict") return new Response(JSON.stringify({code:"revision_conflict",currentRevision:value.revision}),{status:409,headers:{"Content-Type":"application/problem+json"}});
       if (mode === "mismatch") value.boothLabel="OTHER-CONFIRMED-BOOTH";
+      published={...value,revision:published.revision+1};
       if ((mode === "lost" || mode === "mismatch") && writes.length === 1) throw new TypeError("Synthetic lost setup response");
     } else reads++;
-    const snapshot=JSON.stringify(value);
+    const result=url.pathname === businessPath ? published : {...value,publishedRevision:published.revision,published,hasUnpublishedChanges:value.boothLabel!==published.boothLabel || value.setupInstructions!==published.setupInstructions};
+    const snapshot=JSON.stringify(result);
     if (held) await held;
     return new Response(snapshot,{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
   }));
-  return {writes,hooks,reads:()=>reads,value:()=>value,hold:()=>{let release!:()=>void;gate=new Promise<void>(resolve=>{release=resolve;});return ()=>{gate=undefined;release();};}};
+  return {writes,hooks,reads:()=>reads,value:()=>role === "business" ? published : value,hold:()=>{let release!:()=>void;gate=new Promise<void>(resolve=>{release=resolve;});return ()=>{gate=undefined;release();};}};
 }
 async function open() {await renderPrototype(organiserRoute);await screen.findByLabelText(/^booth label$/i);}
 function fill(label="PRIVATE-BOOTH-A1",instructions="PRIVATE-SETUP-INSTRUCTIONS") {
@@ -44,6 +48,8 @@ function fill(label="PRIVATE-BOOTH-A1",instructions="PRIVATE-SETUP-INSTRUCTIONS"
 }
 async function confirm() {
   await userEvent.setup().click(screen.getByRole("button",{name:/^save setup$/i}));
+  await waitFor(()=>expect(screen.getByRole("button",{name:/^publish setup$/i})).toBeEnabled());
+  await userEvent.setup().click(screen.getByRole("button",{name:/^publish setup$/i}));
   return screen.findByRole("dialog",{name:/^confirm setup details$/i});
 }
 async function publish() {const dialog=await confirm();await userEvent.setup().click(within(dialog).getByRole("button",{name:/^publish setup$/i}));}
@@ -60,7 +66,7 @@ test("AC05 exact confirmation cancel sends no write; later edits require fresh p
   expect(dialog).toHaveTextContent("CHANGED-BOOTH");expect(dialog).not.toHaveTextContent("PRIVATE-BOOTH-A1");
   await userEvent.setup().click(within(dialog).getByRole("button",{name:/^publish setup$/i}));
   await waitFor(()=>expect(server.writes).toHaveLength(1));
-  expect(server.writes[0]).toEqual({expectedRevision:1,boothLabel:"CHANGED-BOOTH",setupInstructions:"CHANGED-INSTRUCTIONS"});
+  expect(server.writes[0]).toEqual({expectedRevision:3});
   expect(storage()).not.toContain("CHANGED-INSTRUCTIONS");
 });
 
@@ -72,7 +78,7 @@ test("AC01/05 clearing publishes exact null facts only after confirmation",async
   expect(dialog).toHaveTextContent(/not assigned|clear|remove/i);
   await userEvent.setup().click(within(dialog).getByRole("button",{name:/^publish setup$/i}));
   await waitFor(()=>expect(server.writes).toHaveLength(2));
-  expect(server.writes[1]).toEqual({expectedRevision:2,boothLabel:null,setupInstructions:null});
+  expect(server.writes[1]).toEqual({expectedRevision:3});
 });
 
 test("AC05 editing facts while confirmation is open invalidates prior publish approval",async()=>{
@@ -122,7 +128,7 @@ test("AC05 lost matching response reconciles canonical revision before next expl
   expect(server.writes).toHaveLength(1);
   fill("SECOND-BOOTH");await publish();
   await waitFor(()=>expect(server.writes).toHaveLength(2));
-  expect(server.writes[1].expectedRevision).toBe(2);
+  expect(server.writes[1].expectedRevision).toBe(3);
 });
 
 test.each(["mismatch","conflict"] as const)("AC05 %s requires review without automatic replay",async(mode)=>{

@@ -1,8 +1,9 @@
+import { displayDate } from "../displayDate";
 import { memo, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Auth";
-import { applicationApi, ApiError } from "../api";
+import { applicationApi, ApiError, request, api } from "../api";
 import { application, blank, events as parseEvents, feedback, labels, limits, uncertain, validate, type Application, type ApplicationEvent, type Content, type DraftMemory, type PendingOperation } from "./model";
 import { ApplicationLayout, ContentSummary, Feedback, Frozen, useFeedback } from "./shared";
 import { SetupDetails } from "../setup/SetupDetails";
@@ -69,6 +70,18 @@ export function BusinessApplications() {
           model.saved = saved;
           if (saved.status !== "draft") { model.uncertain = false; model.operation = undefined; }
           if (saved.status !== "draft" || !model.dirty && model.editEpoch === inputEpoch) { model.values = { ...saved.content }; model.dirty = false; }
+        }
+        if (!id && !model.dirty && !existing) {
+          try {
+            const profile = await request<{displayName: string; email: string}>("/contact-profile");
+            const currentActor = await api.me();
+            if (!active || epoch.current !== current) return;
+            if (currentActor.id !== actor!.id || currentActor.role !== "business" || currentActor.mustChangePassword || !currentActor.businessMemberships.some(m => m.businessId === businessId && m.role === "owner" && m.status === "active")) { revalidate(); return; }
+            if (!active || epoch.current !== current) return;
+            if (!model.dirty && !model.saved && typeof profile.displayName === "string" && typeof profile.email === "string") {
+              model.values = { ...model.values, contactName: model.values.contactName || profile.displayName, contactEmail: model.values.contactEmail || profile.email };
+            }
+          } catch (error) { if(error instanceof ApiError && [401,403].includes(error.status)) { denied(error); return; } /* Recoverable profile errors leave manual entry available. */ }
         }
         if (!active || epoch.current !== current) return;
         operation.current = model.operation ?? null;
@@ -171,7 +184,7 @@ export function BusinessApplications() {
       <TextField select label="Business" value={owned ? businessId : ""} onChange={(event) => chooseBusiness(event.target.value)} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>{businesses.map((value) => <option key={value.businessId} value={value.businessId}>{value.businessName}</option>)}</TextField>
       
       {!!eventList.length && <TextField select label="Event" value={eventId} onChange={(event) => chooseEvent(event.target.value)} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>{eventList.map((event) => <option key={event.eventId} value={event.eventId}>{event.title}</option>)}</TextField>}
-      {eventList.filter((event) => event.eventId === eventId).map((event) => <Box key={event.eventId}><Typography>{event.title}</Typography><Typography>{event.startsAt} - {event.endsAt} ({event.timezone})</Typography><Typography>{event.applicationsOpen ? "Applications open" : "Applications are closed for this event. Keep editing your saved draft or choose an open event."}</Typography></Box>)}
+      {eventList.filter((event) => event.eventId === eventId).map((event) => <Box key={event.eventId}><Typography>{event.title}</Typography><Typography>{displayDate(event.startsAt, event.timezone)} - {displayDate(event.endsAt, event.timezone)} ({event.timezone})</Typography><Typography>{event.applicationsOpen ? "Applications open" : "Applications are closed for this event. Keep editing your saved draft or choose an open event."}</Typography></Box>)}
       <Feedback status={status} />
       {visible && draft!.saved && draft!.saved.status !== "draft" ? <><Frozen value={draft!.saved} /><SetupDetails mode="business" eventId={draft!.saved.eventId} participationId={draft!.saved.participationId} /></> : visible && <Box component="form" noValidate onSubmit={save}>
         <Stack spacing={3}>

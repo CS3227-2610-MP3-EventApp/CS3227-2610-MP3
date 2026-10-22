@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | analyse-applications-with-ai |
 | Covered stories | F04-US02; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 2 / Draft |
+| Specification revision / status | 3 / Draft |
 | Product roles / roadmap reference | Authorised event organisers. [3 - AI for every role](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Pending: human product/contract owner; no approval recorded for revision 2 or its proposed interfaces |
 | Review / run record | Pending: independent draft review and test scenarios |
@@ -106,3 +106,7 @@ Implementation and independent test/behaviour/security reviews are recorded in t
 | --- | --- | --- |
 | 1 / 2026-10-18 | Initial bounded Draft from F04-US02 and current RD/SEC rules | Product approval and verification pending |
 | 2 / 2026-10-21 | Refined scope for SoCLaaS analysis, editable versioned rubrics, minimised outbound fields, report provenance and organiser-only F10 jobs; separated plan-approved direction from proposed physical/API/limit details | Exact revision-2 and contract approval pending; no test, implementation or provider evidence claimed |
+
+## Draft revision3 refinement -2026-10-22
+
+Isaac approved normal product wording and explicit data-sharing acknowledgement instead of an invented-data checkbox. Current UI confirmation explains that frozen descriptions/assessment criteria reach the AI provider, with contacts excluded; Start analysis is the explicit acknowledgement dataSharingConfirmed:true. Legacy synthetic acknowledgement remains for compatibility. Development real-data requires AI_REAL_DATA_ENABLED/event allowlisting; production remains disabled and provider retention unverified. Shared UI r5 regional dates apply to report timestamps. Existing frozen-source/evidence/schema/authority/manual-decision boundaries are unchanged. This supersedes conflicting synthetic-only product wording above for the approved dev-mode refinement, not historical evidence. Independent implementation/updated-test review remains pending.

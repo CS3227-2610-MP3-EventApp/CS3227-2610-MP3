@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-22 Isaac whole Business preparation conversation](isaac/2026-10-22-business-preparation-conversation.md): phase-5 request, fixture approval, testing-guide follow-ups, approved workflow refinements, documentation synchronization, verification and remaining review gates; human verification pending.
+
 - [2026-10-22 Isaac F06 phase5](isaac/2026-10-22-f06-phase-5-drafts.md): approved AI draft/adoption scope and actual independent pipeline; evidence/limitations updated as observed.
 
 - [2026-10-22 Isaac F06 phase4](isaac/2026-10-22-f06-phase-4-jobs.md): approved business-job foundation and sequential independent pipeline; observed results and pending gates.
@@ -49,3 +51,5 @@ Each teammate must add summaries for their own earlier sessions and verify the h
 - [2026-10-21 frontend CI repair](isaac/2026-10-21-frontend-ci-repair.md): whole-conversation summary covering CI timeout and asynchronous selection diagnosis, independently reviewed test-owner corrections, 217 passing frontend tests/build, specification traceability, proposed commit message and logging follow-up; GitHub rerun and human verification pending.
 
 - [2026-10-21 Yik Bing attendee F01 integration](yikbing/2026-10-21-attendee-integration.md): approved start-date contract alignment, independent test baseline/review, generated consumer integration, real HTTP/Chrome/PostgreSQL restart evidence and explicit remaining gates. Human verification pending.
+
+- [2026-10-22 Isaac Business refinements](isaac/2026-10-22-business-refinements.md): user-approved account/setup/budget/date/AI/UI refinements, test-first evidence, fixes, runtime checks and pending independent/human review.

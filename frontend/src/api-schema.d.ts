@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/contact-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Contact Profile */
+        get: operations["contact_profile_api_v1_auth_contact_profile_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -279,6 +296,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/business/participations/{participationId}/preparation-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_v1_business_participations__participationId__preparation_drafts_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_v1_business_participations__participationId__preparation_drafts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/business/participations/{participation_id}/setup": {
         parameters: {
             query?: never;
@@ -290,6 +325,41 @@ export interface paths {
         get: operations["business_get_api_v1_business_participations__participation_id__setup_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/business/preparation-drafts/{draftId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_business_preparation_drafts__draftId__get"];
+        /** Edit */
+        put: operations["edit_api_v1_business_preparation_drafts__draftId__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/business/preparation-drafts/{draftId}/adopt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adopt */
+        post: operations["adopt_api_v1_business_preparation_drafts__draftId__adopt_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -505,6 +575,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/organiser/events/{event_id}/participations/{participation_id}/setup/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Setup */
+        post: operations["publish_setup_api_v1_organiser_events__event_id__participations__participation_id__setup_publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/organiser/events/{event_id}/programme-items": {
         parameters: {
             query?: never;
@@ -702,6 +789,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdoptPreparationDraft */
+        AdoptPreparationDraft: {
+            /** Expecteddraftrevision */
+            expectedDraftRevision: number;
+            /** Expectedeventrevision */
+            expectedEventRevision: number;
+            /** Expectedpreparationrevision */
+            expectedPreparationRevision: number;
+            /** Expectedsetuprevision */
+            expectedSetupRevision: number;
+            /** Lineindexes */
+            lineIndexes: number[];
+            /** Taskindexes */
+            taskIndexes: number[];
+        };
+        /** AdoptionResult */
+        AdoptionResult: {
+            draft: components["schemas"]["PreparationDraftView"];
+            preparation: components["schemas"]["PreparationView"];
+        };
         /** AnalysisComparison */
         AnalysisComparison: {
             /**
@@ -976,7 +1083,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "required" | "password_length" | "invalid";
+            code: "required" | "password_length" | "invalid" | "already_exists";
             /**
              * Field
              * @enum {string}
@@ -992,9 +1099,13 @@ export interface components {
             currency: "SGD";
             /** Lines */
             lines: components["schemas"]["BudgetLineInput"][];
+            /** Overalllimitminorunits */
+            overallLimitMinorUnits?: number | null;
         };
         /** BudgetLineInput */
         BudgetLineInput: {
+            /** Category */
+            category?: string | null;
             /** Description */
             description: string;
             /** Id */
@@ -1013,6 +1124,8 @@ export interface components {
         };
         /** BudgetLineView */
         BudgetLineView: {
+            /** Category */
+            category?: string | null;
             /** Description */
             description: string;
             /**
@@ -1045,6 +1158,10 @@ export interface components {
             knownSubtotalMinorUnits: string;
             /** Lines */
             lines: components["schemas"]["BudgetLineView"][];
+            /** Overalllimitminorunits */
+            overallLimitMinorUnits?: number | null;
+            /** Remainingminorunits */
+            remainingMinorUnits?: string | null;
             /** Totalminorunits */
             totalMinorUnits: string | null;
         };
@@ -1119,8 +1236,7 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
-            /** Draft */
-            draft?: null;
+            draft: components["schemas"]["PreparationDraftView"] | null;
             /**
              * Eventid
              * Format: uuid
@@ -1167,8 +1283,17 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** ContactProfile */
+        ContactProfile: {
+            /** Displayname */
+            displayName: string;
+            /** Email */
+            email: string;
+        };
         /** CreateAnalysis */
         CreateAnalysis: {
+            /** Datasharingconfirmed */
+            dataSharingConfirmed?: boolean | null;
             /** Expectedrubricrevision */
             expectedRubricRevision: number;
             /** Expectedsubmittedrevision */
@@ -1178,11 +1303,8 @@ export interface components {
              * Format: uuid
              */
             requestId: string;
-            /**
-             * Syntheticdataconfirmed
-             * @constant
-             */
-            syntheticDataConfirmed: true;
+            /** Syntheticdataconfirmed */
+            syntheticDataConfirmed?: true | null;
         };
         /** CreateApplication */
         CreateApplication: {
@@ -1209,6 +1331,30 @@ export interface components {
             participantType: "exhibitor" | "vendor";
             /** Requestedspace */
             requestedSpace: string;
+        };
+        /** CreatePreparationDraft */
+        CreatePreparationDraft: {
+            /** Datasharingconfirmed */
+            dataSharingConfirmed?: boolean | null;
+            /** Expectedeventrevision */
+            expectedEventRevision: number;
+            /** Expectedpreparationrevision */
+            expectedPreparationRevision: number;
+            /** Expectedsetuprevision */
+            expectedSetupRevision: number;
+            /** Needs */
+            needs: string;
+            /**
+             * Requestid
+             * Format: uuid
+             */
+            requestId: string;
+            /** Selectedlineids */
+            selectedLineIds: string[];
+            /** Selectedtaskids */
+            selectedTaskIds: string[];
+            /** Syntheticdataconfirmed */
+            syntheticDataConfirmed?: true | null;
         };
         /** CurrentActor */
         CurrentActor: {
@@ -1260,6 +1406,46 @@ export interface components {
             /** Reason */
             reason: string | null;
         };
+        /** DraftBudgetInput */
+        DraftBudgetInput: {
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "SGD";
+            /** Lines */
+            lines: components["schemas"]["DraftLineInput"][];
+        };
+        /** DraftLineInput */
+        DraftLineInput: {
+            /** Category */
+            category?: string | null;
+            /** Description */
+            description: string;
+            /**
+             * Pricebasis
+             * @enum {string}
+             */
+            priceBasis: "unknown" | "estimate" | "quotation";
+            /** Quantity */
+            quantity: number;
+            /** Quotationbasis */
+            quotationBasis: string | null;
+            /** Unitpriceminorunits */
+            unitPriceMinorUnits: number | null;
+        };
+        /** DraftTaskInput */
+        DraftTaskInput: {
+            /** Duedate */
+            dueDate: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_started" | "in_progress" | "done";
+            /** Title */
+            title: string;
+        };
         /** EventFacts */
         EventFacts: {
             /**
@@ -1302,6 +1488,17 @@ export interface components {
              */
             status: "active";
         };
+        /** EventSourceFacts */
+        EventSourceFacts: {
+            /** Endsat */
+            endsAt: string;
+            /** Startsat */
+            startsAt: string;
+            /** Timezone */
+            timezone: string;
+            /** Title */
+            title: string;
+        };
         /** EventSummary */
         EventSummary: {
             /**
@@ -1336,6 +1533,11 @@ export interface components {
             code: "invalid";
             /** Field */
             field: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
         };
         /** ItemFields */
         ItemFields: {
@@ -1454,6 +1656,32 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** OrganiserSetupDetails */
+        OrganiserSetupDetails: {
+            /** Boothlabel */
+            boothLabel: string | null;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /** Hasunpublishedchanges */
+            hasUnpublishedChanges: boolean;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            published: components["schemas"]["SetupDetails"];
+            /** Publishedrevision */
+            publishedRevision: number;
+            /** Revision */
+            revision: number;
+            /** Setupinstructions */
+            setupInstructions: string | null;
+            /** Updatedat */
+            updatedAt: string | null;
+        };
         /** Page[EventSummary] */
         Page_EventSummary_: {
             /** Items */
@@ -1521,6 +1749,58 @@ export interface components {
              * Format: password
              */
             newPassword: string;
+        };
+        /** PreparationDraftHistory */
+        PreparationDraftHistory: {
+            /** Items */
+            items: components["schemas"]["PreparationDraftView"][];
+            latestJob: components["schemas"]["BusinessPreparationJob"] | null;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** PreparationDraftView */
+        PreparationDraftView: {
+            /** Adoptedat */
+            adoptedAt: string | null;
+            /** Adoptedpreparationrevision */
+            adoptedPreparationRevision: number | null;
+            /** Budget */
+            budget: {
+                [key: string]: unknown;
+            };
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Jobid
+             * Format: uuid
+             */
+            jobId: string;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Revision */
+            revision: number;
+            sourceFacts: components["schemas"]["SourceFacts"];
+            /** Sourcerevisions */
+            sourceRevisions: {
+                [key: string]: number;
+            };
+            /** Tasks */
+            tasks: components["schemas"]["DraftTaskInput"][];
         };
         /** PreparationProblem */
         PreparationProblem: {
@@ -1703,6 +1983,11 @@ export interface components {
             /** Revision */
             revision: number;
         };
+        /** PublishSetup */
+        PublishSetup: {
+            /** Expectedrevision */
+            expectedRevision: number;
+        };
         /** PublishedProgramme */
         PublishedProgramme: {
             /** Accessibilitydetails */
@@ -1791,6 +2076,14 @@ export interface components {
             expectedRevision: number;
             /** Tasks */
             tasks: components["schemas"]["TaskInput"][];
+        };
+        /** ReplacePreparationDraft */
+        ReplacePreparationDraft: {
+            budget: components["schemas"]["DraftBudgetInput"];
+            /** Expectedrevision */
+            expectedRevision: number;
+            /** Tasks */
+            tasks: components["schemas"]["DraftTaskInput"][];
         };
         /** RevisionRequest */
         RevisionRequest: {
@@ -1922,6 +2215,18 @@ export interface components {
              */
             type: "about:blank";
         };
+        /** SetupSourceFacts */
+        SetupSourceFacts: {
+            /** Boothlabel */
+            boothLabel: string | null;
+            /** Setupinstructions */
+            setupInstructions: string | null;
+        };
+        /** SourceFacts */
+        SourceFacts: {
+            event: components["schemas"]["EventSourceFacts"];
+            setup: components["schemas"]["SetupSourceFacts"];
+        };
         /** SubmitApplication */
         SubmitApplication: {
             /** Expectedrevision */
@@ -1964,6 +2269,19 @@ export interface components {
             applicationsOpen: boolean;
             /** Expectedrevision */
             expectedRevision: number;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
         };
         /** ValidationResult */
         ValidationResult: {
@@ -2543,6 +2861,86 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CurrentActor"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    contact_profile_api_v1_auth_contact_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactProfile"];
                 };
             };
             /** @description Unauthorized */
@@ -3887,6 +4285,75 @@ export interface operations {
             };
         };
     };
+    history_api_v1_business_participations__participationId__preparation_drafts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationDraftHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_v1_business_participations__participationId__preparation_drafts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePreparationDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessPreparationJob"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     business_get_api_v1_business_participations__participation_id__setup_get: {
         parameters: {
             query?: never;
@@ -3985,6 +4452,107 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SetupProblem"];
                     "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    read_api_v1_business_preparation_drafts__draftId__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationDraftView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_api_v1_business_preparation_drafts__draftId__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplacePreparationDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationDraftView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    adopt_api_v1_business_preparation_drafts__draftId__adopt_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdoptPreparationDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdoptionResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -5356,7 +5924,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SetupDetails"];
+                    "application/json": components["schemas"]["OrganiserSetupDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -5463,7 +6031,114 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SetupDetails"];
+                    "application/json": components["schemas"]["OrganiserSetupDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Method Not Allowed */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    publish_setup_api_v1_organiser_events__event_id__participations__participation_id__setup_publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                participation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishSetup"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganiserSetupDetails"];
                 };
             };
             /** @description Unauthorized */

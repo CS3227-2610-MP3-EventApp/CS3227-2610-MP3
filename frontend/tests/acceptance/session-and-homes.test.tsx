@@ -142,7 +142,7 @@ describe("role homes preserve presentation and accessibility", () => {
     if (role === "organiser") {
       const analysisCard = screen.getByRole("heading", { name: "AI Application Analysis" }).closest("article");
       expect(analysisCard).not.toBeNull();
-      expect(within(analysisCard!).getByText(/synthetic|invented/i)).toBeVisible();
+      expect(within(analysisCard!).getByText(/Review submitted applications with evidence-based AI support/i)).toBeVisible();
       expect(within(analysisCard!).getByRole("link", { name: /analysis/i })).toHaveAttribute("href", "/organiser/applications#analysis");
       const programmeAction = screen.queryByRole("link", { name: /programme/i }) ?? screen.getByRole("button", { name: /programme/i });
       expect(programmeAction).not.toBeDisabled();

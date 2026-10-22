@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 from typing import Annotated
 
 
@@ -57,7 +57,21 @@ class CreateAnalysis(Input):
     requestId: Identifier
     expectedRubricRevision: int = Field(ge=1)
     expectedSubmittedRevision: int = Field(ge=1)
-    syntheticDataConfirmed: Literal[True]
+    dataSharingConfirmed: Annotated[bool | None, Field(strict=True)] = None
+    syntheticDataConfirmed: Literal[True] | None = None
+
+    @field_validator("syntheticDataConfirmed", mode="before")
+    @classmethod
+    def strict_legacy_ack(cls,value):
+        if value is not True: raise ValueError("Explicit acknowledgement required")
+        return value
+
+    @model_validator(mode="after")
+    def acknowledgement(self):
+        if (self.dataSharingConfirmed is True) == (self.syntheticDataConfirmed is True):
+            raise ValueError("Provide one explicit data-sharing acknowledgement")
+        return self
+
 
 
 class AnalysisEvidence(Input):
@@ -133,19 +147,6 @@ class AnalysisJob(Input):
     failureCode: str | None
     providerMayHaveRun: bool
     report: AnalysisReport | None
-
-
-class BusinessPreparationJob(Input):
-    id: UUID
-    eventId: UUID
-    participationId: UUID
-    state: Literal["pending", "running", "completed", "failed", "cancelled"]
-    createdAt: datetime
-    updatedAt: datetime
-    completedAt: datetime | None
-    failureCode: str | None
-    providerMayHaveRun: bool
-    draft: None = None
 
 
 class AnalysisHistory(Input):

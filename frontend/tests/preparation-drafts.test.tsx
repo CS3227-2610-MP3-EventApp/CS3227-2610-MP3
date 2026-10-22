@@ -42,7 +42,7 @@ function install(options: { empty?: boolean; state?: string; lost?: "generate" |
   if (options.malformed === "scope") value.participationId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
   if (options.malformed === "total") value.budget.totalMinorUnits = "1";
   if (options.malformed === "basis") value.budget.lines[0].priceBasis = "quotation";
-  let manual = { participationId: P, revision: 2, tasks: [{ id: T, title: "PRIVATE-MANUAL-CONTEXT", status: "not_started", dueDate: null }],
+  let manual: { participationId: string; revision: number; tasks: (Task & { id: string })[]; budget: ReturnType<typeof totals> & { lines: (Line & { id: string })[] } } = { participationId: P, revision: 2, tasks: [{ id: T, title: "PRIVATE-MANUAL-CONTEXT", status: "not_started", dueDate: null }],
     budget: { ...totals([{ description: "PRIVATE-MANUAL-LINE", quantity: 1, unitPriceMinorUnits: 0, priceBasis: "estimate", quotationBasis: null }]),
       lines: [{ id: L, description: "PRIVATE-MANUAL-LINE", quantity: 1, unitPriceMinorUnits: 0, priceBasis: "estimate", quotationBasis: null }] } };
   let state = options.state ?? "completed", exists = !options.empty;
@@ -102,7 +102,6 @@ const user = () => userEvent.setup();
 function storage() { return storedValues(localStorage) + storedValues(sessionStorage) + JSON.stringify(history.state) + location.href; }
 async function generate() {
   fireEvent.change(screen.getByLabelText(/^needs$/i), { target: { value: "PRIVATE-INVENTED-NEEDS" } });
-  await user().click(screen.getByRole("checkbox", { name: /I confirm this request contains invented data only/i }));
   await user().click(screen.getByRole("button", { name: /^generate preparation draft$/i }));
 }
 async function selectTask() { await user().click(screen.getAllByRole("checkbox", { name: /^select task\b/i })[0]); }
@@ -117,23 +116,24 @@ test("UI01 home enables AI preparation entry and keeps manual preparation availa
   expect(screen.getByRole("link", { name: /open preparation/i })).toBeVisible();
 });
 
-test("UI01 generation requires synthetic confirmation and previews authoritative facts and selected outbound context", async () => {
+test("UI01 generation discloses selected data sharing and previews authoritative facts and selected outbound context", async () => {
   const server = install({ empty: true }); await open(false);
   expect(document.body).toHaveTextContent("SYNTHETIC-A1");
   expect(document.body).toHaveTextContent("Invented setup at nine");
   fireEvent.change(screen.getByLabelText(/^needs$/i), { target: { value: "PRIVATE-INVENTED-NEEDS" } });
   const button = screen.getByRole("button", { name: /^generate preparation draft$/i });
-  if (!button.hasAttribute("disabled")) await user().click(button);
+  expect(button).toBeEnabled();
+  expect(screen.queryByRole("checkbox", {name:/invented data only/i})).not.toBeInTheDocument();
+  expect(document.body).toHaveTextContent(/AI provider/i);
   expect(server.writes()).toHaveLength(0);
   await user().click(screen.getByRole("checkbox", { name: /PRIVATE-MANUAL-CONTEXT/i }));
-  await user().click(screen.getByRole("checkbox", { name: /I confirm this request contains invented data only/i }));
   await user().click(button);
   await waitFor(() => expect(server.writes()).toHaveLength(1));
   const request = server.writes()[0];
   expect(request).toMatchObject({ path: historyPath, method: "POST", body: { expectedPreparationRevision: 2, expectedSetupRevision: 2, expectedEventRevision: 1,
-    needs: "PRIVATE-INVENTED-NEEDS", selectedTaskIds: [T], selectedLineIds: [], syntheticDataConfirmed: true } });
+    needs: "PRIVATE-INVENTED-NEEDS", selectedTaskIds: [T], selectedLineIds: [], dataSharingConfirmed: true } });
   expect(request.body.requestId).toMatch(/^[0-9a-f-]{36}$/i);
-  expect(Object.keys(request.body).sort()).toEqual(["requestId", "expectedPreparationRevision", "expectedSetupRevision", "expectedEventRevision", "needs", "selectedTaskIds", "selectedLineIds", "syntheticDataConfirmed"].sort());
+  expect(Object.keys(request.body).sort()).toEqual(["requestId", "expectedPreparationRevision", "expectedSetupRevision", "expectedEventRevision", "needs", "selectedTaskIds", "selectedLineIds", "dataSharingConfirmed"].sort());
   expect(storage()).not.toMatch(/PRIVATE-|aaaaaaaa-aaaa|bbbbbbbb-bbbb/);
   expect(server.manual().revision).toBe(2);
 });
@@ -223,7 +223,6 @@ test("UI02 changing selection invalidates open adoption approval", async () => {
 test("UI04 generation rechecks current actor rather than dispatching captured private needs", async () => {
   const server = install({ empty: true }); await open(false);
   fireEvent.change(screen.getByLabelText(/^needs$/i), { target: { value: "PRIVATE-OLD-ACTOR-NEEDS" } });
-  await user().click(screen.getByRole("checkbox", { name: /I confirm this request contains invented data only/i }));
   auth.current = null;
   await user().click(screen.getByRole("button", { name: /^generate preparation draft$/i }));
   await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-OLD-ACTOR-NEEDS")).not.toBeInTheDocument());

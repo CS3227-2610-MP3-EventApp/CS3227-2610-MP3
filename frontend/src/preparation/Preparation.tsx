@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Box, Button, Divider, Stack, TextField, Typography } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Auth";
 import { ApiError, api, applicationApi } from "../api";
 import { ApplicationLayout, useFeedback } from "../applications/shared";
@@ -41,7 +41,7 @@ function formatMoney(cents: bigint | number | string) {
   const value = BigInt(cents);
   const major = value / 100n;
   const fractional = String(value % 100n).padStart(2, "0");
-  return `${major.toLocaleString("en-SG")}.${fractional}`;
+  return `${value < 0n ? "-" : ""}${(value < 0n ? -major : major).toLocaleString("en-SG")}.${String(value < 0n ? -(value % 100n) : value % 100n).padStart(2,"0")}`;
 }
 function parseDocument(value: unknown, participationId: string): PreparationDocument {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new PreparationApiError(0, "invalid_response");
@@ -66,16 +66,17 @@ function parseDocument(value: unknown, participationId: string): PreparationDocu
   return value as PreparationDocument;
 }
 function editableDocument(value: PreparationDocument): Draft {
-  return { revision: value.revision, saved: value,
+  return { revision: value.revision, saved: value, limitText: centsText(value.budget.overallLimitMinorUnits ?? null),
     tasks: value.tasks.map((task) => ({ ...task })),
     lines: value.budget.lines.map((line) => ({ ...line, priceText: centsText(line.unitPriceMinorUnits) })) };
 }
 function writeBody(draft: Draft): PreparationWrite {
   return { expectedRevision: draft.revision,
     tasks: draft.tasks.map(({ id, ...task }) => ({ ...(id ? { id } : {}), ...task })),
-    budget: { currency: "SGD", lines: draft.lines.map(({ id, priceText: _priceText, ...line }) => ({ ...(id ? { id } : {}), ...line })) } };
+    budget: { currency: "SGD", overallLimitMinorUnits: parseCents(draft.limitText ?? "") ?? null, lines: draft.lines.map(({ id, priceText: _priceText, ...line }) => ({ ...(id ? { id } : {}), ...line })) } };
 }
 function matchesSubmitted(body: PreparationWrite, saved: PreparationDocument) {
+  if ((body.budget.overallLimitMinorUnits ?? null) !== (saved.budget.overallLimitMinorUnits ?? null)) return false;
   if (body.tasks.length !== saved.tasks.length || body.budget.lines.length !== saved.budget.lines.length) return false;
   const tasksMatch = body.tasks.every((task, index) => {
     const actual = saved.tasks[index];
@@ -84,7 +85,7 @@ function matchesSubmitted(body: PreparationWrite, saved: PreparationDocument) {
   const linesMatch = body.budget.lines.every((line, index) => {
     const actual = saved.budget.lines[index];
     return (!line.id || line.id === actual.id) && line.description === actual.description && line.quantity === actual.quantity &&
-      line.unitPriceMinorUnits === actual.unitPriceMinorUnits && line.priceBasis === actual.priceBasis && line.quotationBasis === actual.quotationBasis;
+      line.unitPriceMinorUnits === actual.unitPriceMinorUnits && line.priceBasis === actual.priceBasis && line.quotationBasis === actual.quotationBasis && (line.category?.trim() || null) === (actual.category ?? null);
   });
   return tasksMatch && linesMatch;
 }
@@ -124,7 +125,7 @@ export function Preparation() {
   function clearPrivate() { purgeMemory(); docRef.current = null; setDraft(null); setConflict(false); setFieldErrors({}); setConcealed(false); }
   function isDirty(value: Draft) {
     const body = writeBody(value);
-    return JSON.stringify(body.tasks) !== JSON.stringify(value.saved.tasks) || JSON.stringify(body.budget.lines) !== JSON.stringify(value.saved.budget.lines);
+    return (parseCents(value.limitText ?? "") ?? null) !== (value.saved.budget.overallLimitMinorUnits ?? null) || JSON.stringify(body.tasks) !== JSON.stringify(value.saved.tasks) || JSON.stringify(body.budget.lines) !== JSON.stringify(value.saved.budget.lines);
   }
   const load = useCallback(async (showProgress = true) => {
     const current = ++generation.current;
@@ -297,8 +298,9 @@ export function Preparation() {
   }, 0n) ?? 0n;
   const complete = !!draft && draft.lines.every((line) => parseCents(line.priceText) !== null && parseCents(line.priceText) !== undefined);
 
-  return <ApplicationLayout title="Preparation" role="business" dirty={dirty}>
-    <Stack spacing={3}>
+  return <ApplicationLayout title="Preparation" role="business" dirty={dirty} wide>
+    <Stack spacing={2}>
+      <Button component={RouterLink} to={`/business/preparation-drafts?${new URLSearchParams({businessId,eventId,participationId})}`} sx={{alignSelf:"flex-start"}}>Back to AI preparation</Button>
       {checking && <Typography role="status">Checking access and preparation…</Typography>}
       {error && <Alert severity="error">{error}</Alert>}
       {concealed && !checking && <Button onClick={() => void load()}>Retry access check</Button>}
@@ -314,23 +316,27 @@ export function Preparation() {
         <Typography>{chosen.eventTitle} · {chosen.status === "accepted" ? "Accepted" : chosen.status === "rejected" ? "Rejected" : chosen.status === "submitted" ? "Submitted" : "Draft"} · Saved revision {draft.revision}</Typography>
         <Typography component="h2" variant="h2">Checklist</Typography>
         {draft.tasks.map((task, index) => <Box component="fieldset" role="group" key={task.id ?? `task-${index}`} sx={{ m: 0, minWidth: 0, border: 1, borderColor: "divider", borderRadius: 2, p: 2 }}>
-          <Typography component="legend">Task {index + 1}</Typography><Stack spacing={2}>
-            <TextField label="Task title" value={task.title} error={!!fieldErrors[`task-${index}-title`] || !!fieldErrors.title} helperText={fieldErrors[`task-${index}-title`] ?? fieldErrors.title ?? "Required. Maximum 160 characters."} onChange={(event) => updateTask(index, { title: event.target.value })} />
-            <TextField select label="Task status" value={task.status} onChange={(event) => updateTask(index, { status: event.target.value as EditableTask["status"] })} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>{statuses.map((value) => <option key={value} value={value}>{value === "not_started" ? "Not started" : value === "in_progress" ? "In progress" : "Done"}</option>)}</TextField>
-            <TextField label="Due date" type="date" value={task.dueDate ?? ""} onChange={(event) => updateTask(index, { dueDate: event.target.value || null })} slotProps={{ inputLabel: { shrink: true } }} />
+          <Typography component="legend">Task {index + 1}</Typography><Box sx={{ display: "grid", gridTemplateColumns: {xs:"minmax(0,1fr)",md:"minmax(0,1fr) 200px 235px auto"}, gap:1.5, alignItems:"start" }}>
+            <TextField size="small" multiline minRows={1} label="Task title" value={task.title} error={!!fieldErrors[`task-${index}-title`] || !!fieldErrors.title} helperText={fieldErrors[`task-${index}-title`] ?? fieldErrors.title} onChange={(event) => updateTask(index, { title: event.target.value })} />
+            <TextField size="small" select label="Task status" value={task.status} onChange={(event) => updateTask(index, { status: event.target.value as EditableTask["status"] })} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}>{statuses.map((value) => <option key={value} value={value}>{value === "not_started" ? "Not started" : value === "in_progress" ? "In progress" : "Done"}</option>)}</TextField>
+            <TextField size="small" label="Due date" type="date" value={task.dueDate ?? ""} onChange={(event) => updateTask(index, { dueDate: event.target.value || null })} slotProps={{ inputLabel: { shrink: true } }} />
             <Button color="error" onClick={() => removeTask(index)}>Remove task</Button>
-          </Stack>
+          </Box>
         </Box>)}
         <Button onClick={addTask} disabled={draft.tasks.length >= 200}>Add task</Button>
         <Divider />
-        <Typography component="h2" variant="h2">Budget (SGD)</Typography>
+        <Typography component="h2" variant="h2">Overall budget (SGD)</Typography>
+        <TextField label="Spending limit (SGD)" type="number" value={draft.limitText ?? ""} helperText="Optional. Leave blank if you have not set a limit." onChange={event => { const limitText = event.target.value; if (parseCents(limitText) !== undefined) { const next = {...draft,limitText}; docRef.current = next; setDraft(next); remember(next); } }} />
+        <Typography component="h3" variant="h3">Cost breakdown</Typography>
+        <Typography>Add items or categories if you want a breakdown of estimated costs.</Typography>
         {draft.lines.slice(budgetPage * 20, budgetPage * 20 + 20).map((line, pageIndex) => {
           const index = budgetPage * 20 + pageIndex;
           const cents = parseCents(line.priceText);
           const amount = cents === null || cents === undefined || !Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 1_000_000 ? null : BigInt(line.quantity) * BigInt(cents);
           return <Box component="fieldset" role="group" key={line.id ?? `line-${index}`} sx={{ m: 0, minWidth: 0, border: 1, borderColor: "divider", borderRadius: 2, p: 2 }}>
-            <Typography component="legend">Budget line {index + 1}</Typography><Stack spacing={2}>
-              <TextField label="Description" value={line.description} error={!!fieldErrors[`line-${index}-description`] || !!fieldErrors.description} helperText={fieldErrors[`line-${index}-description`] ?? fieldErrors.description ?? "Required. Maximum 160 characters."} onChange={(event) => updateLine(index, { description: event.target.value })} />
+            <Typography component="legend">Cost item {index + 1}</Typography><Stack spacing={2}>
+              <TextField label="Category (optional)" value={line.category ?? ""} onChange={event => updateLine(index, {category:event.target.value || null})} />
+              <TextField label="Item description" value={line.description} error={!!fieldErrors[`line-${index}-description`] || !!fieldErrors.description} helperText={fieldErrors[`line-${index}-description`] ?? fieldErrors.description ?? "Required. Maximum 160 characters."} onChange={(event) => updateLine(index, { description: event.target.value })} />
               <TextField label="Quantity" type="number" value={line.quantity} error={!!fieldErrors[`line-${index}-quantity`] || !!fieldErrors.quantity} helperText={fieldErrors[`line-${index}-quantity`] ?? fieldErrors.quantity} onChange={(event) => updateLine(index, { quantity: Number(event.target.value) })} />
               <TextField label="Unit price (SGD)" type="number" inputMode="decimal" value={line.priceText} slotProps={{ htmlInput: { min: 0, max: 1_000_000_000, step: "0.01" } }} error={!!fieldErrors[`line-${index}-price`] || !!fieldErrors.unitPriceMinorUnits} helperText={fieldErrors[`line-${index}-price`] ?? fieldErrors.unitPriceMinorUnits ?? "Leave blank when unknown. Enter up to two decimal places."} onChange={(event) => {
                 const priceText = event.target.value, parsed = parseCents(priceText);
@@ -338,14 +344,16 @@ export function Preparation() {
               }} />
               <TextField select label="Price basis" value={line.priceBasis} onChange={(event) => updateLine(index, { priceBasis: event.target.value as EditableLine["priceBasis"], quotationBasis: event.target.value === "quotation" ? line.quotationBasis : null })} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}><option value="unknown">Unknown price</option><option value="estimate">Estimate</option><option value="quotation">Quotation</option></TextField>
               {line.priceBasis === "quotation" && <TextField label="Quotation basis" value={line.quotationBasis ?? ""} error={!!fieldErrors[`line-${index}-quote`] || !!fieldErrors.quotationBasis} helperText={fieldErrors[`line-${index}-quote`] ?? fieldErrors.quotationBasis ?? "Record the plain-text basis for this quotation."} onChange={(event) => updateLine(index, { quotationBasis: event.target.value })} />}
-              <Typography>{amount === null ? "Line amount unknown" : `Line amount: SGD ${formatMoney(amount)}`} · {line.priceBasis === "estimate" ? "Estimate" : line.priceBasis === "quotation" ? "Quotation" : "Unknown price"}</Typography>
-              <Button color="error" onClick={() => removeLine(index)}>Remove budget line</Button>
+              <Typography>{amount === null ? "Item amount unknown" : `Item amount: SGD ${formatMoney(amount)}`} · {line.priceBasis === "estimate" ? "Estimate" : line.priceBasis === "quotation" ? "Quotation" : "Unknown price"}</Typography>
+              <Button color="error" onClick={() => removeLine(index)}>Remove item</Button>
             </Stack>
           </Box>;
         })}
-        {draft.lines.length > 20 && <Stack direction="row" spacing={2} alignItems="center"><Button onClick={() => setBudgetPage((page) => Math.max(0, page - 1))} disabled={budgetPage === 0}>Previous budget page</Button><Typography>Budget lines {budgetPage * 20 + 1}–{Math.min(draft.lines.length, budgetPage * 20 + 20)} of {draft.lines.length}</Typography><Button onClick={() => setBudgetPage((page) => Math.min(Math.ceil(draft.lines.length / 20) - 1, page + 1))} disabled={budgetPage >= Math.ceil(draft.lines.length / 20) - 1}>Next budget page</Button></Stack>}
-        <Button onClick={addLine} disabled={draft.lines.length >= 200}>Add budget line</Button>
+        {draft.lines.length > 20 && <Stack direction="row" spacing={2} alignItems="center"><Button onClick={() => setBudgetPage((page) => Math.max(0, page - 1))} disabled={budgetPage === 0}>Previous budget page</Button><Typography>Cost items {budgetPage * 20 + 1}–{Math.min(draft.lines.length, budgetPage * 20 + 20)} of {draft.lines.length}</Typography><Button onClick={() => setBudgetPage((page) => Math.min(Math.ceil(draft.lines.length / 20) - 1, page + 1))} disabled={budgetPage >= Math.ceil(draft.lines.length / 20) - 1}>Next budget page</Button></Stack>}
+        <Button onClick={addLine} disabled={draft.lines.length >= 200}>Add item</Button>
         <Typography aria-live="polite">Known subtotal: SGD {formatMoney(lineSubtotal)}. {complete ? `Total: SGD ${formatMoney(lineSubtotal)}` : "Total incomplete because one or more prices are unknown."}</Typography>
+        {parseCents(draft.limitText ?? "") !== null && parseCents(draft.limitText ?? "") !== undefined && <Typography role="status">{complete ? `Remaining budget: SGD ${formatMoney(BigInt(parseCents(draft.limitText ?? "")!) - lineSubtotal)}` : "Remaining budget is unknown until all item costs are known."}</Typography>}
+        {typeof parseCents(draft.limitText ?? "") === "number" && BigInt(parseCents(draft.limitText ?? "")!) < lineSubtotal && <Alert severity="warning">Estimated costs exceed your spending limit.</Alert>}
         {conflict && <Button onClick={refreshLatest}>Reload latest preparation</Button>}
         <Button variant="contained" onClick={() => void save()} disabled={saving || checking || conflict}>Save preparation</Button>
         <Typography role="status" aria-live="polite">{saving ? "Saving preparation…" : status}</Typography>

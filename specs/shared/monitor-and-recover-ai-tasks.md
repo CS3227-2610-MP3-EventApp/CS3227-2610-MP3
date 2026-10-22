@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | monitor-and-recover-ai-tasks |
 | Covered stories | [F10-US02](../../docs/UserStoriesAndFeatures.md), organiser analysis and approved business preparation job slices; attendee jobs deferred |
-| Specification revision / status | 3 / Draft; business amendment approved for bounded implementation; organiser exact-written-review status remains separate |
+| Specification revision / status | 4 / Draft; business amendment approved for bounded implementation; organiser exact-written-review status remains separate |
 | Product roles / roadmap | Organiser and approved business slice; [phase 3](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Historical organiser exact revision2 review remains pending; Isaac approved the bounded business extension through defaults3/4/6 on2026-10-21, with30dispatches/minute. This does not approve unrelated organiser/attendee policy. |
 | Review / run record | [Business foundation run](../../workflow/agents/runs/2026-10-22-business-jobs-implementation.md); historical organiser evidence below |
@@ -112,3 +112,7 @@ Independent test design/review, protected baselines, implementation and behaviou
 | 1 / 2026-10-18 | Initial bounded Draft | Approval and verification pending |
 | 2 / 2026-10-21 | Scoped the shared F10 contract to organiser application-analysis jobs and recorded planned SoCLaaS, limits, ownership, cancellation, restart and retention behavior; left exact interfaces and physical storage as proposals | Exact revision-2 and shared contract approval pending; no test, implementation or provider evidence claimed |
 | 3 / 2026-10-21 | Added approved business job extension AC08–12, owner/business authority, shared30/min dispatch and retained existing organiser/attendee boundaries | Isaac's business defaults/amendment authority recorded; independent business implementation/baseline evidence pending; historical organiser evidence unchanged |
+
+## Draft revision4 refinement - 2026-10-22
+
+Draft-spec portion only; no finalized contract is downgraded. Isaac approved the refinement scenarios and dev-mode real-data intent. Product wording no longer requires an invented-data assertion. Real-data processing in development/test requires explicit AI_REAL_DATA_ENABLED, AI_ENABLED, an operator allowlist and dataSharingConfirmed:true following a plain disclosure; legacy synthetic mode remains available for compatibility tests. Production calls remain disabled. Existing workflow-specific minimal outbound allowlists, current authority, schema/source validation, deadlines/quotas/cancellation and30day local retention remain authoritative. Provider retention/deletion remains unverified; local database cleanup controls local records only. Independent implementation and privacy review remain pending. No fake handoffs or reviewer identities.

@@ -5,7 +5,7 @@ export type PreparationDocument = components["schemas"]["PreparationView"];
 export type PreparationWrite = components["schemas"]["ReplacePreparation"];
 export type PreparationEditableTask = Omit<PreparationTask, "id"> & { id?: string };
 export type PreparationEditableLine = Omit<PreparationLine, "id" | "unitPriceMinorUnits"> & { id?: string; unitPriceMinorUnits: number | null; priceText: string };
-export type PreparationDraft = { tasks: PreparationEditableTask[]; lines: PreparationEditableLine[]; revision: number; saved: PreparationDocument };
+export type PreparationDraft = { limitText?: string; tasks: PreparationEditableTask[]; lines: PreparationEditableLine[]; revision: number; saved: PreparationDocument };
 export type PreparationMemory = { businessId: string; eventId: string; participationId: string; draft: PreparationDraft; conflict: boolean };
 
 export class PreparationApiError extends Error {

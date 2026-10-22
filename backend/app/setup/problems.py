@@ -22,7 +22,7 @@ class SetupError(Exception):
 
 
 def is_setup_path(path: str) -> bool:
-    return path.endswith("/setup") and (
+    return (path.endswith("/setup") or path.endswith("/setup/publish")) and (
         path.startswith("/api/v1/business/participations/") or
         path.startswith("/api/v1/organiser/events/") and "/participations/" in path)
 

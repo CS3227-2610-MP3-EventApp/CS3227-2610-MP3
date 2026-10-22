@@ -14,7 +14,7 @@ const fixture = `import sys,json,io,contextlib
 from unittest.mock import patch
 from app.auth import bootstrap
 d=json.load(sys.stdin)
-commands=[['event','--id',d['eventId'],'--title','Invented F06 smoke event','--timezone','Asia/Singapore','--starts-at','2027-01-01T09:00:00+08:00','--ends-at','2027-01-01T18:00:00+08:00'],['organiser','--username',d['orgName'],'--email',d['orgName']+'@example.test','--display-name','Invented organiser','--event-id',d['eventId']]]
+commands=[['event','--id',d['eventId'],'--title','Singapore Makers Market 2027','--timezone','Asia/Singapore','--starts-at','2027-01-01T09:00:00+08:00','--ends-at','2027-01-01T18:00:00+08:00'],['organiser','--username',d['orgName'],'--email',d['orgName']+'@example.test','--display-name','Invented organiser','--event-id',d['eventId']]]
 for args in commands:
  sys.argv=['bootstrap']+args
  with patch('getpass.getpass',return_value=d['password']),contextlib.redirect_stdout(io.StringIO()):
@@ -104,11 +104,16 @@ async function browserAs(actor, route) {
   await cdp('Emulation.setFocusEmulationEnabled', { enabled: true });
   await cdp('Page.navigate', { url: base + route });
 }
-let savedSetup, savedJob;
+async function checkLabel(prefix) {
+  const point = await evaluate(`(()=>{const label=Array.from(document.querySelectorAll('label')).find(item=>item.innerText.trim().startsWith(${JSON.stringify(prefix)}));if(!label)throw Error('Missing checkbox');label.scrollIntoView({block:'center'});const box=label.getBoundingClientRect();return{x:box.x+box.width/2,y:box.y+box.height/2};})()`);
+  await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+  await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+}
+let savedSetup, savedJob, generatedJob, adoptedManual;
 await cdp('Page.enable'); await cdp('Network.enable');
 await cdp('Network.setCookie', { name: 'eventapp_session', value: biz.cookie.slice('eventapp_session='.length), url: base, httpOnly: true, sameSite: 'Lax' });
 await cdp('Page.navigate', { url: base + '/business/preparation?businessId=' + businessId + '&eventId=' + eventId + '&participationId=' + pid });
-console.log('BROWSER_READY; commands phase2, restart2, phase3, restart3, phase4, restart4, quit. Credentials remain memory-only.');
+console.log('BROWSER_READY; commands phase2, restart2, phase3, restart3, phase4, restart4, phase5, result5, restart5, quit. Credentials remain memory-only.');
 const input = createInterface({ input: process.stdin, crlfDelay: Infinity });
 for await (const command of input) {
   try {
@@ -189,6 +194,48 @@ with SessionLocal.begin() as db:
       if (JSON.stringify(await api(biz, 'POST', '/api/v1/ai/jobs/' + savedJob.id + '/cancel')) !== JSON.stringify(cancelled)) throw Error('Cancel replay changed state');
       if (JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(saved)) throw Error('Job changed manual preparation');
       console.log('PHASE4_RESTART_PASS: pending job retained without reseed, idempotent cancellation, manual preservation');
+    } else if (command === 'phase5') {
+      await browserAs(biz, '/business/preparation-drafts?businessId=' + businessId + '&eventId=' + eventId + '&participationId=' + pid);
+      await until(() => evaluate("Array.from(document.querySelectorAll('label')).some(item=>item.innerText.trim()==='Needs')"));
+      await fillLabel('Needs', 'Invented local demonstration: suggest two setup tasks and two labelled material estimates; no suppliers, orders or external actions. All records are invented.');
+      await checkLabel('I confirm this request contains invented data only');
+      await clickText('Generate preparation draft');
+      const collectionPath = '/api/v1/business/participations/' + pid + '/preparation-drafts';
+      await until(async () => !!(await api(biz, 'GET', collectionPath)).latestJob);
+      generatedJob = (await api(biz, 'GET', collectionPath)).latestJob;
+      if (generatedJob.state !== 'pending') throw Error('Expected durable pending generation');
+      console.log(JSON.stringify({ stage: 'PHASE5_PENDING_FROM_REAL_UI', jobId: generatedJob.id, eventId, participationId: pid }));
+    } else if (command === 'result5') {
+      if (!generatedJob) throw Error('No generated job');
+      const job = await api(biz, 'GET', '/api/v1/ai/jobs/' + generatedJob.id);
+      if (job.state !== 'completed' || !job.draft) throw Error('Generation not completed (' + (job.failureCode ?? job.state) + ')');
+      if (!job.draft.tasks.length || !job.draft.budget.lines.length) throw Error('Live model did not suggest both tasks and lines');
+      await cdp('Page.reload');
+      await until(() => evaluate("Array.from(document.querySelectorAll('label')).some(item=>item.innerText.trim()==='Task title')"));
+      await fillLabel('Task title', ' - reviewed invented smoke');
+      await clickText('Save draft');
+      await until(async () => (await api(biz, 'GET', '/api/v1/business/preparation-drafts/' + job.draft.id)).revision > job.draft.revision);
+      const edited = await api(biz, 'GET', '/api/v1/business/preparation-drafts/' + job.draft.id);
+      if (JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(saved)) throw Error('Draft edit changed manual source');
+      await checkLabel('Select task'); await checkLabel('Select cost item');
+      await clickText('Adopt selected items');
+      await until(() => evaluate("!!Array.from(document.querySelectorAll('[role=dialog]')).find(item=>item.innerText.includes('Confirm preparation adoption'))"));
+      await clickText('Cancel');
+      if (JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(saved)) throw Error('Adoption cancel changed manual source');
+      await clickText('Adopt selected items');
+      await until(() => evaluate("!!document.querySelector('[role=dialog]')"));
+      await clickText('Confirm adoption');
+      await until(async () => !!(await api(biz, 'GET', '/api/v1/business/preparation-drafts/' + edited.id)).adoptedAt);
+      adoptedManual = await api(biz, 'GET', endpoint);
+      if (adoptedManual.revision !== saved.revision + 1 || adoptedManual.tasks.length !== saved.tasks.length + 1 || adoptedManual.budget.lines.length !== saved.budget.lines.length + 1) throw Error('Selected append counts/revision wrong');
+      if (JSON.stringify(adoptedManual.tasks.slice(0, saved.tasks.length)) !== JSON.stringify(saved.tasks) || JSON.stringify(adoptedManual.budget.lines.slice(0, saved.budget.lines.length)) !== JSON.stringify(saved.budget.lines)) throw Error('Adoption overwrote existing rows');
+      console.log('PHASE5_LIVE_BROWSER_PASS: validated real-provider draft, editable separate save, selected task+line preview/cancel/append, old rows preserved');
+    } else if (command === 'restart5') {
+      if (!adoptedManual || JSON.stringify(await api(biz, 'GET', endpoint)) !== JSON.stringify(adoptedManual)) throw Error('Restart changed adopted manual copies');
+      const job = await api(biz, 'GET', '/api/v1/ai/jobs/' + generatedJob.id);
+      if (job.state !== 'completed' || !job.draft?.adoptedAt) throw Error('Restart lost draft adoption metadata');
+      await cdp('Page.reload');
+      console.log('PHASE5_RESTART_PASS: completed draft/adoption/manual copies retained without reseeding');
     } else if (command === 'quit') { await cdp('Browser.close'); break; }
     else console.log('UNKNOWN_COMMAND');
   } catch (error) { console.log('SMOKE_FAILURE: ' + error.message); }

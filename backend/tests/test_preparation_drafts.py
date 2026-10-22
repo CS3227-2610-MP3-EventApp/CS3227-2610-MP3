@@ -188,6 +188,7 @@ def change_source(world,record,kind):
         success(request(world.x,"PUT",own_path(record),json={"expectedRevision":record["revision"],**content(participantType="vendor")}))
     elif kind == "setup":
         success(request(world.oa,"PUT",f"/api/v1/organiser/events/{world.a}/participations/{record['participationId']}/setup",json={"expectedRevision":1,"boothLabel":"NEW-SOURCE-BOOTH","setupInstructions":"New setup facts"}))
+        success(request(world.oa,"POST",f"/api/v1/organiser/events/{record['eventId']}/participations/{record['participationId']}/setup/publish",json={"expectedRevision":2}))
     else:
         # Trusted concurrent producer fixture models committed event metadata revision.
         with connect() as connection: connection.execute("UPDATE events SET revision=revision+1 WHERE id=%s",(record["eventId"],))

@@ -1,3 +1,4 @@
+import { displayDate } from "../displayDate";
 import { useEffect, useRef, useState } from "react";
 import { Box, Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Paper, Stack, Tab, Tabs, TextField, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -166,7 +167,7 @@ export function OrganiserApplications() {
   return <ApplicationLayout title="Applications" role="organiser" dirty={!!draft.current?.settingsDirty || setupDirty}><Stack spacing={4}>
     <Paper variant="outlined" sx={{p: {xs: 2, md: 3}}}><Stack spacing={2}>
     <TextField label="Event" select value={event ? eventId : ""} onChange={(e) => changeContext(tabPath(tab, null, e.target.value))} slotProps={{select: {native: true}, inputLabel: {shrink: true}}}>{summaries.map((item) => <option key={item.eventId} value={item.eventId}>{item.title}</option>)}</TextField>
-    {event && <Typography>{event.startsAt} - {event.endsAt} ({event.timezone})</Typography>}
+    {event && <Typography>{displayDate(event.startsAt, event.timezone)} - {displayDate(event.endsAt, event.timezone)} ({event.timezone})</Typography>}
     <Feedback status={status} />
     {unknown && <Button disabled={busy} onClick={() => readOutcome(unknown)}>Check outcome</Button>}
     {savedSettings && <Box><FormControlLabel control={<Checkbox checked={open} disabled={busy || !!unknown} onChange={(e) => changeOpen(e.target.checked)} />} label="Accepting applications" /><Stack direction="row" sx={{gap: 2, flexWrap: "wrap"}}><Button disabled={busy || !!unknown} onClick={() => setConfirmation("settings")}>Save application settings</Button>{/settings.*changed/i.test(status) && <Button disabled={busy} onClick={() => readOutcome("settings")}>Refresh application settings</Button>}</Stack></Box>}

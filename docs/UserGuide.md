@@ -20,7 +20,7 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Authenticated attendees can use Explore programme to browse published activities. Attendee itinerary and business preparation AI remain previews.
+Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Authenticated attendees can use Explore programme to browse published activities. Business preparation offers a manual checklist, overall spending limit and optional cost breakdowns. AI preparation provides private editable suggestions with selected append-only adoption when configured. Attendee itinerary remains unavailable.
 
 ## Organiser AI application analysis
 
@@ -45,3 +45,7 @@ Venue/room pencil icons open editing; trash icons open deletion confirmation. A 
 ## Attendee programme browsing
 
 Sign in as an attendee and choose **Explore programme** in Browse Programme. The frontend has event/activity lists, title/type/date filters, pagination and activity details including event-local times, SGD/free pricing, declared capacity and separate accessibility notes. Missing notes mean unknown; capacity is not remaining inventory. The screen uses the published programme API. Date filters match the activity’s start date in the event timezone, including activities ending the following day; all six types, including Panel, are supported. Retry and session-expiry handling are present. Only published activities appear; this journey does not reserve capacity or buy tickets.
+
+## Business preparation
+
+New application contacts default to your account name/email and remain editable. Dates display in the event region with24-hour times. Organisers Save setup privately, then explicitly Publish setup when ready; businesses see only published details. Preparation provides compact tasks, an overall spending limit and optional categorized cost items, with exact estimates/remaining budget. Back to AI preparation returns to your current context. Each source-context checkbox selects only that item for AI sharing; Generate shares the displayed selected fields under the provider disclosure. There is no invented-data pledge. Configuration and provider availability are still required; generation never replaces manual data automatically. See [the testing walkthrough](BusinessPreparationTesting.md) for local setup and checks.

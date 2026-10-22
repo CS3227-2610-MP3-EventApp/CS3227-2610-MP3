@@ -1,6 +1,75 @@
 {
   "components": {
     "schemas": {
+      "AdoptPreparationDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedDraftRevision": {
+            "minimum": 1.0,
+            "title": "Expecteddraftrevision",
+            "type": "integer"
+          },
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedPreparationRevision": {
+            "minimum": 1.0,
+            "title": "Expectedpreparationrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "minimum": 1.0,
+            "title": "Expectedsetuprevision",
+            "type": "integer"
+          },
+          "lineIndexes": {
+            "items": {
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Lineindexes",
+            "type": "array"
+          },
+          "taskIndexes": {
+            "items": {
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Taskindexes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedDraftRevision",
+          "expectedPreparationRevision",
+          "expectedSetupRevision",
+          "expectedEventRevision",
+          "taskIndexes",
+          "lineIndexes"
+        ],
+        "title": "AdoptPreparationDraft",
+        "type": "object"
+      },
+      "AdoptionResult": {
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/PreparationDraftView"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/PreparationView"
+          }
+        },
+        "required": [
+          "draft",
+          "preparation"
+        ],
+        "title": "AdoptionResult",
+        "type": "object"
+      },
       "AnalysisComparison": {
         "additionalProperties": false,
         "properties": {
@@ -690,7 +759,8 @@
             "enum": [
               "required",
               "password_length",
-              "invalid"
+              "invalid",
+              "already_exists"
             ],
             "title": "Code",
             "type": "string"
@@ -734,6 +804,19 @@
             "maxItems": 200,
             "title": "Lines",
             "type": "array"
+          },
+          "overallLimitMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 100000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overalllimitminorunits"
           }
         },
         "required": [
@@ -746,6 +829,18 @@
       "BudgetLineInput": {
         "additionalProperties": false,
         "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "description": {
             "maxLength": 160,
             "minLength": 1,
@@ -816,6 +911,17 @@
       },
       "BudgetLineView": {
         "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -893,6 +999,28 @@
             },
             "title": "Lines",
             "type": "array"
+          },
+          "overallLimitMinorUnits": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overalllimitminorunits"
+          },
+          "remainingMinorUnits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remainingminorunits"
           },
           "totalMinorUnits": {
             "anyOf": [
@@ -1046,7 +1174,6 @@
         "type": "object"
       },
       "BusinessPreparationJob": {
-        "additionalProperties": false,
         "properties": {
           "completedAt": {
             "anyOf": [
@@ -1066,8 +1193,14 @@
             "type": "string"
           },
           "draft": {
-            "title": "Draft",
-            "type": "null"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreparationDraftView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "eventId": {
             "format": "uuid",
@@ -1125,7 +1258,8 @@
           "updatedAt",
           "completedAt",
           "failureCode",
-          "providerMayHaveRun"
+          "providerMayHaveRun",
+          "draft"
         ],
         "title": "BusinessPreparationJob",
         "type": "object"
@@ -1172,9 +1306,38 @@
         "title": "BusinessRegistration",
         "type": "object"
       },
+      "ContactProfile": {
+        "properties": {
+          "displayName": {
+            "title": "Displayname",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "displayName",
+          "email"
+        ],
+        "title": "ContactProfile",
+        "type": "object"
+      },
       "CreateAnalysis": {
         "additionalProperties": false,
         "properties": {
+          "dataSharingConfirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Datasharingconfirmed"
+          },
           "expectedRubricRevision": {
             "minimum": 1.0,
             "title": "Expectedrubricrevision",
@@ -1191,16 +1354,22 @@
             "type": "string"
           },
           "syntheticDataConfirmed": {
-            "const": true,
-            "title": "Syntheticdataconfirmed",
-            "type": "boolean"
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Syntheticdataconfirmed"
           }
         },
         "required": [
           "requestId",
           "expectedRubricRevision",
-          "expectedSubmittedRevision",
-          "syntheticDataConfirmed"
+          "expectedSubmittedRevision"
         ],
         "title": "CreateAnalysis",
         "type": "object"
@@ -1259,6 +1428,89 @@
           "eventId"
         ],
         "title": "CreateApplication",
+        "type": "object"
+      },
+      "CreatePreparationDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "dataSharingConfirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Datasharingconfirmed"
+          },
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedPreparationRevision": {
+            "minimum": 1.0,
+            "title": "Expectedpreparationrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "minimum": 1.0,
+            "title": "Expectedsetuprevision",
+            "type": "integer"
+          },
+          "needs": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Needs",
+            "type": "string"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          },
+          "selectedLineIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Selectedlineids",
+            "type": "array"
+          },
+          "selectedTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Selectedtaskids",
+            "type": "array"
+          },
+          "syntheticDataConfirmed": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Syntheticdataconfirmed"
+          }
+        },
+        "required": [
+          "requestId",
+          "expectedPreparationRevision",
+          "expectedSetupRevision",
+          "expectedEventRevision",
+          "needs",
+          "selectedTaskIds",
+          "selectedLineIds"
+        ],
+        "title": "CreatePreparationDraft",
         "type": "object"
       },
       "CurrentActor": {
@@ -1386,6 +1638,141 @@
         "title": "Decision",
         "type": "object"
       },
+      "DraftBudgetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/DraftLineInput"
+            },
+            "maxItems": 200,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currency",
+          "lines"
+        ],
+        "title": "DraftBudgetInput",
+        "type": "object"
+      },
+      "DraftLineInput": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "priceBasis": {
+            "enum": [
+              "unknown",
+              "estimate",
+              "quotation"
+            ],
+            "title": "Pricebasis",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "quotationBasis": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotationbasis"
+          },
+          "unitPriceMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 100000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitpriceminorunits"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unitPriceMinorUnits",
+          "priceBasis",
+          "quotationBasis"
+        ],
+        "title": "DraftLineInput",
+        "type": "object"
+      },
+      "DraftTaskInput": {
+        "additionalProperties": false,
+        "properties": {
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "dueDate"
+        ],
+        "title": "DraftTaskInput",
+        "type": "object"
+      },
       "EventFacts": {
         "properties": {
           "endsAt": {
@@ -1448,6 +1835,35 @@
         "title": "EventMembershipActor",
         "type": "object"
       },
+      "EventSourceFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "endsAt": {
+            "title": "Endsat",
+            "type": "string"
+          },
+          "startsAt": {
+            "title": "Startsat",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "startsAt",
+          "endsAt",
+          "timezone"
+        ],
+        "title": "EventSourceFacts",
+        "type": "object"
+      },
       "EventSummary": {
         "properties": {
           "endsAt": {
@@ -1506,6 +1922,19 @@
           "field"
         ],
         "title": "FieldError",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
         "type": "object"
       },
       "ItemFields": {
@@ -1758,6 +2187,82 @@
         "title": "OrganiserEventSummary",
         "type": "object"
       },
+      "OrganiserSetupDetails": {
+        "properties": {
+          "boothLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boothlabel"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "hasUnpublishedChanges": {
+            "title": "Hasunpublishedchanges",
+            "type": "boolean"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "published": {
+            "$ref": "#/components/schemas/SetupDetails"
+          },
+          "publishedRevision": {
+            "title": "Publishedrevision",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "setupInstructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setupinstructions"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "required": [
+          "participationId",
+          "eventId",
+          "revision",
+          "boothLabel",
+          "setupInstructions",
+          "updatedAt",
+          "publishedRevision",
+          "published",
+          "hasUnpublishedChanges"
+        ],
+        "title": "OrganiserSetupDetails",
+        "type": "object"
+      },
       "Page_EventSummary_": {
         "properties": {
           "items": {
@@ -1938,6 +2443,136 @@
           "newPassword"
         ],
         "title": "PasswordChangeRequest",
+        "type": "object"
+      },
+      "PreparationDraftHistory": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PreparationDraftView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "latestJob": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessPreparationJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "latestJob"
+        ],
+        "title": "PreparationDraftHistory",
+        "type": "object"
+      },
+      "PreparationDraftView": {
+        "properties": {
+          "adoptedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adoptedat"
+          },
+          "adoptedPreparationRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adoptedpreparationrevision"
+          },
+          "budget": {
+            "additionalProperties": true,
+            "title": "Budget",
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "jobId": {
+            "format": "uuid",
+            "title": "Jobid",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "sourceFacts": {
+            "$ref": "#/components/schemas/SourceFacts"
+          },
+          "sourceRevisions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Sourcerevisions",
+            "type": "object"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DraftTaskInput"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "jobId",
+          "participationId",
+          "revision",
+          "sourceRevisions",
+          "sourceFacts",
+          "tasks",
+          "budget",
+          "createdAt",
+          "adoptedAt",
+          "adoptedPreparationRevision"
+        ],
+        "title": "PreparationDraftView",
         "type": "object"
       },
       "PreparationProblem": {
@@ -2328,6 +2963,21 @@
         "title": "PublicationAudit",
         "type": "object"
       },
+      "PublishSetup": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedRevision"
+        ],
+        "title": "PublishSetup",
+        "type": "object"
+      },
       "PublishedProgramme": {
         "properties": {
           "accessibilityDetails": {
@@ -2536,6 +3186,34 @@
           "budget"
         ],
         "title": "ReplacePreparation",
+        "type": "object"
+      },
+      "ReplacePreparationDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/DraftBudgetInput"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DraftTaskInput"
+            },
+            "maxItems": 200,
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "tasks",
+          "budget"
+        ],
+        "title": "ReplacePreparationDraft",
         "type": "object"
       },
       "RevisionRequest": {
@@ -2898,6 +3576,56 @@
         "title": "SetupProblem",
         "type": "object"
       },
+      "SetupSourceFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "boothLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boothlabel"
+          },
+          "setupInstructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setupinstructions"
+          }
+        },
+        "required": [
+          "boothLabel",
+          "setupInstructions"
+        ],
+        "title": "SetupSourceFacts",
+        "type": "object"
+      },
+      "SourceFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/EventSourceFacts"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/SetupSourceFacts"
+          }
+        },
+        "required": [
+          "event",
+          "setup"
+        ],
+        "title": "SourceFacts",
+        "type": "object"
+      },
       "SubmitApplication": {
         "additionalProperties": false,
         "properties": {
@@ -3023,6 +3751,46 @@
           "applicationsOpen"
         ],
         "title": "UpdateApplicationSettings",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
         "type": "object"
       },
       "ValidationResult": {
@@ -4147,6 +4915,122 @@
           }
         ],
         "summary": "Change Password",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/contact-profile": {
+      "get": {
+        "operationId": "contact_profile_api_v1_auth_contact_profile_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Contact Profile",
         "tags": [
           "Authentication"
         ]
@@ -5817,6 +6701,133 @@
         ]
       }
     },
+    "/api/v1/business/participations/{participationId}/preparation-drafts": {
+      "get": {
+        "operationId": "history_api_v1_business_participations__participationId__preparation_drafts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationDraftHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "History",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_participations__participationId__preparation_drafts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePreparationDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessPreparationJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      }
+    },
     "/api/v1/business/participations/{participation_id}/setup": {
       "get": {
         "operationId": "business_get_api_v1_business_participations__participation_id__setup_get",
@@ -5940,6 +6951,168 @@
         "summary": "Business Get",
         "tags": [
           "Business setup"
+        ]
+      }
+    },
+    "/api/v1/business/preparation-drafts/{draftId}": {
+      "get": {
+        "operationId": "read_api_v1_business_preparation_drafts__draftId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draftId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draftid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationDraftView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      },
+      "put": {
+        "operationId": "edit_api_v1_business_preparation_drafts__draftId__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draftId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draftid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePreparationDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationDraftView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Edit",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      }
+    },
+    "/api/v1/business/preparation-drafts/{draftId}/adopt": {
+      "post": {
+        "operationId": "adopt_api_v1_business_preparation_drafts__draftId__adopt_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draftId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draftid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptPreparationDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdoptionResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Adopt",
+        "tags": [
+          "Business preparation drafts"
         ]
       }
     },
@@ -7687,7 +8860,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SetupDetails"
+                  "$ref": "#/components/schemas/OrganiserSetupDetails"
                 }
               }
             },
@@ -7831,7 +9004,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SetupDetails"
+                  "$ref": "#/components/schemas/OrganiserSetupDetails"
                 }
               }
             },
@@ -7932,6 +9105,152 @@
           }
         ],
         "summary": "Organiser Save",
+        "tags": [
+          "Business setup"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{event_id}/participations/{participation_id}/setup/publish": {
+      "post": {
+        "operationId": "publish_setup_api_v1_organiser_events__event_id__participations__participation_id__setup_publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "participation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishSetup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserSetupDetails"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Publish Setup",
         "tags": [
           "Business setup"
         ]

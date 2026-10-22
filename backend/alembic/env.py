@@ -14,6 +14,8 @@ from app.preparation import models as preparation_models  # noqa: F401 -- regist
 from app.setup import models as setup_models  # noqa: F401 -- register participation setup table
 
 
+from app.preparation_drafts import models as preparation_draft_models
+
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -23,7 +23,7 @@ def document(**overrides):
 
 def line(**overrides):
     return {"description": "Synthetic prints", "quantity": 3, "unitPriceMinorUnits": 125,
-            "priceBasis": "estimate", "quotationBasis": None, **overrides}
+            "priceBasis": "estimate", "quotationBasis": None, "category": None, **overrides}
 
 
 def editable(saved):
@@ -58,7 +58,7 @@ def test_virtual_get_is_read_only_and_full_replacement_survives_fresh_connection
     before = persisted_rows()
     empty = success(world.x.get(route))
     assert empty == {"participationId": participation["participationId"], "revision": 1, "tasks": [],
-                     "budget": {"currency": "SGD", "lines": [], "knownSubtotalMinorUnits": "0", "totalMinorUnits": "0", "isComplete": True}}
+                     "budget": {"currency": "SGD", "lines": [], "knownSubtotalMinorUnits": "0", "totalMinorUnits": "0", "isComplete": True, "overallLimitMinorUnits": None, "remainingMinorUnits": None}}
     assert success(world.x.get(route)) == empty
     assert persisted_rows() == before
     saved = success(request(world.x, "PUT", route, json=document()))
