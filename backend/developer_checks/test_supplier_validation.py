@@ -67,6 +67,171 @@ def test_delivery_for_another_product_is_kept_unknown():
     assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
 
 
+def test_delivery_for_another_product_in_same_quote_is_kept_unknown():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Snack Box delivery 1 day.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_delivery_for_product_variant_is_not_attributed_to_base_product():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack Deluxe delivery 1 day.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_delivery_for_another_product_after_delivery_keyword_is_kept_unknown():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Delivery for Poster Pack: 1 day.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_delivery_label_cannot_attribute_a_following_product_subject():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Delivery: Poster Pack ships in 1 day.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_delivery_for_competing_product_after_selected_product_clause_is_unknown():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack 5 days, Poster Pack ships in 1 day.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_generic_delivery_label_cannot_override_parenthetical_product_qualifier():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Delivery: 1 day (Poster Pack only).")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_selected_product_subject_cannot_override_parenthetical_product_qualifier():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack delivery 1 day (Poster Pack only).")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_generic_delivery_label_cannot_override_trailing_product_qualifier():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Delivery: 1 day, only for Poster Pack.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_generic_delivery_label_cannot_split_conflicting_qualifier_across_dash_and_parentheses():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Delivery: 1 day — Poster Pack only (for other items).")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_selected_product_subject_cannot_override_colon_trailing_product_qualifier():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack delivery 1 day: Poster Pack only.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_selected_product_subject_cannot_override_slash_trailing_product_qualifier():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack delivery 1 day / Poster Pack only.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_delivery_subject_from_prior_comma_clause_does_not_ground_estimate():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack delivery 5 days, Poster Pack 1 day.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "1 day"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
+def test_selected_product_subject_before_shipping_verb_is_grounded():
+    page = ("Invented Printer offers Flyer Pack. Flyer Pack SGD 2.05 per 10 units. "
+        "Flyer Pack ships in 3 days.")
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] == "3 days"
+
+
+def test_delivery_estimate_preserves_source_casing():
+    page = "Invented Printer offers Flyer Pack with delivery 3 days. SGD 2.05 per 10 units."
+    raw, research = fixture(page)
+    value = json.loads(raw)
+    value["offers"][0]["deliveryEstimate"] = "3 DAYS"
+    offer = validate_extraction(json.dumps(value), research)["offers"][0]
+    assert offer["listedPrice"]["amountMinorUnits"] == "205"
+    assert offer["deliveryEstimate"] is None
+    assert any(item["field"] == "deliveryEstimate" for item in offer["unknownFields"])
+
+
 def test_price_currency_must_have_supported_minor_unit_precision():
     page = "Invented Printer offers Flyer Pack. JPY 205 per 10 units. Delivery 3 days."
     raw, research = fixture(page)
@@ -107,6 +272,24 @@ def test_unused_retrieved_source_is_visible_as_partial_gap():
     assert result["status"] == "partial"
     assert result["sourceFailures"] == [{"sourceId": str(unused_id), "code": "fetch_failed",
         "displayMessage": "This retrieved source did not establish a useful supported offer."}]
+
+
+def test_identity_only_offer_is_kept_as_listing_only_and_partial():
+    raw, research = fixture("Invented Printer offers Flyer Pack. Contact us for prices.")
+    result = validate_extraction(raw, research)
+    assert result["status"] == "partial"
+    offer = result["offers"][0]
+    assert offer["listedPrice"] == {"amountMinorUnits": None, "currency": None, "unitLabel": None, "quantityBasis": None}
+    assert offer["estimatedItemSubtotalMinorUnits"] is None and offer["estimatedCurrency"] is None
+    assert offer["deliveryEstimate"] is None
+    assert {item["field"] for item in offer["unknownFields"]} >= {"listedPrice", "deliveryEstimate"}
+    assert {item["field"] for item in offer["evidenceByField"]} == {"supplierName", "productDescription"}
+
+
+def test_identity_unsupported_offer_still_invalid():
+    raw, research = fixture("Another Supplier sells other things.")
+    with pytest.raises(ValueError, match="invalid_output"):
+        validate_extraction(raw, research)
 
 
 @pytest.mark.parametrize("action", ["cancel", "revoke"])
@@ -185,3 +368,104 @@ def test_tavily_profile_is_explicit_and_bounded_streaming(monkeypatch):
     assert body["max_results"] == 3 and body["include_raw_content"] is False
     assert captured["request"]["headers"]["Accept-Encoding"] == "identity"
     assert body["api_key"] == "synthetic-key"
+
+
+def test_supplier_prompt_includes_useful_partial_offers_without_weakening_evidence():
+    import json
+
+    from app.supplier_research.service import messages
+
+    source_id = str(uuid4())
+    research = {
+        "request": {"category": "printing", "brief": "flyers", "quantity": 100,
+            "deliveryArea": "Singapore East", "neededBy": None, "dataSharingConfirmed": True},
+        "sources": [{"sourceId": source_id, "excerpt": "Invented Printer offers Flyer Pack. Delivery 3 days."}],
+    }
+    system, user = messages(research)
+    user_payload = json.loads(user["content"])
+
+    prompt = system["content"]
+    assert "Prefer a partial grounded offer over omitting it because other fields are unknown" in prompt
+    assert "do not omit an offer solely because its price is unavailable" in prompt
+    assert "A listed-price quote must include the exact context that names this supplier and" in prompt
+    assert "For a deliveryEstimate quote, include the exact context that names the supplier and product" in prompt
+    assert "Copy each evidenceQuote directly as an exact contiguous substring" in prompt
+    assert "The server checks literal substring inclusion" in prompt
+    assert "do not cite only the bare delivery phrase" in prompt
+    assert "For deliveryEstimate, evidenceQuote must repeat the entire sentence" in prompt
+    assert "A sentence naming a different product as the delivery subject cannot support this offer" in prompt
+    assert "Preserve the exact capitalization of the delivery wording" in prompt
+    assert "A separate product mention elsewhere in the quote does not establish an unparsed delivery subject" in prompt
+    assert "that identity and exact delivery may form a useful offer even when price is null" in prompt
+    assert user_payload["request"] == {
+        "category": "printing", "brief": "flyers", "quantity": 100,
+        "deliveryArea": "Singapore East", "neededBy": None,
+    }
+    assert user_payload["sources"] == [{"sourceId": source_id, "pageText": research["sources"][0]["excerpt"]}]
+
+
+def test_supplier_search_query_targets_product_prices_and_delivery():
+    from app.supplier_research.service import _query
+
+    query = _query({
+        "category": "printing", "quantity": 100, "deliveryArea": "Singapore East",
+        "brief": "A4 colour flyers", "neededBy": "2027-01-01",
+    }).casefold()
+
+    assert "product" in query
+    assert "price list" in query
+    assert "delivery" in query
+    assert "100" in query and "singapore east" in query and "a4 colour flyers" in query
+    assert "2027-01-01" in query
+
+
+def _identity_fixture(name, product, page):
+    raw, research = fixture(page)
+    data = json.loads(raw)
+    data["offers"][0]["supplierName"] = name
+    data["offers"][0]["productDescription"] = product
+    return json.dumps(data), research
+
+
+@pytest.mark.parametrize("name,product", [
+    ("Invented Printer $5", "Flyer Pack"),
+    ("Invented Printer", "Flyer Pack SGD 2.80"),
+    ("Invented Printer", "Flyer Pack S$2"),
+    ("Invented Printer", "Flyer Pack 2.80 SGD"),
+])
+def test_price_in_identity_is_rejected(name, product):
+    raw, research = _identity_fixture(name, product, f"{name} offers {product}. SGD 2.05 per 10 units. Delivery 3 days.")
+    with pytest.raises(ValueError, match="invalid_output"):
+        validate_extraction(raw, research)
+
+
+@pytest.mark.parametrize("name", [
+    "Invented Printer +65 9123 4567", "Invented Printer 91234567", "Invented Printer www.invented.example",
+    "Invented Printer https://invented.example", "Invented Printer sales@invented.example"])
+def test_contact_details_in_identity_are_rejected(name):
+    raw, research = _identity_fixture(name, "Flyer Pack", f"{name} offers Flyer Pack. SGD 2.05 per 10 units. Delivery 3 days.")
+    with pytest.raises(ValueError, match="invalid_output"):
+        validate_extraction(raw, research)
+
+
+def test_one_character_identity_is_rejected_even_with_price_offer():
+    page = "A offers Flyer Pack. SGD 2.05 per 10 units. Delivery 3 days."
+    raw, research = _identity_fixture("A", "Flyer Pack", page)
+    with pytest.raises(ValueError, match="invalid_output"):
+        validate_extraction(raw, research)
+
+
+def test_model_unknown_field_reasons_are_never_echoed():
+    page = "Invented Printer offers Flyer Pack. SGD 2.05 per 10 units. Delivery 3 days."
+    raw, research = fixture(page)
+    data = json.loads(raw)
+    data["offers"][0]["unknownFields"] = [
+        {"field": "shipping", "reason": "Call 91234567 or visit www.evil.example"},
+        {"field": "deliveryEstimate", "reason": "model delivery text"},
+        {"field": "notAllowed", "reason": "other"}]
+    result = validate_extraction(json.dumps(data), research)
+    unknown = result["offers"][0]["unknownFields"]
+    assert "shipping" in [item["field"] for item in unknown]
+    assert "notAllowed" not in [item["field"] for item in unknown]
+    assert all("model delivery text" != item["reason"] for item in unknown)
+    assert "91234567" not in json.dumps(result) and "evil" not in json.dumps(result)

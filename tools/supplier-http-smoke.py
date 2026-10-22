@@ -90,7 +90,8 @@ def checked(raw,research):
    for offer in parsed.offers:
     quote_ok=all(c.evidenceQuote in research['pageById'].get(str(c.sourceId),'') for c in offer.evidenceByField)
     identity_ok=all(any(c.field==field and value.casefold() in c.evidenceQuote.casefold() for c in offer.evidenceByField) for field,value in [('supplierName',offer.supplierName),('productDescription',offer.productDescription)])
-    print('EXTRACTION_DIAGNOSTIC quotes_identity_delivery_price',quote_ok,identity_ok,offer.deliveryEstimate is not None,offer.listedPrice.amountMinorUnits is not None,flush=True)
+    same_quote=any(offer.supplierName.casefold() in c.evidenceQuote.casefold() and offer.productDescription.casefold() in c.evidenceQuote.casefold() for c in offer.evidenceByField)
+    print('EXTRACTION_DIAGNOSTIC quotes_identity_same_quote_delivery_price',quote_ok,identity_ok,same_quote,offer.deliveryEstimate is not None,offer.listedPrice.amountMinorUnits is not None,flush=True)
   except Exception as exc:
    if hasattr(exc,'errors'):
     print('EXTRACTION_DIAGNOSTIC schema_errors',[(item['loc'],item['type']) for item in exc.errors(include_input=False)][:10],flush=True)

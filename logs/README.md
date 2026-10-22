@@ -16,7 +16,7 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
-- [2026-10-22 Isaac F09 phased delivery](isaac/2026-10-22-f09-phased-delivery.md): whole-conversation summary covering Phase1 delivery/commits, Phase2 approvals and protected tests, implementation/review repairs, pinned-model selection, failed live integration, token-saving instructions and the explicit unfinished-phase stopping handoff; human verification pending.
+- [2026-10-22 Isaac F09 phased delivery](isaac/2026-10-22-f09-phased-delivery.md): whole-conversation summary covering Phase1 delivery/commits, Phase2 approvals and protected tests, implementation/review repairs, pinned-model selection, SoCLaaS limit diagnosis, delivery-evidence review/fixes, failed live integration and the explicit unfinished-phase handoffs; human verification pending.
 
 - [2026-10-22 Isaac whole Business preparation conversation](isaac/2026-10-22-business-preparation-conversation.md): phase-5 request, fixture approval, testing-guide follow-ups, approved workflow refinements, documentation synchronization, verification and remaining review gates; human verification pending.
 
