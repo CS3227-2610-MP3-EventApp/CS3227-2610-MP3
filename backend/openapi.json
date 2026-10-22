@@ -2004,10 +2004,6 @@
       "GenerateItinerary": {
         "additionalProperties": false,
         "properties": {
-          "confirmSynthetic": {
-            "title": "Confirmsynthetic",
-            "type": "boolean"
-          },
           "preferenceRevision": {
             "minimum": 0.0,
             "title": "Preferencerevision",
@@ -2021,8 +2017,7 @@
         },
         "required": [
           "requestId",
-          "preferenceRevision",
-          "confirmSynthetic"
+          "preferenceRevision"
         ],
         "title": "GenerateItinerary",
         "type": "object"

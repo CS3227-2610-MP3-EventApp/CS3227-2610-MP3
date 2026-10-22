@@ -1933,8 +1933,6 @@ export interface components {
         };
         /** GenerateItinerary */
         GenerateItinerary: {
-            /** Confirmsynthetic */
-            confirmSynthetic: boolean;
             /** Preferencerevision */
             preferenceRevision: number;
             /**

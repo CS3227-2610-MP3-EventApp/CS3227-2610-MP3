@@ -56,7 +56,7 @@ async function call(path: string, method: string, body: unknown, signal?: AbortS
 }
 
 export const itineraryAiApi = {
-  create: (eventId: string, body: { requestId: string; preferenceRevision: number; confirmSynthetic: true }, signal?: AbortSignal) =>
+  create: (eventId: string, body: { requestId: string; preferenceRevision: number }, signal?: AbortSignal) =>
     call(`/api/v1/attendee/events/${encodeURIComponent(eventId)}/itinerary-generations`, "POST", body, signal),
   get: (jobId: string, signal?: AbortSignal) => call(`/api/v1/attendee/ai/jobs/${encodeURIComponent(jobId)}`, "GET", undefined, signal),
   cancel: (jobId: string, signal?: AbortSignal) => call(`/api/v1/attendee/ai/jobs/${encodeURIComponent(jobId)}/cancel`, "POST", {}, signal),

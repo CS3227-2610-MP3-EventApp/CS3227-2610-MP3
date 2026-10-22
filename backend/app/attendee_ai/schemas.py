@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
 
 Constraint = Literal["overlap", "budget", "accessibility"]
 
@@ -11,14 +11,6 @@ class GenerateItinerary(BaseModel):
     model_config = ConfigDict(extra="forbid")
     requestId: UUID
     preferenceRevision: Annotated[StrictInt, Field(ge=0)]
-    confirmSynthetic: StrictBool
-
-    @field_validator("confirmSynthetic")
-    @classmethod
-    def must_confirm(cls, value):
-        if value is not True:
-            raise ValueError("Synthetic data must be confirmed")
-        return value
 
 
 class ItineraryJobView(BaseModel):

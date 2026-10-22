@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Box, Button, Checkbox, FormControlLabel, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ApiError } from "../api";
 import type { PublishedProgrammeItem } from "../programmeTypes";
 import { itineraryAiApi, type ItineraryJob } from "./aiApi";
@@ -35,13 +35,12 @@ interface Props {
 }
 
 export function ItineraryAI({ eventId, preferenceRevision, items, disabled, formatTime, onSave }: Props) {
-  const [confirmed, setConfirmed] = useState(false);
   const [job, setJob] = useState<ItineraryJob | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false), [polls, setPolls] = useState(0);
   const locked = useRef(false), alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => { setJob(null); setError(""); setConfirmed(false); }, [eventId]);
+  useEffect(() => { setJob(null); setError(""); }, [eventId]);
 
   const active = job?.state === "pending" || job?.state === "running";
   const jobId = job?.id;
@@ -58,10 +57,10 @@ export function ItineraryAI({ eventId, preferenceRevision, items, disabled, form
   }, [active, jobId, polls]);
 
   async function generate() {
-    if (locked.current || !confirmed || active) return;
+    if (locked.current || active) return;
     locked.current = true; setBusy(true); setError(""); setJob(null);
     try {
-      const created = await itineraryAiApi.create(eventId, { requestId: requestId(), preferenceRevision, confirmSynthetic: true });
+      const created = await itineraryAiApi.create(eventId, { requestId: requestId(), preferenceRevision });
       if (alive.current) setJob(created);
     } catch (failure) { if (alive.current) setError(createMessage(failure)); }
     finally { locked.current = false; if (alive.current) setBusy(false); }
@@ -83,9 +82,9 @@ export function ItineraryAI({ eventId, preferenceRevision, items, disabled, form
     <Typography component="h2" variant="h2" id="ai-itinerary-heading" sx={{ mb: 1 }}>AI itinerary suggestions</Typography>
     <Typography sx={{ mb: 1 }}>Ask for a suggested plan from the published programme and your preferences. Suggestions are only a starting point; you choose whether to save or accept anything.</Typography>
     <Typography role="status" aria-label="AI itinerary status" sx={{ my: 1 }}>{job ? `Status: ${stateLabel[job.state]}` : "No AI itinerary requested yet."}</Typography>
-    <FormControlLabel control={<Checkbox checked={confirmed} onChange={(_, checked) => setConfirmed(checked)} disabled={disabled || active} />} label="I confirm this event uses only synthetic data" />
+    <Typography id="ai-itinerary-notice" sx={{ mb: 1 }}>Your preferences and the programme are sent to an external AI service. Do not enter personal details.</Typography>
     <Stack direction="row" useFlexGap flexWrap="wrap" gap={1} sx={{ my: 1 }}>
-      <Button variant="contained" disabled={disabled || !confirmed || active || busy} onClick={() => void generate()}>Generate AI itinerary</Button>
+      <Button variant="contained" aria-describedby="ai-itinerary-notice" disabled={disabled || active || busy} onClick={() => void generate()}>Generate AI itinerary</Button>
       {active && <Button onClick={() => void cancel()}>Cancel AI itinerary</Button>}
     </Stack>
     {error && <Alert severity="error" sx={{ my: 1 }}>{error}</Alert>}
