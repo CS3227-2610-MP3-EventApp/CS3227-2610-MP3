@@ -24,19 +24,34 @@ def lock_attendee(db: Session, owner_id: UUID) -> bool:
     return row is not None
 
 
-def current_facts(rows) -> list[PublishedProgramme]:
-    """Latest revision of each activity, without cancelled ones, in chronological order."""
+def current_facts(rows, *, include_cancelled: bool = False) -> list[PublishedProgramme]:
+    """Latest revision of each activity (cancelled ones only on request), in chronological order."""
     latest = {}
     for row in rows:
         if row.item_id not in latest or row.revision > latest[row.item_id].revision:
             latest[row.item_id] = row
     facts = [PublishedProgramme.model_validate(row.snapshot) for row in latest.values()]
-    facts = [fact for fact in facts if fact.state == "published"]
+    facts = [fact for fact in facts if include_cancelled or fact.state == "published"]
     return sorted(facts, key=lambda fact: (fact.startsAt, fact.endsAt, str(fact.id)))
 
 
 def published_facts(db: Session, event_id: UUID) -> list[PublishedProgramme]:
     return current_facts(db.scalars(select(ProgrammeItemRevision).where(ProgrammeItemRevision.event_id == event_id)).all())
+
+
+def question_facts(db: Session, event_id: UUID) -> list[PublishedProgramme]:
+    """Current published facts for event questions: cancelled activities stay, marked cancelled."""
+    return current_facts(db.scalars(select(ProgrammeItemRevision).where(
+        ProgrammeItemRevision.event_id == event_id)).all(), include_cancelled=True)
+
+
+def latest_revisions(db: Session, event_id: UUID) -> dict[str, int]:
+    """Current revision number of every published or cancelled activity of the event."""
+    latest: dict[str, int] = {}
+    for item_id, revision in db.execute(select(ProgrammeItemRevision.item_id, ProgrammeItemRevision.revision).where(
+            ProgrammeItemRevision.event_id == event_id)):
+        latest[str(item_id)] = max(revision, latest.get(str(item_id), 0))
+    return latest
 
 
 def planning_row(db: Session, owner_id: UUID, event_id: UUID):
@@ -57,7 +72,8 @@ def create_job(db: Session, owner_id: UUID, event_id: UUID, body) -> ItineraryJo
     previous = db.scalar(select(ItineraryJob).where(
         ItineraryJob.owner_id == owner_id, ItineraryJob.request_id == body.requestId))
     if previous:
-        if (previous.event_id, previous.preference_revision) != (event_id, body.preferenceRevision):
+        if previous.workflow != "itinerary" or (previous.event_id, previous.preference_revision) != (
+                event_id, body.preferenceRevision):
             raise AIError("revision_conflict")
         return previous
     if not published_facts(db, event_id):
@@ -68,13 +84,14 @@ def create_job(db: Session, owner_id: UUID, event_id: UUID, body) -> ItineraryJo
     if not provider_configured(Settings(), event_id):
         raise AIError("service_unavailable")
     active = db.scalar(select(ItineraryJob.id).where(ItineraryJob.owner_id == owner_id,
-        ItineraryJob.state.in_(["pending", "running"])).limit(1))
+        ItineraryJob.workflow == "itinerary", ItineraryJob.state.in_(["pending", "running"])).limit(1))
     if active:
         raise AIError("active_job")
     now = utcnow()
     day_start = datetime.combine(now.date(), datetime.min.time(), tzinfo=timezone.utc)
     count = db.scalar(select(func.count()).select_from(ItineraryJob).where(
-        ItineraryJob.owner_id == owner_id, ItineraryJob.created_at >= day_start)) or 0
+        ItineraryJob.owner_id == owner_id, ItineraryJob.workflow == "itinerary",
+        ItineraryJob.created_at >= day_start)) or 0
     if count >= 10:
         raise AIError("daily_limit")
     job = ItineraryJob(owner_id=owner_id, event_id=event_id, request_id=body.requestId,
@@ -93,8 +110,9 @@ def job_view(job: ItineraryJob) -> ItineraryJobView:
         result=job.result if job.state == "completed" else None)
 
 
-def _owned(db, owner_id, job_id, *, lock=False):
-    query = select(ItineraryJob).where(ItineraryJob.id == job_id, ItineraryJob.owner_id == owner_id)
+def owned(db, owner_id, job_id, *, lock=False, workflow="itinerary"):
+    query = select(ItineraryJob).where(ItineraryJob.id == job_id, ItineraryJob.owner_id == owner_id,
+                                       ItineraryJob.workflow == workflow)
     job = db.scalar(query.with_for_update() if lock else query)
     if job is None:
         raise AIError("not_found")
@@ -102,11 +120,11 @@ def _owned(db, owner_id, job_id, *, lock=False):
 
 
 def get_job(db: Session, owner_id: UUID, job_id: UUID) -> ItineraryJobView:
-    return job_view(_owned(db, owner_id, job_id))
+    return job_view(owned(db, owner_id, job_id))
 
 
 def cancel_job(db: Session, owner_id: UUID, job_id: UUID) -> ItineraryJobView:
-    job = _owned(db, owner_id, job_id, lock=True)
+    job = owned(db, owner_id, job_id, lock=True)
     if job.state in {"pending", "running"}:
         job.state = "cancelled"
         job.updated_at = job.completed_at = utcnow()
@@ -136,7 +154,7 @@ def cleanup(db: Session, now=None):
         ItineraryJob.state.in_(["completed", "failed", "cancelled"])))
 
 
-def _invalid():
+def invalid_output():
     return ValueError("invalid_output")
 
 
@@ -144,7 +162,7 @@ def validate_result(raw: str, facts: list[PublishedProgramme], preference_revisi
                     budget: int | None, needs: str) -> dict:
     """Validate raw model output against current published facts and the hard constraints."""
     if not isinstance(raw, str) or not raw.strip() or len(raw) > 40_000:
-        raise _invalid()
+        raise invalid_output()
     try:
         document = json.loads(raw)
         outcome = document.get("outcome") if isinstance(document, dict) else None
@@ -153,12 +171,12 @@ def validate_result(raw: str, facts: list[PublishedProgramme], preference_revisi
         elif outcome == "feasible":
             value = ModelFeasible.model_validate_json(raw)
         else:
-            raise _invalid()
+            raise invalid_output()
     except (ValueError, ValidationError) as exc:
-        raise _invalid() from exc
+        raise invalid_output() from exc
     if value.outcome == "infeasible":
         if any(not entry.detail.strip() for entry in value.blockingConstraints):
-            raise _invalid()
+            raise invalid_output()
         return {"outcome": "infeasible",
                 "blockingConstraints": [entry.model_dump() for entry in value.blockingConstraints]}
     labels = {str(fact.id): f"activity-{index}" for index, fact in enumerate(facts, 1)}
@@ -170,16 +188,16 @@ def validate_result(raw: str, facts: list[PublishedProgramme], preference_revisi
                 or item.startsAt.tzinfo is None or item.endsAt.tzinfo is None
                 or item.itemRevision != fact.revision or item.startsAt != fact.startsAt
                 or item.endsAt != fact.endsAt):
-            raise _invalid()
+            raise invalid_output()
         seen.add(str(item.itemId))
         chosen.append((fact, item.reason))
     chosen.sort(key=lambda pair: (pair[0].startsAt, pair[0].endsAt, str(pair[0].id)))
     for index, (first, _) in enumerate(chosen):
         for second, _ in chosen[index + 1:]:
             if first.startsAt < second.endsAt and second.startsAt < first.endsAt:
-                raise _invalid()
+                raise invalid_output()
     if budget is not None and sum(fact.priceMinorUnits for fact, _ in chosen) > budget:
-        raise _invalid()
+        raise invalid_output()
     accessible = not needs or all(fact.accessibilityDetails is not None for fact, _ in chosen)
     return {"outcome": "feasible",
         "items": [{"itemId": str(fact.id), "itemRevision": fact.revision, "startsAt": fact.startsAt.isoformat(),

@@ -8,7 +8,7 @@ from sqlalchemy import func, select, text
 
 from app.ai.models import AIProviderAttempt
 from app.ai.provider import ProviderFailure, SoCLaaSProvider
-from app.attendee_ai import service
+from app.attendee_ai import questions, service
 from app.attendee_ai.models import ItineraryJob, ItineraryProviderAttempt
 from app.auth.models import AuditEvent, utcnow
 from app.database import SessionLocal
@@ -51,8 +51,8 @@ def _finish(job_id, state, failure=None, result=None):
         job.updated_at = job.completed_at = now
         job.lease_until = None
         if state == "completed":
-            db.add(AuditEvent(user_id=job.owner_id, action="itinerary_job_complete",
-                              resource_id=job.id, outcome="success"))
+            db.add(AuditEvent(user_id=job.owner_id, resource_id=job.id, outcome="success",
+                              action="question_job_complete" if job.workflow == "question" else "itinerary_job_complete"))
         db.flush()
 
 
@@ -67,6 +67,14 @@ def _claim():
         if not service.lock_attendee(db, job.owner_id):
             _fail(job, "permission_revoked", now)
             return None
+        if job.workflow == "question":
+            facts = service.question_facts(db, job.event_id)
+            if not facts:
+                _fail(job, "source_changed", now)
+                return None
+            job.state, job.updated_at = "running", now
+            job.lease_until = min(job.deadline_at, now + timedelta(seconds=180))
+            return job.id, "question", None, facts, job.question
         row = service.planning_row(db, job.owner_id, job.event_id)
         facts = service.published_facts(db, job.event_id)
         if (row.preference_revision if row else 0) != job.preference_revision or not facts:
@@ -78,7 +86,7 @@ def _claim():
                  "needs": row.accessibility_needs if row else ""}
         job.state, job.updated_at = "running", now
         job.lease_until = min(job.deadline_at, now + timedelta(seconds=180))
-        return job.id, job.preference_revision, facts, prefs
+        return job.id, "itinerary", job.preference_revision, facts, prefs
 
 
 def _dispatch(job_id):
@@ -141,14 +149,14 @@ def _provider_failed(job_id, exc):
     logger.warning("AI itinerary provider attempt failed (%s).", code)
 
 
-def _send(provider, job_id, revision, messages, facts, prefs, sleeper):
+def _send(provider, job_id, messages, validate, sleeper):
     if sum(len(message["content"]) for message in messages) > 40_000:
         _finish(job_id, "failed", "input_too_large")
         return
 
     def attempt():
         raw = _complete(provider, job_id, messages)
-        return service.validate_result(raw, facts, revision, prefs["budgetMinorUnits"], prefs["needs"])
+        return validate(raw)
 
     try:
         result = attempt()
@@ -177,12 +185,21 @@ def run_once(provider=None, sleeper=lambda seconds: None) -> bool:
     claimed = _claim()
     if claimed is None:
         return False
-    job_id, revision, facts, prefs = claimed
+    job_id, workflow, revision, facts, extra = claimed
+    if workflow == "question":
+        messages = questions.build_messages(facts, extra)
+        validate = lambda raw: questions.validate_output(raw, facts)
+        if sum(len(message["content"]) for message in messages) > 40_000:
+            _finish(job_id, "failed", "input_too_large")  # nothing was sent: providerMayHaveRun stays false
+            return True
+    else:
+        messages = _messages(facts, extra)
+        validate = lambda raw: service.validate_result(raw, facts, revision, extra["budgetMinorUnits"], extra["needs"])
     if not _dispatch(job_id):
         return True
     try:
         adapter = provider or SoCLaaSProvider(Settings())
-        _send(adapter, job_id, revision, _messages(facts, prefs), facts, prefs, sleeper)
+        _send(adapter, job_id, messages, validate, sleeper)
     except Exception as exc:
         _provider_failed(job_id, exc)
     return True

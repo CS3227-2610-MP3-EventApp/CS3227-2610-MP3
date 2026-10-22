@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.ai.schemas import AnalysisProblem
-from app.attendee_ai import service
-from app.attendee_ai.schemas import GenerateItinerary, ItineraryJobView
+from app.attendee_ai import questions, service
+from app.attendee_ai.schemas import AskQuestion, GenerateItinerary, ItineraryJobView, QuestionJobView
 from app.auth.dependencies import require_workspace
 from app.auth.schemas import CurrentActor
 from app.database import get_db
@@ -43,3 +43,19 @@ def get_job(jobId: UUID, actor: Attendee, db: DB):
 @router.post("/ai/jobs/{jobId}/cancel", response_model=ItineraryJobView)
 def cancel_job(jobId: UUID, actor: Attendee, db: DB):
     return command(db, service.cancel_job, actor.id, jobId)
+
+
+@router.post("/events/{eventId}/event-questions", status_code=202, response_model=QuestionJobView)
+def ask_question(eventId: UUID, body: AskQuestion, actor: Attendee, db: DB):
+    job = command(db, questions.create_job, actor.id, eventId, body)
+    return questions.job_view(db, job)
+
+
+@router.get("/ai/question-jobs/{jobId}", response_model=QuestionJobView)
+def get_question_job(jobId: UUID, actor: Attendee, db: DB):
+    return questions.get_job(db, actor.id, jobId)
+
+
+@router.post("/ai/question-jobs/{jobId}/cancel", response_model=QuestionJobView)
+def cancel_question_job(jobId: UUID, actor: Attendee, db: DB):
+    return command(db, questions.cancel_job, actor.id, jobId)

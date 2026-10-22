@@ -15,7 +15,9 @@ class ItineraryJob(Base):
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
     event_id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), index=True)
     request_id: Mapped[UUID]
-    preference_revision: Mapped[int] = mapped_column(Integer)
+    workflow: Mapped[str] = mapped_column(String(16), default="itinerary", server_default="itinerary")
+    question: Mapped[str | None] = mapped_column(String(300))
+    preference_revision: Mapped[int | None] = mapped_column(Integer)
     state: Mapped[str] = mapped_column(String(16), index=True)
     failure_code: Mapped[str | None] = mapped_column(String(40))
     provider_may_have_run: Mapped[bool] = mapped_column(default=False)
