@@ -145,6 +145,21 @@ def rows(table: str):
 
 
 # --- fixtures -----------------------------------------------------------------------------
+# Other modules (test_ai_analysis, test_ai_recovery) declare ``pytest_plugins = ("tests.test_business_applications",)``,
+# which registers that module's autouse ``clean_database`` / ``migrated_database`` fixtures for the whole session.
+# ``clean_database`` truncates users/sessions/events before every test and would wipe the module-scoped world built by
+# ``infra``. Override both locally with no-ops: ``infra`` migrates and truncates itself, and ``prepare()`` resets the
+# per-test state, so nothing else is needed. (Harness-only; no assertion depends on these.)
+@pytest.fixture(scope="module", autouse=True)
+def migrated_database():
+    yield
+
+
+@pytest.fixture(autouse=True)
+def clean_database():
+    yield
+
+
 # The expensive world (migrations, bootstrap subprocesses, password hashing, published programme) is
 # built once per module. Each test starts from clean AI job tables, clean planning state and the
 # original programme revisions (see ``prepare``), so tests stay independent.
