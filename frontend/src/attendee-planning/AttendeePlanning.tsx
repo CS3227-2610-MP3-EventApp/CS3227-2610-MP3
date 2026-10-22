@@ -6,6 +6,7 @@ import { useAuth } from "../Auth";
 import { programmeApi } from "../programmeApi";
 import type { EventSummary, ProgrammePage, PublishedProgrammeItem } from "../programmeTypes";
 import { planningApi } from "./api";
+import { ItineraryAI } from "./ItineraryAI";
 import type { AcceptedPlan, DraftItem, PlanningState, Selection } from "./types";
 
 const issueText: Record<string, string> = {
@@ -124,6 +125,10 @@ export function AttendeePlanning() {
     if (!eventId || !state) return;
     void write(signal => planningApi.write(eventId, "/draft", "PUT", { expectedStateRevision: state.stateRevision, expectedPreferenceRevision: state.preferences.revision, items: draft.map(selection) }, signal), "Draft saved. Review its validation before accepting.");
   }
+  function saveSuggestion(items: Selection[]) {
+    if (!eventId || !state) return;
+    void write(signal => planningApi.write(eventId, "/draft", "PUT", { expectedStateRevision: state.stateRevision, expectedPreferenceRevision: state.preferences.revision, items }, signal), "Draft saved. Review its validation before accepting.");
+  }
   function accept() {
     if (!eventId || !state) return;
     void write(signal => planningApi.write(eventId, "/accept", "POST", { expectedStateRevision: state.stateRevision, expectedDraftRevision: state.draft.revision, expectedPreferenceRevision: state.preferences.revision }, signal), "Itinerary accepted. Your earlier versions remain saved.");
@@ -184,6 +189,7 @@ export function AttendeePlanning() {
           <Button type="submit" variant="contained" disabled={blocked}>Save preferences</Button>
         </Box>
       </Paper>
+      <ItineraryAI eventId={eventId} preferenceRevision={state.preferences.revision} items={programme?.items ?? []} disabled={blocked} formatTime={localTime} onSave={saveSuggestion} />
       <Box component="section">
         <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Published activities</Typography>
         <Stack gap={2}>{programme?.items.map(item => <Paper component="article" variant="outlined" sx={{ p: 2 }} key={item.id}>
