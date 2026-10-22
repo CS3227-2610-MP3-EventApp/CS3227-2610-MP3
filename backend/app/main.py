@@ -22,6 +22,7 @@ from app.setup.problems import SetupError, is_setup_path, problem_response as se
 from app.setup.routes import router as setup_router
 from app.preparation_drafts.routes import router as draft_router
 from app.promotional_concepts.routes import router as promotional_concepts_router
+from app.supplier_research.routes import router as supplier_research_router
 from app.database import engine
 from app.settings import Settings
 
@@ -37,6 +38,7 @@ app.include_router(preparation_router)
 app.include_router(setup_router)
 app.include_router(draft_router)
 app.include_router(promotional_concepts_router)
+app.include_router(supplier_research_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
@@ -81,7 +83,7 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
-    if "preparation-drafts" in request.url.path or "promotional-concepts" in request.url.path:
+    if "preparation-drafts" in request.url.path or "promotional-concepts" in request.url.path or "supplier-research" in request.url.path or "supplier-shortlist" in request.url.path:
         return ai_problem_response(request, "validation_error")
     if is_setup_path(request.url.path):
         return setup_problem_response(request, "validation_error", exc.errors())

@@ -16,6 +16,7 @@ from app.setup import models as setup_models  # noqa: F401 -- register participa
 
 from app.preparation_drafts import models as preparation_draft_models
 from app.promotional_concepts import models as promotional_concept_models
+from app.supplier_research import models as supplier_research_models
 
 config = context.config
 if config.config_file_name is not None:

@@ -120,6 +120,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
           </Paper>)}
         </Box>
         {session.role === "business" && <Paper component="article" variant="outlined" sx={{ p: 3, mt: 3 }}><Typography component="h2" variant="h2">Promotional concepts</Typography><Typography sx={{ my: 2 }}>Create private poster copy, freebie ideas and layout briefs with separately sourced event facts.</Typography><Button component={RouterLink} to="/business/promotional-concepts" variant="outlined">Open promotional concepts</Button></Paper>}
+        {session.role === "business" && <Paper component="article" variant="outlined" sx={{ p: 3, mt: 3 }}><Typography component="h2" variant="h2">Supplier research</Typography><Typography sx={{ my: 2 }}>Compare sourced printing, snack and freebie listings and save a private shortlist.</Typography><Button component={RouterLink} to="/business/supplier-research" variant="outlined">Open supplier research</Button></Paper>}
         <Typography variant="caption" component="p" color="text.secondary" sx={{ mt: 4 }}>EventApp · Made for experiences that bring us together.</Typography>
         </>}
       </Box>

@@ -1397,6 +1397,98 @@
         "title": "BusinessRegistration",
         "type": "object"
       },
+      "BusinessSupplierResearchJob": {
+        "additionalProperties": false,
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplierResearchSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "participationId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun",
+          "snapshot"
+        ],
+        "title": "BusinessSupplierResearchJob",
+        "type": "object"
+      },
       "ContactProfile": {
         "properties": {
           "displayName": {
@@ -1666,6 +1758,70 @@
           "dataSharingConfirmed"
         ],
         "title": "CreatePromotionalConcept",
+        "type": "object"
+      },
+      "CreateSupplierResearch": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Brief",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "printing",
+              "snacks",
+              "freebies"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "dataSharingConfirmed": {
+            "const": true,
+            "title": "Datasharingconfirmed",
+            "type": "boolean"
+          },
+          "deliveryArea": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Deliveryarea",
+            "type": "string"
+          },
+          "neededBy": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Neededby"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requestId",
+          "category",
+          "brief",
+          "quantity",
+          "deliveryArea",
+          "dataSharingConfirmed"
+        ],
+        "title": "CreateSupplierResearch",
         "type": "object"
       },
       "CurrentActor": {
@@ -3433,6 +3589,70 @@
         "title": "PublishedProgramme",
         "type": "object"
       },
+      "RawListedPrice": {
+        "additionalProperties": false,
+        "properties": {
+          "amountMinorUnits": {
+            "anyOf": [
+              {
+                "pattern": "^(0|[1-9][0-9]{0,17})$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Integer minor currency units (for example, SGD 2.80 is 280); fractional minor units, ambiguous ranges, and unconfirmed price tiers are unknown.",
+            "title": "Amountminorunits"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "minLength": 3,
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "quantityBasis": {
+            "anyOf": [
+              {
+                "pattern": "^[1-9][0-9]{0,6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantitybasis"
+          },
+          "unitLabel": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitlabel"
+          }
+        },
+        "required": [
+          "amountMinorUnits",
+          "currency",
+          "unitLabel",
+          "quantityBasis"
+        ],
+        "title": "RawListedPrice",
+        "type": "object"
+      },
       "RefreshPromotionalFacts": {
         "additionalProperties": false,
         "properties": {
@@ -3654,6 +3874,82 @@
           "layoutBrief"
         ],
         "title": "ReplacePromotionalConcept",
+        "type": "object"
+      },
+      "ReplaceShortlist": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "selectedOffers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierSelection"
+            },
+            "maxItems": 100,
+            "title": "Selectedoffers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "selectedOffers"
+        ],
+        "title": "ReplaceShortlist",
+        "type": "object"
+      },
+      "ResearchSource": {
+        "additionalProperties": false,
+        "properties": {
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "finalUrl": {
+            "title": "Finalurl",
+            "type": "string"
+          },
+          "isStale": {
+            "title": "Isstale",
+            "type": "boolean"
+          },
+          "provider": {
+            "const": "tavily_page_fetch",
+            "default": "tavily_page_fetch",
+            "title": "Provider",
+            "type": "string"
+          },
+          "requestedUrl": {
+            "title": "Requestedurl",
+            "type": "string"
+          },
+          "retrievedAt": {
+            "format": "date-time",
+            "title": "Retrievedat",
+            "type": "string"
+          },
+          "searchResultUrl": {
+            "title": "Searchresulturl",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "title": "Sourceid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "searchResultUrl",
+          "requestedUrl",
+          "finalUrl",
+          "retrievedAt",
+          "isStale",
+          "excerpt"
+        ],
+        "title": "ResearchSource",
         "type": "object"
       },
       "RevisionRequest": {
@@ -4049,6 +4345,73 @@
         "title": "SetupSourceFacts",
         "type": "object"
       },
+      "ShortlistView": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Createdat"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "selectedOffers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierSelection"
+            },
+            "title": "Selectedoffers",
+            "type": "array"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "required": [
+          "id",
+          "participationId",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "selectedOffers"
+        ],
+        "title": "ShortlistView",
+        "type": "object"
+      },
       "SourceFact": {
         "properties": {
           "currentRevision": {
@@ -4118,6 +4481,37 @@
         "title": "SourceFacts",
         "type": "object"
       },
+      "SourceFailure": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "unsafe_destination",
+              "fetch_failed",
+              "unsupported_content",
+              "too_large"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "displayMessage": {
+            "title": "Displaymessage",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "title": "Sourceid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "code",
+          "displayMessage"
+        ],
+        "title": "SourceFailure",
+        "type": "object"
+      },
       "SubmitApplication": {
         "additionalProperties": false,
         "properties": {
@@ -4131,6 +4525,376 @@
           "expectedRevision"
         ],
         "title": "SubmitApplication",
+        "type": "object"
+      },
+      "SupplierEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "evidenceQuote": {
+            "title": "Evidencequote",
+            "type": "string"
+          },
+          "field": {
+            "enum": [
+              "supplierName",
+              "productDescription",
+              "listedPrice.amountMinorUnits",
+              "listedPrice.currency",
+              "listedPrice.unitLabel",
+              "listedPrice.quantityBasis",
+              "deliveryEstimate",
+              "minimumOrderQuantity",
+              "availability",
+              "qualifications"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "title": "Sourceid",
+            "type": "string"
+          },
+          "sourceLocator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourcelocator"
+          }
+        },
+        "required": [
+          "field",
+          "sourceId",
+          "evidenceQuote",
+          "sourceLocator"
+        ],
+        "title": "SupplierEvidence",
+        "type": "object"
+      },
+      "SupplierOffer": {
+        "additionalProperties": false,
+        "properties": {
+          "availability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability"
+          },
+          "deliveryEstimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliveryestimate"
+          },
+          "estimatedCurrency": {
+            "anyOf": [
+              {
+                "const": "SGD",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimatedcurrency"
+          },
+          "estimatedItemSubtotalMinorUnits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimateditemsubtotalminorunits"
+          },
+          "evidenceByField": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierEvidence"
+            },
+            "title": "Evidencebyfield",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "listedPrice": {
+            "$ref": "#/components/schemas/RawListedPrice"
+          },
+          "minimumOrderQuantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimumorderquantity"
+          },
+          "productDescription": {
+            "title": "Productdescription",
+            "type": "string"
+          },
+          "qualifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Qualifications",
+            "type": "array"
+          },
+          "supplierName": {
+            "title": "Suppliername",
+            "type": "string"
+          },
+          "unknownFields": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierUnknownField"
+            },
+            "title": "Unknownfields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "supplierName",
+          "productDescription",
+          "evidenceByField",
+          "listedPrice",
+          "estimatedItemSubtotalMinorUnits",
+          "estimatedCurrency",
+          "deliveryEstimate",
+          "minimumOrderQuantity",
+          "availability",
+          "unknownFields",
+          "qualifications"
+        ],
+        "title": "SupplierOffer",
+        "type": "object"
+      },
+      "SupplierResearchHistory": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierResearchSnapshot"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "latestJob": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessSupplierResearchJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "latestJob"
+        ],
+        "title": "SupplierResearchHistory",
+        "type": "object"
+      },
+      "SupplierResearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "title": "Brief",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "printing",
+              "snacks",
+              "freebies"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "deliveryArea": {
+            "title": "Deliveryarea",
+            "type": "string"
+          },
+          "neededBy": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Neededby"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category",
+          "brief",
+          "quantity",
+          "deliveryArea",
+          "neededBy"
+        ],
+        "title": "SupplierResearchRequest",
+        "type": "object"
+      },
+      "SupplierResearchSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "isStale": {
+            "title": "Isstale",
+            "type": "boolean"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierOffer"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Offers",
+            "type": "array"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/SupplierResearchRequest"
+          },
+          "revision": {
+            "const": 1,
+            "default": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "sourceFailures": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFailure"
+            },
+            "title": "Sourcefailures",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "partial"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participationId",
+          "createdAt",
+          "status",
+          "request",
+          "offers",
+          "sources",
+          "sourceFailures",
+          "isStale"
+        ],
+        "title": "SupplierResearchSnapshot",
+        "type": "object"
+      },
+      "SupplierSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "offerId": {
+            "format": "uuid",
+            "title": "Offerid",
+            "type": "string"
+          },
+          "snapshotId": {
+            "format": "uuid",
+            "title": "Snapshotid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshotId",
+          "offerId"
+        ],
+        "title": "SupplierSelection",
+        "type": "object"
+      },
+      "SupplierUnknownField": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "reason"
+        ],
+        "title": "SupplierUnknownField",
         "type": "object"
       },
       "TaskInput": {
@@ -4535,6 +5299,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessSupplierResearchJob"
                     }
                   ],
                   "title": "Response Get Job Api V1 Ai Jobs  Jobid  Get"
@@ -4661,6 +5428,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessSupplierResearchJob"
                     }
                   ],
                   "title": "Response Cancel Job Api V1 Ai Jobs  Jobid  Cancel Post"
@@ -7587,6 +8357,237 @@
         ]
       }
     },
+    "/api/v1/business/participations/{participationId}/supplier-research": {
+      "get": {
+        "operationId": "history_api_v1_business_participations__participationId__supplier_research_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierResearchHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "History",
+        "tags": [
+          "Business supplier research"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_participations__participationId__supplier_research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierResearch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessSupplierResearchJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business supplier research"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/supplier-shortlist": {
+      "get": {
+        "operationId": "get_shortlist_api_v1_business_participations__participationId__supplier_shortlist_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Shortlist",
+        "tags": [
+          "Business supplier research"
+        ]
+      },
+      "put": {
+        "operationId": "replace_shortlist_api_v1_business_participations__participationId__supplier_shortlist_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceShortlist"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace Shortlist",
+        "tags": [
+          "Business supplier research"
+        ]
+      }
+    },
     "/api/v1/business/participations/{participation_id}/setup": {
       "get": {
         "operationId": "business_get_api_v1_business_participations__participation_id__setup_get",
@@ -8351,6 +9352,103 @@
         "summary": "Refresh",
         "tags": [
           "Business promotional concepts"
+        ]
+      }
+    },
+    "/api/v1/business/supplier-research/{snapshotId}": {
+      "delete": {
+        "operationId": "delete_snapshot_api_v1_business_supplier_research__snapshotId__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Snapshotid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedRevision",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Expectedrevision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Delete Snapshot",
+        "tags": [
+          "Business supplier research"
+        ]
+      },
+      "get": {
+        "operationId": "get_snapshot_api_v1_business_supplier_research__snapshotId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Snapshotid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierResearchSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Snapshot",
+        "tags": [
+          "Business supplier research"
         ]
       }
     },

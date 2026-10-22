@@ -268,3 +268,7 @@ Attendee browsing uses `/api/v1/attendee/events` and `/api/v1/attendee/events/{e
 ## 2026-10-22 Business refinements
 
 Apply additive migration0011 for separate setup publication and nullable overall spending limits. Current own contact-profile endpoint does not expand CurrentActor. See [BusinessPreparationTesting](BusinessPreparationTesting.md) for updated actual steps and real-data opt-in. From the repository root, set DATABASE_URL then use `uv --directory backend run --python 3.12 python -m app.ai.worker`; running outside backend without selecting its directory causes No module named app and may select Python3.13. Both API and worker need matching AI_ENABLED, AI_REAL_DATA_ENABLED, AI_ALLOWED_EVENT_IDS and backend key/model configuration. Production calls remain disabled. No provider retention or deletion guarantee is inferred from local cleanup.
+
+## Supplier research configuration
+
+Phase 2 adds backend-only `TAVILY_API_KEY` alongside configured SoCLaaS settings. Keep the value in ignored `backend/.env`; `.env.example` contains only the variable name. Apply migration0014 and run the existing worker. Production AI remains disabled. Supplier requests use the existing development opt-in/event allowlist, explicit disclosure, shared owner quota and active-job controls. [SupplierResearchTesting](SupplierResearchTesting.md) records scoped commands, real-call smoke scripts and verification limits.

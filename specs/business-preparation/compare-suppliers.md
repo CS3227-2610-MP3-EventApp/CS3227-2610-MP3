@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | compare-suppliers |
 | Covered stories | F09-US02; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 3 / Ready |
+| Specification revision / status | 3 / In progress |
 | Product roles / roadmap reference | Active business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved exact revision 3 and shared AI-task revision 6 on 2026-10-22; independent preimplementation reviews approved the bounded test suite. |
 | Review / run record | [Phase 2 run](../../workflow/agents/runs/2026-10-22-f09-phase2.md); independent test design and exact contract review in progress |

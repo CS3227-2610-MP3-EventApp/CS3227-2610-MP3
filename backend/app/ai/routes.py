@@ -8,6 +8,7 @@ from app.ai import service
 from app.ai.schemas import AnalysisHistory, AnalysisJob, AnalysisProblem, AnalysisRubric, CreateAnalysis, ReplaceAnalysisRubric
 from app.preparation_drafts.schemas import BusinessPreparationJob
 from app.promotional_concepts.schemas import BusinessPromotionalConceptJob
+from app.supplier_research.schemas import BusinessSupplierResearchJob
 from app.auth.dependencies import completed, get_current_actor, require_workspace
 from app.auth.schemas import CurrentActor
 from app.database import get_db
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/api/v1", tags=["Organiser AI analysis"], responses={
 DB = Annotated[Session, Depends(get_db)]
 Organiser = Annotated[CurrentActor, Depends(require_workspace("organiser"))]
 JobActor = Annotated[CurrentActor, Depends(get_current_actor)]
-SharedJob = AnalysisJob | BusinessPreparationJob | BusinessPromotionalConceptJob
+SharedJob = AnalysisJob | BusinessPreparationJob | BusinessPromotionalConceptJob | BusinessSupplierResearchJob
 
 
 def command(db, operation, *args):

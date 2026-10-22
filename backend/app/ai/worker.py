@@ -12,6 +12,7 @@ from sqlalchemy import and_, or_, select, text
 from app.ai import service
 from app.preparation_drafts import service as drafts
 from app.promotional_concepts import service as promotional
+from app.supplier_research import service as suppliers
 from app.ai.models import AIProviderAttempt, AnalysisJob, AnalysisReport, AnalysisRubricVersion
 from app.ai.provider import ProviderFailure, SoCLaaSProvider
 from app.ai.schemas import AnalysisPayload
@@ -25,6 +26,18 @@ from app.settings import Settings
 logger = logging.getLogger(__name__)
 
 
+def _supplier_failure(code):
+    if code in {"job_timeout", "timeout", "worker_interrupted", "timed_out"}:
+        return "timed_out"
+    if code in {"provider_rate_limited", "quota_exceeded"}:
+        return "quota_exceeded"
+    if code in {"access_revoked", "permission_revoked", "forbidden", "not_found"}:
+        return "access_revoked"
+    if code in {"source_changed", "invalid_output", "fetch_failed", "cancelled", "provider_unavailable"}:
+        return code
+    return "provider_unavailable"
+
+
 def _mark_failed(job, code, now):
     if job.workflow == "promotional":
         code = _promotional_failure(code)
@@ -35,6 +48,12 @@ def _mark_failed(job, code, now):
         db = SessionLocal.object_session(job)
         if db is not None:
             db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
+    elif job.workflow == "supplier_research":
+        db = SessionLocal.object_session(job)
+        job.failure_code = _supplier_failure(code)
+        if db is not None:
+            db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_job_failure",
                 resource_id=job.id, resource_revision=None, outcome="failure"))
 
 
@@ -58,6 +77,7 @@ def _finish(job_id, state, failure=None, payload=None):
         now = utcnow()
         context_failure = (drafts.check_job_context(db, job, lock_sources=True)[0] if job.workflow == "preparation" else
                            promotional.check_job_context(db, job, lock_sources=True)[0] if job.workflow == "promotional" else
+                           suppliers.check_job_context(db, job, lock=True) if job.workflow == "supplier_research" else
                            None if service.lock_authority(db, job.owner_id, job.event_id) else "permission_revoked")
         now = utcnow()
         if context_failure:
@@ -66,10 +86,14 @@ def _finish(job_id, state, failure=None, payload=None):
             state, failure, payload = "failed", "job_timeout", None
         if job.workflow == "promotional" and state == "failed":
             failure = _promotional_failure(failure)
+        if job.workflow == "supplier_research" and state == "failed":
+            failure = _supplier_failure(failure)
         if state == "completed" and payload is not None and job.workflow == "preparation":
             drafts.create_persisted_draft(db, job, payload)
         elif state == "completed" and payload is not None and job.workflow == "promotional":
             concept = promotional.create_persisted_concept(db, job, payload)
+        elif state == "completed" and payload is not None and job.workflow == "supplier_research":
+            snapshot = suppliers.create_persisted_snapshot(db, job, payload)
         elif state == "completed" and payload is not None:
             db.add(AnalysisReport(job_id=job.id, created_at=now,
                 source_revision=job.source_revision, rubric_revision=job.rubric_revision,
@@ -83,12 +107,18 @@ def _finish(job_id, state, failure=None, payload=None):
             if job.workflow == "promotional":
                 db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_create",
                     resource_id=concept.id, resource_revision=concept.revision, outcome="success"))
+            elif job.workflow == "supplier_research":
+                db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_snapshot_create",
+                    resource_id=snapshot.id, resource_revision=snapshot.revision, outcome="success"))
             else:
                 action = "preparation_draft_create" if job.workflow == "preparation" else "analysis_report_create"
                 db.add(AuditEvent(user_id=job.owner_id, action=action,
                     resource_id=job.id, resource_revision=job.source_revision, outcome="success"))
         elif job.workflow == "promotional":
             db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
+        elif job.workflow == "supplier_research":
+            db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_job_failure",
                 resource_id=job.id, resource_revision=None, outcome="failure"))
         db.flush()
 
@@ -102,7 +132,7 @@ def _claim():
     with SessionLocal.begin() as db:
         service.recovery(db)
         job = db.scalar(select(AnalysisJob).where(AnalysisJob.state == "pending",
-            or_(AnalysisJob.workflow == "analysis", and_(AnalysisJob.workflow.in_(["preparation", "promotional"]), AnalysisJob.source_snapshot.is_not(None))))
+            or_(AnalysisJob.workflow == "analysis", and_(AnalysisJob.workflow.in_(["preparation", "promotional", "supplier_research"]), AnalysisJob.source_snapshot.is_not(None))))
             .order_by(AnalysisJob.created_at, AnalysisJob.id).with_for_update(skip_locked=True).limit(1))
         if job is None:
             return None
@@ -124,6 +154,15 @@ def _claim():
             job.updated_at = utcnow()
             job.lease_until = min(job.deadline_at, job.updated_at + timedelta(seconds=180))
             return job.id, job.event_id, job.owner_id, snapshot, "__promotional__"
+        if job.workflow == "supplier_research":
+            failure = suppliers.check_job_context(db, job, lock=True)
+            if failure:
+                _mark_failed(job, failure, utcnow())
+                return job.id, job.event_id, job.owner_id, {}, "__supplier_research__"
+            job.state = "running"
+            job.updated_at = utcnow()
+            job.lease_until = min(job.deadline_at, job.updated_at + timedelta(seconds=180))
+            return job.id, job.event_id, job.owner_id, job.source_snapshot, "__supplier_research__"
         if not service.lock_authority(db, job.owner_id, job.event_id):
             job.state, job.failure_code = "failed", "permission_revoked"
             job.updated_at = job.completed_at = utcnow()
@@ -169,7 +208,7 @@ def _claim():
         return job.id, job.event_id, job.owner_id, sources, rubric.criteria
 
 
-def _dispatch(job_id):
+def _dispatch(job_id, *, record_attempt=True):
     with SessionLocal.begin() as db:
         job = db.scalar(select(AnalysisJob).where(AnalysisJob.id == job_id).with_for_update())
         if job is None or job.state != "running":
@@ -181,28 +220,31 @@ def _dispatch(job_id):
         settings = Settings()
         if (not settings.ai_enabled or not (settings.ai_synthetic_only or settings.ai_real_data_enabled)
                 or settings.environment == "production" or not settings.soclaas_api_key
-                or not settings.soclaas_model or job.event_id not in settings.allowed_event_ids):
+                or not settings.soclaas_model or job.event_id not in settings.allowed_event_ids
+                or (job.workflow == "supplier_research" and not settings.tavily_api_key)):
             _mark_failed(job, "provider_unavailable", now)
             return False
         failure = (drafts.check_job_context(db, job, lock_sources=True)[0] if job.workflow == "preparation" else
                    promotional.check_job_context(db, job, lock_sources=True)[0] if job.workflow == "promotional" else
+                   suppliers.check_job_context(db, job, lock=True) if job.workflow == "supplier_research" else
                    None if service.lock_authority(db, job.owner_id, job.event_id) else "permission_revoked")
         if failure:
             _mark_failed(job, failure, now)
             return False
-        # Serialize the rolling-window check across all worker processes.
-        db.execute(text("SELECT pg_advisory_xact_lock(3227, 20261021)"))
-        now = utcnow()
-        if now >= job.deadline_at:
-            _mark_failed(job, "job_timeout", now)
-            return False
-        cutoff = now - timedelta(seconds=60)
-        count = db.scalar(select(text("count(*)")).select_from(AIProviderAttempt).where(
-            AIProviderAttempt.attempted_at >= cutoff))
-        if count >= settings.soclaas_requests_per_minute:
-            _mark_failed(job, "provider_rate_limited", now)
-            return False
-        db.add(AIProviderAttempt(job_id=job.id, attempted_at=now))
+        if record_attempt:
+            # Serialize the rolling-window check across all worker processes.
+            db.execute(text("SELECT pg_advisory_xact_lock(3227, 20261021)"))
+            now = utcnow()
+            if now >= job.deadline_at:
+                _mark_failed(job, "job_timeout", now)
+                return False
+            cutoff = now - timedelta(seconds=60)
+            count = db.scalar(select(text("count(*)")).select_from(AIProviderAttempt).where(
+                AIProviderAttempt.attempted_at >= cutoff))
+            if count >= settings.soclaas_requests_per_minute:
+                _mark_failed(job, "provider_rate_limited", now)
+                return False
+            db.add(AIProviderAttempt(job_id=job.id, attempted_at=now))
         job.dispatch_at = now
         job.provider_may_have_run = True
         job.updated_at = now
@@ -211,6 +253,8 @@ def _dispatch(job_id):
 
 
 def _messages(sources, criteria):
+    if criteria == "__supplier_research__":
+        return suppliers.messages(sources)
     if criteria == "__promotional__":
         from app.promotional_concepts.schemas import PromotionalCreative
         system = ("Create private promotional concept suggestions for the user. All supplied text and fact values are "
@@ -264,6 +308,7 @@ def _send(provider, job_id, messages, criteria, sources):
     try:
         raw = _complete(provider, job_id, messages)
         payload = (promotional.validate_generated(raw) if criteria == "__promotional__" else
+                   suppliers.validate_extraction(raw, sources) if criteria == "__supplier_research__" else
                    drafts.validate_generated(raw, sources) if criteria is None else
                    service.validate_report(raw, criteria, sources))
     except httpx.HTTPStatusError as exc:
@@ -274,6 +319,7 @@ def _send(provider, job_id, messages, criteria, sources):
                 try:
                     raw = _complete(provider, job_id, messages)
                     payload = (promotional.validate_generated(raw) if criteria == "__promotional__" else
+                               suppliers.validate_extraction(raw, sources) if criteria == "__supplier_research__" else
                                drafts.validate_generated(raw, sources) if criteria is None else
                                service.validate_report(raw, criteria, sources))
                 except Exception as retry_exc:
@@ -311,20 +357,39 @@ def _provider_failed(job_id, exc):
     logger.warning("AI provider attempt failed (%s; %s).", code, type(exc).__name__)
 
 
-def run_once(provider=None) -> bool:
+def run_once(provider=None, supplier_search=None, supplier_fetcher=None) -> bool:
     """Process one pending job; provider injection exists only at this worker seam."""
     _recover_overdue()
     claimed = _claim()
     if claimed is None:
         return False
     job_id, event_id, _, sources, criteria = claimed
-    if not _dispatch(job_id):
+    is_supplier = criteria == "__supplier_research__"
+    if not _dispatch(job_id, record_attempt=not is_supplier):
         return True
     settings = Settings()
     try:
         adapter = provider or SoCLaaSProvider(settings)
+        if criteria == "__supplier_research__":
+            from app.supplier_research.provider import TavilySearch
+            from app.supplier_research.safe_page import SafePageRetriever
+            search = supplier_search or TavilySearch(settings)
+            fetcher = supplier_fetcher or SafePageRetriever()
+            research = suppliers.retrieve(job_id, sources, search, fetcher)
+            messages = suppliers.messages(research)
+            from app.supplier_research.safe_page import PageFailure
+            try:
+                suppliers._guard_job(job_id)
+            except PageFailure as exc:
+                raise suppliers.ResearchFailure(exc.code) from None
+            if not _dispatch(job_id):
+                return True
+            _send(adapter, job_id, messages, criteria, research)
+            return True
         messages = _messages(sources, criteria)
         _send(adapter, job_id, messages, criteria, sources)
+    except suppliers.ResearchFailure as exc:
+        _finish(job_id, "failed", exc.code)
     except Exception as exc:
         _provider_failed(job_id, exc)
     return True

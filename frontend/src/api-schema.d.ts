@@ -332,6 +332,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/business/participations/{participationId}/supplier-research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_v1_business_participations__participationId__supplier_research_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_v1_business_participations__participationId__supplier_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/business/participations/{participationId}/supplier-shortlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Shortlist */
+        get: operations["get_shortlist_api_v1_business_participations__participationId__supplier_shortlist_get"];
+        /** Replace Shortlist */
+        put: operations["replace_shortlist_api_v1_business_participations__participationId__supplier_shortlist_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/business/participations/{participation_id}/setup": {
         parameters: {
             query?: never;
@@ -415,6 +451,24 @@ export interface paths {
         /** Refresh */
         post: operations["refresh_api_v1_business_promotional_concepts__conceptId__refresh_facts_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/business/supplier-research/{snapshotId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Snapshot */
+        get: operations["get_snapshot_api_v1_business_supplier_research__snapshotId__get"];
+        put?: never;
+        post?: never;
+        /** Delete Snapshot */
+        delete: operations["delete_snapshot_api_v1_business_supplier_research__snapshotId__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1377,6 +1431,46 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** BusinessSupplierResearchJob */
+        BusinessSupplierResearchJob: {
+            /** Completedat */
+            completedAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /** Failurecode */
+            failureCode: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Providermayhaverun */
+            providerMayHaveRun: boolean;
+            snapshot: components["schemas"]["SupplierResearchSnapshot"] | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "running" | "completed" | "failed" | "cancelled";
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
         /** ContactProfile */
         ContactProfile: {
             /** Displayname */
@@ -1465,6 +1559,32 @@ export interface components {
             expectedSetupRevision: number | null;
             /** Factfields */
             factFields: ("event.title" | "event.startsAt" | "event.endsAt" | "event.timezone" | "setup.boothLabel" | "setup.setupInstructions")[];
+            /**
+             * Requestid
+             * Format: uuid
+             */
+            requestId: string;
+        };
+        /** CreateSupplierResearch */
+        CreateSupplierResearch: {
+            /** Brief */
+            brief: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "printing" | "snacks" | "freebies";
+            /**
+             * Datasharingconfirmed
+             * @constant
+             */
+            dataSharingConfirmed: true;
+            /** Deliveryarea */
+            deliveryArea: string;
+            /** Neededby */
+            neededBy?: string | null;
+            /** Quantity */
+            quantity: number;
             /**
              * Requestid
              * Format: uuid
@@ -2236,6 +2356,20 @@ export interface components {
             type: "talk" | "workshop" | "panel" | "booth" | "performance" | "other";
             venue: components["schemas"]["VenueFacts"];
         };
+        /** RawListedPrice */
+        RawListedPrice: {
+            /**
+             * Amountminorunits
+             * @description Integer minor currency units (for example, SGD 2.80 is 280); fractional minor units, ambiguous ranges, and unconfirmed price tiers are unknown.
+             */
+            amountMinorUnits: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Quantitybasis */
+            quantityBasis: string | null;
+            /** Unitlabel */
+            unitLabel: string | null;
+        };
         /** RefreshPromotionalFacts */
         RefreshPromotionalFacts: {
             /** Expectedeventrevision */
@@ -2298,6 +2432,42 @@ export interface components {
             layoutBrief: string;
             /** Postercopysuggestions */
             posterCopySuggestions: string[];
+        };
+        /** ReplaceShortlist */
+        ReplaceShortlist: {
+            /** Expectedrevision */
+            expectedRevision: number;
+            /** Selectedoffers */
+            selectedOffers: components["schemas"]["SupplierSelection"][];
+        };
+        /** ResearchSource */
+        ResearchSource: {
+            /** Excerpt */
+            excerpt: string;
+            /** Finalurl */
+            finalUrl: string;
+            /** Isstale */
+            isStale: boolean;
+            /**
+             * Provider
+             * @default tavily_page_fetch
+             * @constant
+             */
+            provider: "tavily_page_fetch";
+            /** Requestedurl */
+            requestedUrl: string;
+            /**
+             * Retrievedat
+             * Format: date-time
+             */
+            retrievedAt: string;
+            /** Searchresulturl */
+            searchResultUrl: string;
+            /**
+             * Sourceid
+             * Format: uuid
+             */
+            sourceId: string;
         };
         /** RevisionRequest */
         RevisionRequest: {
@@ -2436,6 +2606,24 @@ export interface components {
             /** Setupinstructions */
             setupInstructions: string | null;
         };
+        /** ShortlistView */
+        ShortlistView: {
+            /** Createdat */
+            createdAt: string | null;
+            /** Id */
+            id: string | null;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Revision */
+            revision: number;
+            /** Selectedoffers */
+            selectedOffers: components["schemas"]["SupplierSelection"][];
+            /** Updatedat */
+            updatedAt: string | null;
+        };
         /** SourceFact */
         SourceFact: {
             /** Currentrevision */
@@ -2457,10 +2645,157 @@ export interface components {
             event: components["schemas"]["EventSourceFacts"];
             setup: components["schemas"]["SetupSourceFacts"];
         };
+        /** SourceFailure */
+        SourceFailure: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "unsafe_destination" | "fetch_failed" | "unsupported_content" | "too_large";
+            /** Displaymessage */
+            displayMessage: string;
+            /**
+             * Sourceid
+             * Format: uuid
+             */
+            sourceId: string;
+        };
         /** SubmitApplication */
         SubmitApplication: {
             /** Expectedrevision */
             expectedRevision: number;
+        };
+        /** SupplierEvidence */
+        SupplierEvidence: {
+            /** Evidencequote */
+            evidenceQuote: string;
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "supplierName" | "productDescription" | "listedPrice.amountMinorUnits" | "listedPrice.currency" | "listedPrice.unitLabel" | "listedPrice.quantityBasis" | "deliveryEstimate" | "minimumOrderQuantity" | "availability" | "qualifications";
+            /**
+             * Sourceid
+             * Format: uuid
+             */
+            sourceId: string;
+            /** Sourcelocator */
+            sourceLocator: string | null;
+        };
+        /** SupplierOffer */
+        SupplierOffer: {
+            /** Availability */
+            availability: string | null;
+            /** Deliveryestimate */
+            deliveryEstimate: string | null;
+            /** Estimatedcurrency */
+            estimatedCurrency: "SGD" | null;
+            /** Estimateditemsubtotalminorunits */
+            estimatedItemSubtotalMinorUnits: string | null;
+            /** Evidencebyfield */
+            evidenceByField: components["schemas"]["SupplierEvidence"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            listedPrice: components["schemas"]["RawListedPrice"];
+            /** Minimumorderquantity */
+            minimumOrderQuantity: number | null;
+            /** Productdescription */
+            productDescription: string;
+            /** Qualifications */
+            qualifications: string[];
+            /** Suppliername */
+            supplierName: string;
+            /** Unknownfields */
+            unknownFields: components["schemas"]["SupplierUnknownField"][];
+        };
+        /** SupplierResearchHistory */
+        SupplierResearchHistory: {
+            /** Items */
+            items: components["schemas"]["SupplierResearchSnapshot"][];
+            latestJob: components["schemas"]["BusinessSupplierResearchJob"] | null;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** SupplierResearchRequest */
+        SupplierResearchRequest: {
+            /** Brief */
+            brief: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "printing" | "snacks" | "freebies";
+            /** Deliveryarea */
+            deliveryArea: string;
+            /** Neededby */
+            neededBy: string | null;
+            /** Quantity */
+            quantity: number;
+        };
+        /** SupplierResearchSnapshot */
+        SupplierResearchSnapshot: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Isstale */
+            isStale: boolean;
+            /** Offers */
+            offers: components["schemas"]["SupplierOffer"][];
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            request: components["schemas"]["SupplierResearchRequest"];
+            /**
+             * Revision
+             * @default 1
+             * @constant
+             */
+            revision: 1;
+            /** Sourcefailures */
+            sourceFailures: components["schemas"]["SourceFailure"][];
+            /** Sources */
+            sources: components["schemas"]["ResearchSource"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "complete" | "partial";
+        };
+        /** SupplierSelection */
+        SupplierSelection: {
+            /**
+             * Offerid
+             * Format: uuid
+             */
+            offerId: string;
+            /**
+             * Snapshotid
+             * Format: uuid
+             */
+            snapshotId: string;
+        };
+        /** SupplierUnknownField */
+        SupplierUnknownField: {
+            /** Field */
+            field: string;
+            /** Reason */
+            reason: string;
         };
         /** TaskInput */
         TaskInput: {
@@ -2620,7 +2955,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"] | components["schemas"]["BusinessPromotionalConceptJob"];
+                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"] | components["schemas"]["BusinessPromotionalConceptJob"] | components["schemas"]["BusinessSupplierResearchJob"];
                 };
             };
             /** @description Unauthorized */
@@ -2712,7 +3047,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"] | components["schemas"]["BusinessPromotionalConceptJob"];
+                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"] | components["schemas"]["BusinessPromotionalConceptJob"] | components["schemas"]["BusinessSupplierResearchJob"];
                 };
             };
             /** @description Unauthorized */
@@ -4775,6 +5110,141 @@ export interface operations {
             };
         };
     };
+    history_api_v1_business_participations__participationId__supplier_research_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierResearchHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_v1_business_participations__participationId__supplier_research_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSupplierResearch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessSupplierResearchJob"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_shortlist_api_v1_business_participations__participationId__supplier_shortlist_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortlistView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_shortlist_api_v1_business_participations__participationId__supplier_shortlist_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceShortlist"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortlistView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     business_get_api_v1_business_participations__participation_id__setup_get: {
         parameters: {
             query?: never;
@@ -5350,6 +5820,68 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PromotionalProblem"];
                     "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    get_snapshot_api_v1_business_supplier_research__snapshotId__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierResearchSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_snapshot_api_v1_business_supplier_research__snapshotId__delete: {
+        parameters: {
+            query: {
+                expectedRevision: number;
+            };
+            header?: never;
+            path: {
+                snapshotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     soclaas_api_key: SecretStr | None = None
     soclaas_model: str | None = None
     soclaas_requests_per_minute: int = Field(default=30, ge=1, le=90)
+    tavily_api_key: SecretStr | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
 

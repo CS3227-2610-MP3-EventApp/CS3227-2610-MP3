@@ -22,8 +22,8 @@ class AnalysisJob(Base):
     __tablename__ = "ai_jobs"
     __table_args__ = (
         UniqueConstraint("owner_id", "workflow", "request_id", name="uq_ai_job_owner_workflow_request"),
-        CheckConstraint("workflow IN ('analysis','preparation','promotional')", name="ck_ai_job_workflow"),
-        CheckConstraint("(workflow = 'analysis' AND application_id IS NOT NULL AND source_revision IS NOT NULL AND rubric_revision IS NOT NULL AND business_participation_id IS NULL) OR (workflow IN ('preparation','promotional') AND application_id IS NULL AND source_revision IS NULL AND rubric_revision IS NULL AND business_participation_id IS NOT NULL)", name="ck_ai_job_workflow_context"),
+        CheckConstraint("workflow IN ('analysis','preparation','promotional','supplier_research')", name="ck_ai_job_workflow"),
+        CheckConstraint("(workflow = 'analysis' AND application_id IS NOT NULL AND source_revision IS NOT NULL AND rubric_revision IS NOT NULL AND business_participation_id IS NULL) OR (workflow IN ('preparation','promotional','supplier_research') AND application_id IS NULL AND source_revision IS NULL AND rubric_revision IS NULL AND business_participation_id IS NOT NULL)", name="ck_ai_job_workflow_context"),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)

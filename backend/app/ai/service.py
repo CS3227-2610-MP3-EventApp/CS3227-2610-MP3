@@ -236,6 +236,9 @@ def job_view(db, job):
             createdAt=job.created_at, updatedAt=job.updated_at, completedAt=job.completed_at,
             failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run,
             concept=get_concept_for_job(db, job))
+    if job.workflow == "supplier_research":
+        from app.supplier_research.service import job_view as supplier_job_view
+        return supplier_job_view(db, job)
     # A newer report must not be paired with an older in-memory running state.
     report = db.scalar(select(AnalysisReport).where(AnalysisReport.job_id == job.id)) if job.state == "completed" else None
     return JobView(id=job.id, eventId=job.event_id, applicationId=job.application_id,
@@ -255,6 +258,8 @@ def get_job(db, owner, job_id):
         return _business_job(db, owner, job)
     if job.workflow == "promotional":
         return _promotional_job(db, owner, job)
+    if job.workflow == "supplier_research":
+        return _supplier_job(db, owner, job)
     if job.workflow != "analysis" or owner.role != "organiser":
         raise AIError("not_found")
     require_authority(db, owner.id, job.event_id)
@@ -272,6 +277,8 @@ def cancel_job(db, owner, job_id):
         return _cancel_business_job(db, owner, job)
     if job.workflow == "promotional":
         return _cancel_promotional_job(db, owner, job)
+    if job.workflow == "supplier_research":
+        return _cancel_supplier_job(db, owner, job)
     if job.workflow != "analysis" or owner.role != "organiser":
         raise AIError("not_found")
     require_authority(db, owner.id, job.event_id)
@@ -364,6 +371,38 @@ def _cancel_promotional_job(db, actor, job):
     return view
 
 
+def _supplier_job(db, actor, job):
+    from app.supplier_research.service import _authority, job_view as supplier_job_view
+    if actor.role != "business":
+        raise AIError("not_found")
+    participation = db.get(EventParticipation, job.business_participation_id)
+    if participation is None or job.event_id != participation.event_id:
+        raise AIError("not_found")
+    try:
+        _authority(db, actor, job.business_participation_id)
+    except AIError as exc:
+        if exc.code == "not_found":
+            raise AIError("forbidden") from None
+        raise
+    return supplier_job_view(db, job)
+
+
+def _cancel_supplier_job(db, actor, job):
+    from app.supplier_research.service import job_view as supplier_job_view
+    view = _supplier_job(db, actor, job)
+    if job.state in {"pending", "running"}:
+        now = utcnow()
+        job.state = "cancelled"
+        job.failure_code = "cancelled"
+        job.updated_at = job.completed_at = now
+        job.provider_may_have_run = job.dispatch_at is not None
+        db.add(AuditEvent(user_id=actor.id, action="supplier_research_job_cancel",
+            resource_id=job.id, resource_revision=None, outcome="success"))
+        db.flush()
+        return supplier_job_view(db, job)
+    return view
+
+
 def history(db, owner, event_id, application_id, limit=20, offset=0):
     require_authority(db, owner.id, event_id)
     if _target(db, event_id, application_id) is None:
@@ -394,6 +433,10 @@ def recovery(db, now=None):
         if job.workflow == "promotional":
             db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_job_failure",
                 resource_id=job.id, resource_revision=None, outcome="failure"))
+        elif job.workflow == "supplier_research":
+            job.failure_code = "timed_out"
+            db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
     overdue = db.scalars(select(AnalysisJob).where(AnalysisJob.state == "pending",
         AnalysisJob.deadline_at < now).with_for_update(skip_locked=True)).all()
     for job in overdue:
@@ -404,6 +447,10 @@ def recovery(db, now=None):
         job.lease_until = None
         if job.workflow == "promotional":
             db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
+        elif job.workflow == "supplier_research":
+            job.failure_code = "timed_out"
+            db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_job_failure",
                 resource_id=job.id, resource_revision=None, outcome="failure"))
     db.flush()
 
@@ -421,6 +468,7 @@ def problem_response(request, code):
     mapping = {
         "source_changed": (409, "Source facts changed. Review or regenerate the draft."),
         "already_adopted": (409, "This draft has already been adopted."),
+        "in_use": (409, "Remove this selection from the shortlist before deleting the snapshot."),
         "request_conflict": (409, "Request identifier already used for different inputs."),
         "quota_exceeded": (429, "The daily job limit has been reached."),
         "forbidden": (403, "Access is not permitted."), "not_found": (404, "Resource not found."),
