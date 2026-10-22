@@ -95,3 +95,16 @@ def test_price_text_matches_the_programme_page_and_grounds_summary_digits():
     assert questions.price_text(0) == "Free" and questions.price_text(1000) == "SGD 10.00" and questions.price_text(1250) == "SGD 12.50"
     assert questions._summary("test1 costs SGD 10.00", [1000], ["test1"], ["SGD 10.00"]) == "test1 costs SGD 10.00"
     assert questions._summary("test1 costs SGD 11.00", [1000], ["test1"], ["SGD 10.00"]) is None
+
+
+def test_other_record_style_field_names_are_verified_like_the_real_fields():
+    fact = _fact()
+    ok = [("priceText", "Free"), ("roomName", "R"), ("venue", "V"), ("address", "A"), ("start", "01 Jan 2027, 10:00"),
+          ("endTime", "01 Jan 2027, 11:00")]
+    for field, value in ok:
+        assert questions.validate_output(_answer(fact, field, value), [fact])["outcome"] == "answered", field
+    bad = [("priceText", "SGD 10.00"), ("priceText", 0), ("roomName", "Other"), ("venue", None), ("start", "10:00"),
+           ("endTime", "01 Jan 2027, 12:00")]
+    for field, value in bad:
+        with pytest.raises(ValueError):
+            questions.validate_output(_answer(fact, field, value), [fact])

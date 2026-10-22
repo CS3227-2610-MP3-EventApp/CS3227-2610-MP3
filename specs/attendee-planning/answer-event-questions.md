@@ -19,7 +19,7 @@ A signed-in attendee can use an LLM-assisted event information service without m
 
 On the attendee event view, a section headed "Ask about this event" has a text box labelled "Your question" (300 characters, with a remaining-count), and buttons "Ask question" and, while a job is active, "Cancel question". A status line states the job state and that an answer can take up to a minute. A visible notice says the question is sent to an external AI service and that personal details must not be entered. There is no confirmation checkbox; the server-side allowlist of invented-data events is the control.
 
-- **Answered:** a list of verified facts, each showing item title, revision, field, the value taken from the authoritative record, a "Cancelled" marker where applicable, and a link to the programme item. Below it, an "AI summary" sentence only when the summary passes validation; the page states that only the verified facts are checked.
+- **Answered:** a list of verified facts, each showing item title, revision, field, the value taken from the authoritative record, a "Cancelled" marker where applicable, and a link to the programme item. Below it, an "AI summary" sentence only when the summary passes validation; the page states that only the verified facts are checked and that the AI summary is not checked and can be wrong.
 - **Unknown:** a message giving the reason (not enough information, conflicting information, or outside the programme) and a link to browse the programme.
 - **Stale:** when a cited item changed after the answer, no answer is shown; the message says the programme changed and offers "Ask again".
 - **Failure, cancelled, timeout, daily limit, active job, or AI unavailable:** a plain message that browsing remains available. Cancelling after dispatch states that the provider may already have received the question.
@@ -64,6 +64,8 @@ Apply RD07 and [SEC01–04, SEC06, SEC08 and SEC10](../../docs/security.md), plu
 | Oversized, odd Unicode or hidden-character inputs | Cleaning before storage and send | AC04 |
 | Prompt or response leakage in logs | No bodies logged; failure codes only | AC04, AC06 |
 | Model refuses or says "unknown" wrongly (availability) | Known limitation; browsing remains available | AC02 |
+| Fluent but wrong summary, or reasoning over verified facts (for example a wrong "biggest activity") | Known limitation: only claims are verified; the page labels the summary as unchecked and shows the verified facts first | AC01, AC05 |
+| Event-level questions (event start, whole-event duration) and answers needing more than 20 claims | Known limitation: claims are anchored to activities and capped at 20; the answer is unknown or the job fails safely | AC02, AC06 |
 
 ## Acceptance criteria and story traceability
 

@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.ai.service import AIError
 from app.attendee_ai import service
 from app.attendee_ai.models import ItineraryJob
-from app.attendee_ai.schemas import QuestionJobView, RawAnswered, RawUnknown
+from app.attendee_ai.schemas import FIELD_ALIASES, QuestionJobView, RawAnswered, RawUnknown
 from app.auth.models import AuditEvent, utcnow
 from app.programme.schemas import PublishedProgramme
 from app.settings import Settings
@@ -30,19 +30,20 @@ SYSTEM = (
     'answer return {"outcome":"answered","summary":"one short plain sentence or null","claims":[{"itemId":"...",'
     '"itemRevision":1,"field":"title|type|startsAt|endsAt|room|venueName|venueAddress|price|capacity|'
     'accessibility|state|cancellationReason","value":...}]}. Every claim must copy the exact itemId, revision '
-    "and value of the supplied activity, with field exactly one of the names listed above: field price carries the "
+    "and value of the supplied activity. Use field names exactly from the list above: field price carries the "
     "integer priceMinorUnits, field accessibility carries accessibilityDetails (null when not provided), and "
-    "times are the supplied ISO strings. In the summary write times only as the supplied startsAtLocal and "
+    "times are the supplied ISO strings. You may answer questions that need simple reasoning over the supplied "
+    "activities (ordering, comparing, filtering by time of day, counting, durations) by claiming the underlying "
+    "fields. Return at most 20 claims in total, so when several activities are involved claim only the few most "
+    "relevant fields of each. For a list, a comparison or a count, claim "
+    "the few relevant fields of each activity involved (for example every title, or every start and end) and "
+    "state the conclusion in the summary. In the summary write times only as the supplied startsAtLocal and "
     "endsAtLocal text (the event's own time zone) and prices only as the supplied priceText, never as ISO "
     "strings or cents. The summary must not contain links, markup or numbers that are not in your claims or "
     "those texts. If the programme lacks the information, items conflict, or the "
     'question is not about this programme, return {"outcome":"unknown","reason":'
     '"insufficient_evidence|conflicting_evidence|out_of_scope"}. Do not add any other keys.')
 
-# Names from the activity records that the model may use as claim fields; each is verified like the real field.
-_ALIASES = {"startsAtLocal": "startsAt", "endsAtLocal": "endsAt", "priceMinorUnits": "price",
-            "accessibilityDetails": "accessibility"}
-_LOCAL_FIELDS = {"startsAtLocal", "endsAtLocal"}
 _URL = re.compile(r"(?i)(?<![a-z0-9])[a-z][a-z0-9+.\-]+:[^\s]|//|(?<![a-z0-9])www\.|(?<![a-z0-9-])[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?![a-z0-9])")
 _EMAIL = re.compile(r"\S+@\S+")
 _ISO_TIME = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}")
@@ -223,10 +224,12 @@ def validate_output(raw: str, facts: list[PublishedProgramme]) -> dict:
         fact = by_id.get(str(claim.itemId))
         if fact is None or claim.itemRevision != fact.revision:
             raise service.invalid_output()
-        field = _ALIASES.get(claim.field, claim.field)
+        field, mode = FIELD_ALIASES.get(claim.field, (claim.field, "same"))
         actual = _record(fact, field)
-        if claim.field in _LOCAL_FIELDS:  # the model quoted the event-local text we supplied for the summary
+        if mode == "time":  # the model quoted the event-local text supplied for the summary, or the instant
             matches = isinstance(claim.value, str) and (claim.value == local_time(fact, actual) or _matches(claim.value, actual))
+        elif mode == "text":  # price text such as "SGD 10.00" or "Free"
+            matches = isinstance(claim.value, str) and claim.value == price_text(actual)
         else:
             matches = _matches(claim.value, actual)
         if not matches:

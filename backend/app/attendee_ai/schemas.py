@@ -54,9 +54,17 @@ class ModelInfeasible(BaseModel):
 
 QuestionField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
                         "capacity", "accessibility", "state", "cancellationReason"]
-RawField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
-                  "capacity", "accessibility", "state", "cancellationReason", "startsAtLocal", "endsAtLocal", "priceMinorUnits",
-                  "accessibilityDetails"]
+# Names a model may use for a claim field besides the contract names. Each maps to a real field and a way to check
+# the value: "same" compares like the real field, "time" also accepts the event-local text, "text" is price text.
+FIELD_ALIASES = {
+    "startsAtLocal": ("startsAt", "time"), "endsAtLocal": ("endsAt", "time"), "startTime": ("startsAt", "time"),
+    "endTime": ("endsAt", "time"), "start": ("startsAt", "time"), "end": ("endsAt", "time"),
+    "priceMinorUnits": ("price", "same"), "priceText": ("price", "text"),
+    "accessibilityDetails": ("accessibility", "same"), "roomName": ("room", "same"), "venue": ("venueName", "same"),
+    "address": ("venueAddress", "same"),
+}
+RawField = Literal[("title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price", "capacity",
+                    "accessibility", "state", "cancellationReason", *FIELD_ALIASES)]
 UnknownReason = Literal["insufficient_evidence", "conflicting_evidence", "out_of_scope"]
 
 

@@ -137,6 +137,7 @@ export function EventQuestions({ eventId, timezone, formatTime, formatPrice }: P
       </li>)}</Box>
       {answered.summary !== null && <Typography sx={{ my: 1 }}><strong>AI summary</strong> {answered.summary}</Typography>}
       <Typography variant="body2">Only the verified facts are checked against the programme.</Typography>
+      {answered.summary !== null && <Typography variant="body2">The AI summary is not checked and can be wrong; rely on the verified facts above.</Typography>}
     </Box>}
     </Box>
   </Paper>;
