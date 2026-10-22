@@ -13,6 +13,8 @@ from app.ai import service
 from app.ai.models import AIProviderAttempt, AnalysisJob, AnalysisReport, AnalysisRubricVersion
 from app.ai.provider import ProviderFailure, SoCLaaSProvider
 from app.ai.schemas import AnalysisPayload
+from app.attendee_ai import service as attendee_service, worker as attendee_worker
+from app.attendee_ai.models import ItineraryProviderAttempt
 from app.applications.models import Submission
 from app.auth.models import AuditEvent, utcnow
 from app.business.models import EventParticipation
@@ -136,8 +138,9 @@ def _dispatch(job_id):
             _mark_failed(job, "job_timeout", now)
             return False
         cutoff = now - timedelta(seconds=60)
-        count = db.scalar(select(text("count(*)")).select_from(AIProviderAttempt).where(
-            AIProviderAttempt.attempted_at >= cutoff))
+        # The provider cap is shared with the attendee itinerary slice.
+        count = sum(db.scalar(select(text("count(*)")).select_from(table).where(table.attempted_at >= cutoff))
+                    for table in (AIProviderAttempt, ItineraryProviderAttempt))
         if count >= settings.soclaas_requests_per_minute:
             _mark_failed(job, "provider_rate_limited", now)
             return False
@@ -224,7 +227,7 @@ def run_once(provider=None) -> bool:
     _recover_overdue()
     claimed = _claim()
     if claimed is None:
-        return False
+        return attendee_worker.run_once(provider, sleeper=sleep)
     job_id, event_id, _, sources, criteria = claimed
     if not _dispatch(job_id):
         return True
@@ -252,6 +255,8 @@ def main():
         with SessionLocal.begin() as db:
             service.recovery(db)
             service.cleanup(db)
+            attendee_service.recovery(db)
+            attendee_service.cleanup(db)
         return
     if "--once" in sys.argv:
         run_once()
