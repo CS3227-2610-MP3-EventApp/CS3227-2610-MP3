@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="EventApp helps attendees plan their day and organisers run changing event programmes.">
+    <title>EventApp | Plan better events</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="EventApp home">
+        <span class="brand-mark" aria-hidden="true">E</span>
+        <span>EventApp</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#ai">Responsible AI</a>
+        <a href="#project">Project</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">A calmer way to attend and run events</p>
+          <h1>Plan the programme.<br><span>Keep people informed.</span></h1>
+          <p class="hero-text">
+            EventApp gives attendees a clear view of published programmes while
+            organisers manage changes, cancellations and announcements with
+            explicit review before anything is published.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#features">Explore features</a>
+            <a class="button secondary" href="https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3">View repository</a>
+          </div>
+        </div>
+        <div class="hero-card" aria-label="EventApp programme preview">
+          <div class="card-topline">
+            <span>Event programme</span>
+            <span class="status-dot">Published</span>
+          </div>
+          <div class="event-title">Designing for everyone</div>
+          <div class="event-meta">Today · 09:00–17:30 · Singapore</div>
+          <div class="schedule-item">
+            <span class="time">10:00</span>
+            <span><strong>Opening keynote</strong><small>Main hall · Accessibility details available</small></span>
+          </div>
+          <div class="schedule-item changed">
+            <span class="time">13:30</span>
+            <span><strong>Practical workshop</strong><small>Updated room · Attendees notified</small></span>
+          </div>
+          <div class="schedule-item">
+            <span class="time">16:00</span>
+            <span><strong>Closing panel</strong><small>Auditorium · Panel discussion</small></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-heading">
+          <p class="eyebrow">Built for three perspectives</p>
+          <h2>Everyone sees what matters to them.</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card attendee">
+            <div class="icon" aria-hidden="true">01</div>
+            <h3>Attendees</h3>
+            <p>Browse published activities, filter the programme, review accessibility information and build a personal plan.</p>
+            <ul>
+              <li>Event-local date and time display</li>
+              <li>Accessibility-aware planning</li>
+              <li>AI suggestions that remain optional</li>
+            </ul>
+          </article>
+          <article class="feature-card organiser">
+            <div class="icon" aria-hidden="true">02</div>
+            <h3>Organisers</h3>
+            <p>Maintain programme facts, constrain activity times to the event window and communicate changes clearly.</p>
+            <ul>
+              <li>Revisioned programme publishing</li>
+              <li>Change and cancellation workflows</li>
+              <li>Private drafts and explicit approval</li>
+            </ul>
+          </article>
+          <article class="feature-card business">
+            <div class="icon" aria-hidden="true">03</div>
+            <h3>Businesses</h3>
+            <p>Submit applications and follow the formal review and decision process for event participation.</p>
+            <ul>
+              <li>Role-specific workspace</li>
+              <li>Application status visibility</li>
+              <li>Secure authenticated access</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="split-section" id="ai">
+        <div>
+          <p class="eyebrow">Human-led, AI-assisted</p>
+          <h2>AI should support a decision, not silently make one.</h2>
+        </div>
+        <div class="split-copy">
+          <p>
+            EventApp treats AI output as an untrusted suggestion. Jobs are
+            bounded by ownership, revisions, quotas and validation. Organisers
+            review private announcement drafts before publication, and attendees
+            choose whether to save a current itinerary suggestion.
+          </p>
+          <p>
+            AI features require the appropriate synthetic-data configuration.
+            If a provider fails or returns stale output, the existing application
+            state is preserved and manual workflows remain available.
+          </p>
+        </div>
+      </section>
+
+      <section class="project-section" id="project">
+        <div class="project-panel">
+          <p class="eyebrow">CS3227 Mini Project 3</p>
+          <h2>Built with security, specifications and evidence in mind.</h2>
+          <p>
+            EventApp is developed as a production-oriented, AI-infused web
+            application using Spec-Driven Development and a multi-agent
+            engineering workflow.
+          </p>
+          <div class="project-links">
+            <a href="https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3/blob/master/docs/UserGuide.md">User guide</a>
+            <a href="https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3/blob/master/docs/DeveloperGuide.md">Developer guide</a>
+            <a href="https://github.com/CS3227-2610-MP3-EventApp/CS3227-2610-MP3/blob/master/docs/Reflections.md">Reflections</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>EventApp</span>
+      <span>CS3227-2610-MP3 · Team project</span>
+    </footer>
+  </body>
+</html>
