@@ -45,3 +45,36 @@ def test_summary_may_use_event_local_times_but_not_iso_timestamps():
     assert questions._summary("test1 starts at 10:00 on 01 Jan 2027", [], ["test1"], local) == "test1 starts at 10:00 on 01 Jan 2027"
     assert questions._summary("test1 starts at 2027-01-01T02:00:00+00:00", ["2027-01-01T02:00:00+00:00"], ["test1"], local) is None
     assert questions._summary("test1 starts at 11:00", [], ["test1"], local) is None
+
+
+def _fact():
+    from datetime import datetime, timezone
+    from uuid import uuid4
+
+    from app.programme.schemas import PublishedProgramme
+
+    when = datetime(2027, 1, 1, 2, 0, tzinfo=timezone.utc)
+    return PublishedProgramme.model_validate({
+        "id": str(uuid4()), "eventId": str(uuid4()), "revision": 2, "state": "published", "title": "test1",
+        "type": "talk", "startsAt": when.isoformat(), "endsAt": when.replace(hour=3).isoformat(), "capacity": 5,
+        "priceMinorUnits": 0, "currency": "SGD", "accessibilityDetails": None, "publishedAt": when.isoformat(),
+        "event": {"id": str(uuid4()), "title": "E", "timezone": "Asia/Singapore", "startsAt": when.isoformat(),
+                  "endsAt": when.isoformat()},
+        "venue": {"id": str(uuid4()), "name": "V", "address": "A", "accessibilityDetails": None},
+        "room": {"id": str(uuid4()), "name": "R", "maxCapacity": 5, "accessibilityDetails": None}})
+
+
+def _answer(fact, field, value):
+    import json
+    return json.dumps({"outcome": "answered", "summary": None,
+                       "claims": [{"itemId": str(fact.id), "itemRevision": fact.revision, "field": field, "value": value}]})
+
+
+def test_local_time_claims_are_verified_and_normalised_to_the_real_instant():
+    fact = _fact()
+    result = questions.validate_output(_answer(fact, "startsAtLocal", "01 Jan 2027, 10:00"), [fact])
+    assert result["claims"][0]["field"] == "startsAt" and result["claims"][0]["value"] == fact.startsAt.isoformat()
+    assert questions.validate_output(_answer(fact, "endsAtLocal", "01 Jan 2027, 11:00"), [fact])["claims"][0]["field"] == "endsAt"
+    for wrong in ("01 Jan 2027, 11:00", "01 Jan 2027, 10:01", "tomorrow", None, 10):
+        with pytest.raises(ValueError):
+            questions.validate_output(_answer(fact, "startsAtLocal", wrong), [fact])

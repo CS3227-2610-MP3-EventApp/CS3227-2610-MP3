@@ -54,6 +54,8 @@ class ModelInfeasible(BaseModel):
 
 QuestionField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
                         "capacity", "accessibility", "state", "cancellationReason"]
+RawField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
+                  "capacity", "accessibility", "state", "cancellationReason", "startsAtLocal", "endsAtLocal"]
 UnknownReason = Literal["insufficient_evidence", "conflicting_evidence", "out_of_scope"]
 
 
@@ -81,7 +83,7 @@ class RawClaim(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     itemId: UUID
     itemRevision: StrictInt
-    field: QuestionField
+    field: RawField
     value: StrictStr | StrictInt | None
 
 
