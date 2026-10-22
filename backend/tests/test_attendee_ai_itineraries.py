@@ -317,7 +317,7 @@ def accepted_plan(w, items):
 def start(w, client=None, request_id=None, revision=None, event=None, headers=ORIGIN, **overrides):
     body = {"requestId": str(request_id or uuid4()),
             "preferenceRevision": planning(w)["preferences"]["revision"] if revision is None else revision,
-            "confirmSynthetic": True, **overrides}
+            **overrides}
     response = (client or w.attendee).post(GENERATIONS.format(event or w.event_id), json=body, headers=headers)
     return response, body
 
@@ -757,10 +757,26 @@ def test_ac04_disabled_provider_configuration_is_rechecked_before_any_transmissi
     assert_planning_unchanged(w, before)
 
 
+def test_ac04_removal_from_the_allowlist_after_creation_is_rechecked_before_any_transmission(world, monkeypatch):
+    w = world
+    set_prefs(w, budgetMinorUnits=600)
+    before = planning(w)
+    job, _ = started(w)
+    monkeypatch.setenv("AI_SYNTHETIC_EVENT_IDS", json.dumps([GHOST_EVENT_ID]))  # non-empty list that no longer names this event
+    provider = FakeProvider(feasible(pick(w.items["keynote"])))
+    assert run_worker(monkeypatch, provider) is True
+    assert provider.calls == []
+    final = get_job(w, job["id"])
+    assert final["state"] == "failed" and final["failureCode"] and final["result"] is None
+    assert final["providerMayHaveRun"] is False
+    assert_planning_unchanged(w, before)
+
+
 def test_ac04_disabled_or_unconfigured_provider_returns_503_and_creates_nothing(world, monkeypatch):
     before = planning(world)
     for name, value in (("AI_ENABLED", "false"), ("AI_SYNTHETIC_ONLY", "false"), ("SOCLAAS_API_KEY", ""),
-                        ("SOCLAAS_MODEL", ""), ("AI_SYNTHETIC_EVENT_IDS", "[]")):
+                        ("SOCLAAS_MODEL", ""), ("AI_SYNTHETIC_EVENT_IDS", "[]"),
+                        ("AI_SYNTHETIC_EVENT_IDS", json.dumps([GHOST_EVENT_ID]))):  # non-empty, excludes this event
         with monkeypatch.context() as scoped:
             scoped.setenv(name, value)
             problem(start(world)[0], 503)
@@ -844,7 +860,7 @@ def test_ac06_foreign_and_missing_jobs_are_404_and_other_roles_are_denied(world,
         problem(client.get(JOB.format(done["id"])), status)
         problem(cancel(w, done["id"], client=client), status)
         problem(client.post(GENERATIONS.format(w.event_id), headers=ORIGIN,
-                            json={"requestId": str(uuid4()), "preferenceRevision": other_revision, "confirmSynthetic": True}), status)
+                            json={"requestId": str(uuid4()), "preferenceRevision": other_revision}), status)
     assert job_count() == 3
 
 
@@ -865,19 +881,44 @@ def test_ac06_malformed_requests_are_422_and_create_no_job(world):
     w = world
     overrides = [
         {"requestId": "not-a-uuid"}, {"preferenceRevision": -1}, {"preferenceRevision": True},
-        {"preferenceRevision": "1"}, {"preferenceRevision": 1.5}, {"confirmSynthetic": False},
-        {"confirmSynthetic": "true"}, {"ownerId": str(uuid4())}, {"items": []}, {"result": {}},
+        {"preferenceRevision": "1"}, {"preferenceRevision": 1.5},
+        {"ownerId": str(uuid4())}, {"items": []}, {"result": {}},
     ]
     for override in overrides:
         body = problem(start(w, revision=0, **override)[0], 422)
         assert body["status"] == 422, override
         assert job_count() == 0, override
-    for missing in ("requestId", "preferenceRevision", "confirmSynthetic"):
-        body = {"requestId": str(uuid4()), "preferenceRevision": 0, "confirmSynthetic": True}
+    for missing in ("requestId", "preferenceRevision"):
+        body = {"requestId": str(uuid4()), "preferenceRevision": 0}
         body.pop(missing)
         problem(w.attendee.post(GENERATIONS.format(w.event_id), json=body, headers=ORIGIN), 422)
     problem(w.attendee.post(GENERATIONS.format(w.event_id), json=[], headers=ORIGIN), 422)
     assert job_count() == 0
+
+
+def test_ac06_request_body_is_exactly_request_id_and_preference_revision_and_confirm_synthetic_is_rejected(world):
+    """Spec revision 3 (F03-US01-TCR-02): no confirmation field; confirmSynthetic is an unknown key."""
+    w = world
+    revision = planning(w)["preferences"]["revision"]
+    for extra in ({"confirmSynthetic": True}, {"confirmSynthetic": False}, {"confirmSynthetic": "true"},
+                  {"confirmSynthetic": None}, {"unknownKey": 1}, {"synthetic": True}):
+        body = problem(start(w, revision=revision, **extra)[0], 422)
+        assert body["status"] == 422, extra
+        assert job_count() == 0, extra
+    response, body = start(w, revision=revision)  # exactly {requestId, preferenceRevision}
+    assert set(body) == {"requestId", "preferenceRevision"}
+    assert response.status_code == 202, response.text
+    first = response.json()
+    assert_job_shape(first, w, "pending")
+    assert job_count() == 1
+    # a replay of the same requestId that adds confirmSynthetic is malformed (422), not a replay and not a conflict
+    problem(w.attendee.post(GENERATIONS.format(w.event_id), json={**body, "confirmSynthetic": True}, headers=ORIGIN), 422)
+    problem(w.attendee.post(GENERATIONS.format(w.event_id), json={**body, "confirmSynthetic": False}, headers=ORIGIN), 422)
+    assert job_count() == 1
+    assert get_job(w, first["id"]) == first
+    replay = w.attendee.post(GENERATIONS.format(w.event_id), json=body, headers=ORIGIN)  # the valid replay still works
+    assert replay.status_code == 202 and replay.json()["id"] == first["id"]
+    assert job_count() == 1
 
 
 def test_ac06_cancel_before_dispatch_prevents_provider_call_and_cancel_is_idempotent(world, monkeypatch):
@@ -1016,7 +1057,7 @@ def test_ac06_concurrent_creates_yield_exactly_one_active_job(world):
         with TestClient(w.app, raise_server_exceptions=False) as client:
             client.cookies.update(cookies)
             return client.post(GENERATIONS.format(w.event_id), headers=ORIGIN, json={
-                "requestId": str(uuid4()), "preferenceRevision": revision, "confirmSynthetic": True}).status_code
+                "requestId": str(uuid4()), "preferenceRevision": revision}).status_code
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         assert sorted(pool.map(create, range(2))) == [202, 409]
@@ -1026,7 +1067,7 @@ def test_ac06_concurrent_creates_yield_exactly_one_active_job(world):
 def test_ac06_concurrent_replay_of_the_same_request_id_creates_one_job(world):
     w = world
     cookies = dict(w.attendee.cookies)
-    body = {"requestId": str(uuid4()), "preferenceRevision": planning(w)["preferences"]["revision"], "confirmSynthetic": True}
+    body = {"requestId": str(uuid4()), "preferenceRevision": planning(w)["preferences"]["revision"]}
 
     def create(_):
         with TestClient(w.app, raise_server_exceptions=False) as client:

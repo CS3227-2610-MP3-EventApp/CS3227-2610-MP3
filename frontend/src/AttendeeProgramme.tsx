@@ -5,6 +5,7 @@ import { ApiError } from "./api";
 import { useAuth } from "./Auth";
 import { programmeApi } from "./programmeApi";
 import type { EventSummary, ProgrammePage, PublishedProgrammeItem } from "./programmeTypes";
+import { EventQuestions } from "./attendee-planning/EventQuestions";
 
 const types = [["Talk", "talk"], ["Workshop", "workshop"], ["Panel", "panel"], ["Booth", "booth"], ["Performance", "performance"], ["Other", "other"]] as const;
 const cataloguePath = "/attendee/programme";
@@ -127,6 +128,7 @@ export function AttendeeProgramme() {
       <TextField label="Date" type="date" value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} InputLabelProps={{ shrink: true }} helperText="Matches the activity start date in the event timezone." />
       <Button type="submit" variant="contained">Apply filters</Button>
     </Box>}
+    {view === "items" && eventId && <EventQuestions eventId={eventId} timezone={selectedEvent?.timezone ?? items[0]?.event.timezone ?? "UTC"} formatTime={localTime} formatPrice={price} />}
     {loading && <Typography role="status" sx={{ my: 2 }}>Loading programme…</Typography>}
     {error && <Alert severity="error" role="alert" action={<Button color="inherit" onClick={retry}>Retry</Button>}>{error}</Alert>}
     {!loading && !error && view === "events" && events.length === 0 && <Typography sx={{ my: 2 }}>No events are available yet.</Typography>}

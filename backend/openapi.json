@@ -989,6 +989,27 @@
         "title": "ApplicationSettings",
         "type": "object"
       },
+      "AskQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "maxLength": 2000,
+            "title": "Question",
+            "type": "string"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requestId",
+          "question"
+        ],
+        "title": "AskQuestion",
+        "type": "object"
+      },
       "AttendeeRegistration": {
         "additionalProperties": false,
         "properties": {
@@ -1983,10 +2004,6 @@
       "GenerateItinerary": {
         "additionalProperties": false,
         "properties": {
-          "confirmSynthetic": {
-            "title": "Confirmsynthetic",
-            "type": "boolean"
-          },
           "preferenceRevision": {
             "minimum": 0.0,
             "title": "Preferencerevision",
@@ -2000,8 +2017,7 @@
         },
         "required": [
           "requestId",
-          "preferenceRevision",
-          "confirmSynthetic"
+          "preferenceRevision"
         ],
         "title": "GenerateItinerary",
         "type": "object"
@@ -3540,6 +3556,103 @@
         "title": "PublishedProgramme",
         "type": "object"
       },
+      "QuestionJobView": {
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun",
+          "question",
+          "stale",
+          "result"
+        ],
+        "title": "QuestionJobView",
+        "type": "object"
+      },
       "ReplaceAnalysisRubric": {
         "additionalProperties": false,
         "properties": {
@@ -4610,6 +4723,236 @@
         ]
       }
     },
+    "/api/v1/attendee/ai/question-jobs/{jobId}": {
+      "get": {
+        "operationId": "get_question_job_api_v1_attendee_ai_question_jobs__jobId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Jobid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionJobView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Question Job",
+        "tags": [
+          "Attendee AI itineraries"
+        ]
+      }
+    },
+    "/api/v1/attendee/ai/question-jobs/{jobId}/cancel": {
+      "post": {
+        "operationId": "cancel_question_job_api_v1_attendee_ai_question_jobs__jobId__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Jobid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionJobView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Cancel Question Job",
+        "tags": [
+          "Attendee AI itineraries"
+        ]
+      }
+    },
     "/api/v1/attendee/events": {
       "get": {
         "operationId": "attendee_events_api_v1_attendee_events_get",
@@ -4764,6 +5107,131 @@
         "summary": "Attendee Events",
         "tags": [
           "Programme"
+        ]
+      }
+    },
+    "/api/v1/attendee/events/{eventId}/event-questions": {
+      "post": {
+        "operationId": "ask_question_api_v1_attendee_events__eventId__event_questions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Eventid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionJobView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Ask Question",
+        "tags": [
+          "Attendee AI itineraries"
         ]
       }
     },

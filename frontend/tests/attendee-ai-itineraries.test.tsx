@@ -6,7 +6,7 @@ import {
   acceptedId, detailRoute, entry, feasibleResult, generationsPath, infeasibleResult, installAttendeeAi, job, jobPath,
   planningBase, problemResponse, suggestion,
 } from "./fixtures/attendee-ai-itineraries";
-import { eventA, eveningWorkshop, freeTalk, json } from "./fixtures/programme";
+import { deferred, eventA, eveningWorkshop, freeTalk, json } from "./fixtures/programme";
 import { renderPrototype } from "./helpers/renderPrototype";
 
 // F03-US01 generate-feasible-itineraries (spec revision 2) UI acceptance tests, written before
@@ -15,7 +15,7 @@ import { renderPrototype } from "./helpers/renderPrototype";
 // workflow/agents/runs/2026-10-22-attendee-ai-itineraries-test-plan.md. Wire fixtures only: grounding,
 // quota, ownership and persistence are enforced and tested by the real-PostgreSQL API tests.
 const REGION = "AI itinerary suggestions";
-const CONFIRM = "I confirm this event uses only synthetic data";
+const NOTICE = "Your preferences and the programme are sent to an external AI service. Do not enter personal details.";
 const GENERATE = "Generate AI itinerary";
 const CANCEL = "Cancel AI itinerary";
 const STATUS = "AI itinerary status";
@@ -41,9 +41,7 @@ async function open() {
   return screen.getByRole("region", { name: REGION });
 }
 async function generate(region: HTMLElement) {
-  const user = userEvent.setup();
-  await user.click(within(region).getByRole("checkbox", { name: CONFIRM }));
-  await user.click(within(region).getByRole("button", { name: GENERATE }));
+  await userEvent.setup().click(within(region).getByRole("button", { name: GENERATE }));
 }
 const status = (region: HTMLElement) => within(region).getByRole("status", { name: STATUS });
 async function completed(result: unknown) {
@@ -55,31 +53,31 @@ async function completed(result: unknown) {
 }
 
 describe("F03-US01 attendee AI itinerary UI (AC01-AC06)", () => {
-  test("F03-UI01 the AI controls live in My Itinerary, need explicit synthetic-data confirmation and work by keyboard", async () => {
+  test("F03-UI01 the AI controls live in My Itinerary, show a notice instead of a confirmation, are enabled at load and work by keyboard", async () => {
     const region = await open();
     const view = within(region);
     expect(view.getByRole("heading", { name: REGION })).toBeVisible();
-    const confirm = view.getByRole("checkbox", { name: CONFIRM });
     const generateButton = view.getByRole("button", { name: GENERATE });
-    expect(confirm).not.toBeChecked();
-    expect(generateButton).toBeDisabled();
+    expect(view.queryByRole("checkbox")).toBeNull(); // spec revision 3: no confirmation checkbox
+    expect(region).not.toHaveTextContent(/synthetic|i confirm/i);
+    expect(view.getByText(NOTICE)).toBeVisible();
+    expect(generateButton).toHaveAccessibleDescription(NOTICE); // the notice is the button's accessible description
+    expect(generateButton).toBeEnabled(); // planning is enabled and no job is active
     expect(status(region)).toHaveTextContent("No AI itinerary requested yet.");
     expect(view.queryByRole("button", { name: CANCEL })).toBeNull();
     expect(view.queryByRole("list", { name: LIST })).toBeNull();
     expect(creates()).toHaveLength(0);
 
     const user = userEvent.setup();
-    confirm.focus();
-    await user.keyboard(" ");
-    expect(confirm).toBeChecked();
-    expect(generateButton).toBeEnabled();
-    await user.tab();
-    expect(generateButton).toHaveFocus();
+    generateButton.focus();
     await user.keyboard("{Enter}");
     await waitFor(() => expect(creates()).toHaveLength(1));
-    expect(creates()[0].body).toEqual({ requestId: expect.stringMatching(UUID4), preferenceRevision: 1, confirmSynthetic: true });
+    expect(creates()[0].body).toEqual({ requestId: expect.stringMatching(UUID4), preferenceRevision: 1 });
+    expect(Object.keys(creates()[0].body ?? {}).sort()).toEqual(["preferenceRevision", "requestId"]); // no confirmSynthetic
     expect(["include", "same-origin"]).toContain(creates()[0].credentials);
     await waitFor(() => expect(status(region)).toHaveTextContent(/pending/i));
+    expect(creates()).toHaveLength(1); // Enter sent exactly one request
+    expect(generateButton).toBeDisabled(); // disabled while the job is pending or running
     expect(planningWrites()).toHaveLength(0);
   });
 
@@ -92,10 +90,26 @@ describe("F03-US01 attendee AI itinerary UI (AC01-AC06)", () => {
   test("F03-UI03 a double activation creates exactly one job", async () => {
     const region = await open();
     const user = userEvent.setup();
-    await user.click(within(region).getByRole("checkbox", { name: CONFIRM }));
     await user.dblClick(within(region).getByRole("button", { name: GENERATE }));
     await waitFor(() => expect(creates().length).toBeGreaterThan(0));
     expect(creates()).toHaveLength(1);
+  });
+
+  test("F03-UI03b the button is disabled while the creation request is in flight and re-enabled after a failed creation", async () => {
+    const pending = deferred<Response>();
+    ai.onCreate = () => pending.promise;
+    const region = await open();
+    const button = within(region).getByRole("button", { name: GENERATE });
+    expect(button).toBeEnabled();
+    await userEvent.setup().click(button);
+    await waitFor(() => expect(creates()).toHaveLength(1));
+    expect(button).toBeDisabled(); // a POST is in flight and no job exists yet
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(button); // a forced second activation of the disabled button
+    expect(creates()).toHaveLength(1);
+    pending.resolve(problemResponse(503, "service_unavailable"));
+    expect(await within(region).findByRole("alert")).toBeVisible();
+    await waitFor(() => expect(within(region).getByRole("button", { name: GENERATE })).toBeEnabled());
+    expect(planningWrites()).toHaveLength(0);
   });
 
   test("F03-UI04 pending then running status, disabled re-generation and cancellation keep manual planning usable", async () => {
@@ -279,5 +293,6 @@ describe("F03-US01 attendee AI itinerary UI (AC01-AC06)", () => {
     expect(first).toMatch(UUID4);
     expect(second).toMatch(UUID4);
     expect(second).not.toBe(first);
+    for (const request of creates()) expect(Object.keys(request.body ?? {}).sort()).toEqual(["preferenceRevision", "requestId"]);
   });
 });
