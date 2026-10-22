@@ -108,3 +108,17 @@ Exact accessible names and copy (case-sensitive, whole-string unless noted):
 
 ## 8. Test-change record: leaked autouse fixtures (harness only, 2026-10-22)
 `tests/test_ai_analysis.py` and `tests/test_ai_recovery.py` declare `pytest_plugins = ("tests.test_business_applications",)`, which registers that module's autouse `clean_database` and `migrated_database` fixtures session-wide. Run after either module, `clean_database` truncated users and sessions before every test and wiped the module-scoped `infra` world, so all 32 tests errored in setup. Correction: `backend/tests/test_attendee_ai_itineraries.py` now overrides both fixtures locally with no-ops (with an explanatory comment); `infra` migrates and truncates itself and `prepare()` resets all per-test state. No assertion, scenario or expected result changed. Verified against the implemented code (test DB, one process at a time): `test_ai_recovery.py` + this file 37 passed in 112 s; `test_ai_analysis.py` + this file 48 passed in 141 s; this file alone 32 passed in 95 s.
+
+### F03-TCR-01 (test baseline change request, same pattern as MERGE-TCR-01)
+- Request ID, requester, date, feature/run: F03-TCR-01; test owner (test_case_designer); 2026-10-22; F03-US01 generate-feasible-itineraries.
+- Old baseline commit; protected paths; specification revision: baseline containing `backend/tests/test_business_applications.py` (full-head expected-table set); protected path touched: `backend/tests/test_business_applications.py`; spec revision 2.
+- Failing tests and observed output: the 4 tests named in the CI run on commit c98628b (take exact names and output from that run's log; not reproduced locally by the test owner). They compare the migrated head's table set to an exact expected set and fail on the two additional tables.
+- Relevant acceptance criterion and expected behaviour: the approved additive migration `20261022_0008` adds attendee AI job storage (`attendee_ai_jobs`, `attendee_ai_provider_attempts`) without changing organiser tables; the full-head schema check must stay an exact equality.
+- Cause: test (stale expected set); not an implementation defect. The new tables are specified and approved (spec revision 2: attendee-specific, additive job tables).
+- Proposed correction and alternatives: add `ATTENDEE_AI_TABLES = {"attendee_ai_jobs", "attendee_ai_provider_attempts"}` after `AI_TABLES` and add `| ATTENDEE_AI_TABLES` to the full-head expected set (`DOMAIN_TABLES | PROGRAMME_TABLES | ATTENDEE_PLANNING_TABLES | AI_TABLES | ATTENDEE_AI_TABLES`). Alternatives rejected: loosening to a subset check (weakens the guard); renaming tables (no product reason).
+- Coverage/security/regression impact: equality preserved, so unexpected extra tables still fail; the historical `LEGACY_DOMAIN_TABLES` branch and every other line are untouched.
+- Independent verifier assessment: verifier a10694ad APPROVE.
+- Test owner decision and identity: approved and applied by the test owner (test_case_designer).
+- Human product approval: Yik Bing, chat 2026-10-22.
+- Test-owner correction commit and affected checks/reviews: uncommitted at the time of writing (orchestrator to commit); orchestrator to run the affected tests; no tests were run by the test owner for this change.
+- Replacement baseline commit, path set, rationale, and preserved old evidence: to be recorded by the orchestrator; rationale as above; old evidence is the CI run on c98628b.
