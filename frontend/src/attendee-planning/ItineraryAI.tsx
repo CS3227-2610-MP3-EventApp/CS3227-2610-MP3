@@ -77,7 +77,7 @@ export function ItineraryAI({ eventId, preferenceRevision, items, disabled, form
   const byId = new Map(items.map(item => [item.id, item]));
   const feasible = result?.outcome === "feasible" ? result : null;
   const stale = !!feasible && (feasible.preferenceRevision !== preferenceRevision
-    || feasible.items.some(item => { const current = byId.get(item.itemId); return !!current && current.revision !== item.itemRevision; }));
+    || feasible.items.some(item => { const current = byId.get(item.itemId); return current ? current.revision !== item.itemRevision : items.length > 0; }));
 
   return <Paper component="section" variant="outlined" aria-labelledby="ai-itinerary-heading" sx={{ p: { xs: 2, sm: 3 } }}>
     <Typography component="h2" variant="h2" id="ai-itinerary-heading" sx={{ mb: 1 }}>AI itinerary suggestions</Typography>
