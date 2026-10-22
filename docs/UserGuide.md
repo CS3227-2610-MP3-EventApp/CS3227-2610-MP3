@@ -20,7 +20,7 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Authenticated attendees can use Explore programme to browse published activities. Attendee itinerary and business preparation AI remain previews.
+Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Authenticated attendees can use Explore programme to browse published activities and request synthetic-data AI itinerary suggestions. Business preparation AI remains a preview.
 
 ## Organiser AI application analysis
 
@@ -36,12 +36,28 @@ Live analysis requires local SoCLaaS setup and a dedicated allowlisted event con
 
 Open **Programme Management** and select an assigned event. Create a venue with its address, add a room and capacity, then create a complete programme draft. Use the calendar/time controls in the displayed event timezone, choose a room/type and set capacity and a price in SGD dollars (for example, `12.50`). Prices allow zero and at most two decimal places; the backend still stores integer cents. Blank accessibility notes mean unknown. Activities may overlap in one room; each item's capacity must still fit that room.
 
-Save the draft before validating or publishing. **Validate** checks the saved revision without publishing. **Publish** requires confirmation and makes the stored revision visible to authenticated attendee API consumers. Published items are read-only, and their venues/rooms are locked against editing. Drafts and unused locations can be deleted after confirmation; referenced locations cannot.
+Save the draft before validating or publishing. **Validate** checks the saved revision without publishing. **Publish** requires confirmation and makes the stored revision visible to authenticated attendees. Published items require the separate change workflow below; their venues/rooms remain locked against editing. Drafts and unused locations can be deleted after confirmation; referenced locations cannot.
 
 If another tab saves first, reload and review its revision before retrying. Publication never silently includes unsaved edits. Detailed walkthroughs and API handoff are in [programme testing](ProgrammeTesting.md).
 
-Venue/room pencil icons open editing; trash icons open deletion confirmation. A room cannot be deleted while any activity references it, and a venue cannot be deleted while it has rooms. For an activity, select its title and use **Delete** in its saved draft details. Published activities cannot be deleted: future cancellation will preserve their IDs/history rather than silently remove public facts. Cancellation is not implemented in this slice.
+Venue/room pencil icons open editing; trash icons open deletion confirmation. A room cannot be deleted while any activity references it, and a venue cannot be deleted while it has rooms. For an activity, select its title and use **Delete** in its saved draft details. Published and cancelled activities cannot be hard-deleted.
+
+### Published changes and announcements
+
+Select a published activity, choose **Edit published activity**, review the before/after preview and explicitly confirm. Each change preserves its previous public facts. **Cancel activity** requires a reason and confirmation; cancellation is final. Cancelled activities remain visible, with their reason, and cannot be edited or restored. Existing accepted plans are never silently replaced.
+
+Change history separates verified facts from announcement wording. Create a private manual draft for the latest change, save it, then preview its exact text before **Approve and publish**. A preview expires after 15 minutes; changing the draft or activity requires a new preview. Published announcements are immutable and readable by signed-in attendees for the event. Only one announcement can be published for a change.
+
+AI assistance is optional and available only for configured invented-data events. Confirm the synthetic-data boundary, start a drafting job and review the resulting private wording. AI never publishes. Manual authoring remains available if AI fails. If a write outcome is uncertain, check current state before retrying.
+
+Attendees can open **Event announcements** from the programme and **Notifications** for their private inbox. Accepted-itinerary delivery is explicitly pending the teammate-owned F02 integration; until then the inbox shows an unavailable/pending message, not a successful empty recipient result. See [F05 testing](DisruptionsTesting.md).
 
 ## Attendee programme browsing
 
 Sign in as an attendee and choose **Explore programme** in Browse Programme. The frontend has event/activity lists, title/type/date filters, pagination and activity details including event-local times, SGD/free pricing, declared capacity and separate accessibility notes. Missing notes mean unknown; capacity is not remaining inventory. The screen uses the published programme API. Date filters match the activity’s start date in the event timezone, including activities ending the following day; all six types, including Panel, are supported. Retry and session-expiry handling are present. Only published activities appear; this journey does not reserve capacity or buy tickets.
+
+### Attendee AI itinerary suggestions
+
+After selecting an event in attendee planning, set your preferences and confirm that the event uses only synthetic data. Choose **Generate AI itinerary** to request a background suggestion. The request can be cancelled, is subject to the daily limit, and reports pending, running, completed, failed or cancelled status. A completed result shows the proposed activities, reasons, sources and constraint checks.
+
+AI output is only a suggestion: it is not saved or accepted automatically. Review every activity, especially missing accessibility information, then choose **Save as draft** if the result is still current. If preferences or published programme revisions changed, the result is marked stale and must not be saved; use manual planning or generate a fresh result. Provider failure, unavailable event configuration and infeasible constraints leave the existing planning state unchanged.

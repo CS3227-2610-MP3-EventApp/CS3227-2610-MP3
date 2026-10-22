@@ -2,7 +2,7 @@
 
 - Date/timezone: 2026-10-22, Asia/Singapore. Session owner: Yik Bing.
 - Repository: EventApp; branch `feat/yikbing-attendee-planning`; PR #11.
-- Source coverage: this visible conversation, actual command output and the read-only conflict-review handoff. AI factual check: checked against this evidence. Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

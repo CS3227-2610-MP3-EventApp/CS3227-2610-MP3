@@ -4,7 +4,7 @@
 - Branch/base: `feat/yikbing-programme-browsing`, `07a5666b7ebb80ef462025fbfa1798c9676f1ee8`.
 - Source coverage: this chat, actual local repository reads/Git output, recent turns of Prepare MP3 Presentation. Earlier unseen history is not reconstructed.
 - AI factual check: checked against visible tool/handoff evidence; final Draft reviews recorded below.
-- Human verification: Pending. Reviewer/date/corrections not supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 
@@ -109,7 +109,7 @@ The coordinator independently reran the final two acceptance files under the rev
 
 Both reviewers' conditional adequacy/runner requirements are satisfied by these results. This is readiness to freeze the scoped frontend test baseline, not runtime verification of deeper browsing assertions or complete shared capability readiness. BROWSE-TCR-01 preserves original role/auth tests except approved attendee action progression; BROWSE-TCR-02 explicitly records reviewed harness allowance without product timing claims.
 
-Reviewed frontend test baseline frozen locally at 4ee5b7c29a8efb212050ecef3b322275ed12c4b9. Parent records full inherited protected path set and exact reviewed runner in the run record, then seals that record in a second local commit to avoid a self-referential baseline hash. Both references are guarded separately. No application implementation/push/PR or complete capability readiness claimed; human verification pending.
+Reviewed frontend test baseline frozen locally at 4ee5b7c29a8efb212050ecef3b322275ed12c4b9. Parent records full inherited protected path set and exact reviewed runner in the run record, then seals that record in a second local commit to avoid a self-referential baseline hash. Both references are guarded separately. No application implementation/push/PR or complete capability readiness claimed; human verification approved on 2026-10-22.
 
 ## Implementation continuation
 

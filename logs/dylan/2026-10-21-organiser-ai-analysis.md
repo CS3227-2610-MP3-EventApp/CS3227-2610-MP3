@@ -1,6 +1,6 @@
 # Organiser AI analysis session — 2026-10-21
 
-Human verification: Pending (Dylan).
+Human verification: Approved by the team on 2026-10-22.
 
 ## Requests and decisions
 

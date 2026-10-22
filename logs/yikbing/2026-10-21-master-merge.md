@@ -1,6 +1,6 @@
 # Update attendee branch from master
 
-- Date/timezone: 2026-10-21, Asia/Singapore. Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
 - User asked whether attendee F01 was pushed/PR-ready, clarified merge direction, then authorized fetching and merging master into the attendee feature branch and requested a change/remaining-work summary.
 - Parent fetched origin and found master advanced to ec63082 (organiser programme PR7 and business application PR8). Branch started clean at 9ddd0d0 with matching origin feature branch.
 - Merge hit eight conflicts. Parent delegated resolution to actual child `/root/merge_resolution` using generic tools and inherited model for ambiguous integration; role configuration was not changed. Child read repository/workflow/developer role, spec and security instructions. No nested delegation.

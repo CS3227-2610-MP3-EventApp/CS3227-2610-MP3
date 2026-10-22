@@ -87,7 +87,8 @@ JOB_KEYS = {"id", "eventId", "state", "createdAt", "updatedAt", "completedAt", "
 ORGANISER_AI_JOB_COLUMNS = {
     "id", "owner_id", "event_id", "application_id", "request_id", "source_revision", "rubric_revision",
     "comparison_revisions", "state", "failure_code", "provider_may_have_run", "created_at", "updated_at",
-    "completed_at", "deadline_at", "lease_until", "dispatch_at",
+    "completed_at", "deadline_at", "lease_until", "dispatch_at", "kind", "source_change_id",
+    "announcement_draft_id",
 }
 
 

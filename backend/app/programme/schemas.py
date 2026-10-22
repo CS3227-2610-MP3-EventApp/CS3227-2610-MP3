@@ -8,7 +8,7 @@ from app.auth.schemas import Problem
 
 
 ItemType = Literal["talk", "workshop", "panel", "booth", "performance", "other"]
-ItemState = Literal["draft", "published"]
+ItemState = Literal["draft", "published", "cancelled"]
 PositiveInt = Annotated[StrictInt, Field(ge=1, le=2147483647)]
 ExpectedRevision = Annotated[StrictInt, Field(ge=1)]
 Price = Annotated[StrictInt, Field(ge=0, le=2147483647)]
@@ -141,13 +141,16 @@ class ProgrammeItem(Record):
     accessibilityDetails: str | None
     state: ItemState
     publishedAt: datetime | None
+    lastChangeId: UUID | None = None
+    cancelledAt: datetime | None = None
+    cancellationReason: str | None = None
 
 
 class PublishedProgramme(BaseModel):
     id: UUID
     eventId: UUID
     revision: int
-    state: Literal["published"]
+    state: Literal["published", "cancelled"]
     title: str
     type: ItemType
     startsAt: datetime
@@ -157,6 +160,9 @@ class PublishedProgramme(BaseModel):
     currency: Literal["SGD"]
     accessibilityDetails: str | None
     publishedAt: datetime
+    lastChangeId: UUID | None = None
+    cancelledAt: datetime | None = None
+    cancellationReason: str | None = None
     event: EventFacts
     venue: VenueFacts
     room: RoomFacts

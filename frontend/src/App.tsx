@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "./Auth";
 import { ChangePassword } from "./ChangePassword";
 import { EntryLayout } from "./components";
 import { Programme } from "./Programme";
+import { AttendeeUpdates } from "./AttendeeUpdates";
 
 function GuardedWorkspace({ role, children }: { role: Role; children?: ReactNode }) {
   const { actor } = useAuth();
@@ -36,6 +37,8 @@ function ApplicationRoutes() {
     <Route path="/attendee/planning" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/attendee/planning/events/:eventId" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/attendee/programme" element={<GuardedWorkspace role="attendee" />} />
+    <Route path="/attendee/notifications" element={<GuardedWorkspace role="attendee"><AttendeeUpdates/></GuardedWorkspace>} />
+    <Route path="/attendee/events/:eventId/announcements" element={<GuardedWorkspace role="attendee"><AttendeeUpdates/></GuardedWorkspace>} />
     <Route path="/attendee/programme/events/:eventId" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/attendee/programme/events/:eventId/items/:itemId" element={<GuardedWorkspace role="attendee" />} />
     <Route path="/organiser/programme" element={<GuardedWorkspace role="organiser"><Programme /></GuardedWorkspace>} />

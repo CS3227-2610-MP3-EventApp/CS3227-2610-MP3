@@ -178,7 +178,7 @@ def publish_item(event_id: UUID, item_id: UUID, body: schemas.RevisionRequest, d
 
 @router.get(O + "/programme-items/{item_id}/publication", response_model=schemas.PublicationAudit)
 def publication(event_id: UUID, item_id: UUID, db: DB, actor: Organiser):
-    row = db.scalar(select(models.ProgrammeItemRevision).where(models.ProgrammeItemRevision.event_id == event_id, models.ProgrammeItemRevision.item_id == item_id))
+    row = db.scalar(select(models.ProgrammeItemRevision).where(models.ProgrammeItemRevision.event_id == event_id, models.ProgrammeItemRevision.item_id == item_id).order_by(models.ProgrammeItemRevision.revision).limit(1))
     if row is None:
         raise missing()
     return {"itemId": row.item_id, "revision": row.revision, "actorUserId": row.actor_user_id, "occurredAt": row.occurred_at.astimezone(timezone.utc)}
@@ -202,7 +202,7 @@ def published_items(event_id: UUID, db: DB, actor: Attendee, q: Annotated[str | 
             day = Date.fromisoformat(date)
         except ValueError:
             raise invalid({"date": ["Use a valid YYYY-MM-DD date."]}) from None
-    query = select(models.ProgrammeItemRevision).where(models.ProgrammeItemRevision.event_id == event_id)
+    query = select(models.ProgrammeItemRevision).join(models.ProgrammeItem, (models.ProgrammeItem.id == models.ProgrammeItemRevision.item_id) & (models.ProgrammeItem.revision == models.ProgrammeItemRevision.revision)).where(models.ProgrammeItemRevision.event_id == event_id)
     if q and q.strip():
         query = query.where(models.ProgrammeItemRevision.snapshot["title"].astext.icontains(q.strip(), autoescape=True))
     if type is not None:
@@ -219,7 +219,7 @@ def published_items(event_id: UUID, db: DB, actor: Attendee, q: Annotated[str | 
 @router.get(A + "/programme/{item_id}", response_model=schemas.PublishedProgramme)
 def published_detail(event_id: UUID, item_id: UUID, db: DB, actor: Attendee):
     svc.visible_event(db, event_id)
-    row = db.scalar(select(models.ProgrammeItemRevision).where(models.ProgrammeItemRevision.event_id == event_id, models.ProgrammeItemRevision.item_id == item_id))
+    row = db.scalar(select(models.ProgrammeItemRevision).join(models.ProgrammeItem, (models.ProgrammeItem.id == models.ProgrammeItemRevision.item_id) & (models.ProgrammeItem.revision == models.ProgrammeItemRevision.revision)).where(models.ProgrammeItemRevision.event_id == event_id, models.ProgrammeItemRevision.item_id == item_id))
     if row is None:
         raise missing()
     return row.snapshot

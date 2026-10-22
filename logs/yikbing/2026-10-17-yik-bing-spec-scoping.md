@@ -2,7 +2,7 @@
 
 - Date: 2026-10-17, Asia/Singapore. Owner: Yik Bing.
 - Source: visible user question, Git output, current SDD files at 4642b67, and read-only analyst handoff.
-- AI factual check: checked against those sources. Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and actions
 

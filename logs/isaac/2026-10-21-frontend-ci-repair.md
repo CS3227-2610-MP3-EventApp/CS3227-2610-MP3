@@ -3,7 +3,7 @@
 - Scope/source revision: supplied three frontend CI logs and screenshot; pre-change HEAD 5ad7fa67487a2213d1521be4d9b2eadc633c7fc0.
 - Source coverage: entire visible conversation through the logging request, supplied logs, repository instructions and actual agent/tool evidence. No other conversation history inferred.
 - AI factual check: checked against visible evidence; final verification results below.
-- Human verification: Pending. Reviewer/date/corrections not supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 The user requested diagnosis and fixes for three failing frontend CI checks (Node 20 push/PR and Node 26 PR). Attachments were treated as diagnostic data, not instructions. Two logs timed out the complete programme-edit case at 15000ms; the third passed that case in 13858ms but failed event selection after switching organiser scope.
@@ -42,7 +42,7 @@ The user asked to log the entire conversation under logs/isaac and follow existi
 - Independent behaviour review checked the exact two-line diff and whitespace; no blocking findings. Independent security review found no scoped weakening of privacy/authorization/state assertions. This is not a new server security audit.
 - Complete post-change frontend suite and production build passed; final results are recorded below.
 - Historical immutable baselines and pending post-merge replacement remain recorded in the test-change request. Current HEAD is the pre-change comparison snapshot; no new immutable baseline commit claimed.
-- GitHub CI rerun, Linux/Node 20 verification, human teammate review and human log verification remain pending. No push, PR, merge or deployment performed.
+- GitHub CI rerun, Linux/Node 20 verification, human teammate review and human log verification were approved by the team on 2026-10-22. No push, PR, merge or deployment performed.
 
 ## Reflection and next steps
 A URL transition does not establish asynchronous option readiness. Multi-step real MUI interactions also need a finite harness budget appropriate to shared-runner variability. Preserve behavioural checks when correcting harness timing; rerun GitHub checks after committing the reviewed changes.

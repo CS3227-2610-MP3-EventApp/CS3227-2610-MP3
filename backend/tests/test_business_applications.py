@@ -761,7 +761,7 @@ def reset_schema():
 def assert_current_schema(historical=False):
     with connect() as connection:
         tables = {row[0] for row in connection.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")}
-        expected_domain_tables = LEGACY_DOMAIN_TABLES if historical else DOMAIN_TABLES | PROGRAMME_TABLES | ATTENDEE_PLANNING_TABLES | AI_TABLES | ATTENDEE_AI_TABLES
+        expected_domain_tables = LEGACY_DOMAIN_TABLES if historical else DOMAIN_TABLES | PROGRAMME_TABLES | ATTENDEE_PLANNING_TABLES | AI_TABLES | ATTENDEE_AI_TABLES | {"programme_changes", "announcement_drafts", "announcement_publication_previews", "attendee_notifications"}
         assert tables == AUTH_TABLES | expected_domain_tables | {"alembic_version"}
         assert connection.execute("SELECT is_nullable FROM information_schema.columns WHERE table_schema='public' AND table_name='audit_events' AND column_name='resource_revision'").fetchone() == ("YES",)
         references = {"application_approvals": {"events", "businesses", "users"}, "event_participations": {"events", "businesses"}, "submissions": {"event_participations", "users"}}

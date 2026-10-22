@@ -1,14 +1,14 @@
-"""post-merge linear head after F02 planning and AI analysis merge
+"""post-merge head after F02 planning, AI analysis, and disruptions
 
 Revision ID: 20261022_0007
-Revises: 20261022_0006
+Revises: 20261022_0006, 20261021_0006
 Create Date: 2026-10-22 12:00:00.000000
 """
 from typing import Sequence, Union
 
 
 revision: str = '20261022_0007'
-down_revision: Union[str, Sequence[str], None] = '20261022_0006'
+down_revision: Union[str, Sequence[str], None] = ('20261022_0006', '20261021_0006')
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

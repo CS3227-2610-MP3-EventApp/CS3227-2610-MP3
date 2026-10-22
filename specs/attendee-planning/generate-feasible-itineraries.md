@@ -21,7 +21,7 @@ The user requests generation, monitors their job, then reviews ordered proposed 
 
 ## Inputs, outputs and functional contract
 
-Inputs are owner/event identity, event-specific preferences and hard/soft constraints, permitted published item facts and revisions, and an optional explicit request scope. Output is a versioned, owner-scoped validated itinerary draft whose activity IDs/revisions, ordered times, reasons, constraint results and source references match permitted current records; or a structured infeasible/failure result with no accepted-plan change. Job ownership/status/failure/cancellation follow [monitor and recover AI tasks](../shared/monitor-and-recover-ai-tasks.md). Saving a draft does not accept it. Acceptance rechecks current programme revisions and constraints and creates a new accepted plan version only after explicit attendee action. 
+Inputs are owner/event identity, event-specific preferences and hard/soft constraints, permitted published item facts and revisions, and an optional explicit request scope. Output is a versioned, owner-scoped validated itinerary draft whose activity IDs/revisions, ordered times, reasons, constraint results and source references match permitted current records; or a structured infeasible/failure result with no accepted-plan change. Job ownership/status/failure/cancellation follow [monitor and recover AI tasks](../shared/monitor-and-recover-ai-tasks.md). Saving a draft does not accept it. Acceptance rechecks current programme revisions and constraints and creates a new accepted plan version only after explicit attendee action.
 
 ### Concrete contract (revision 2, approved by Yik Bing in chat 2026-10-22)
 

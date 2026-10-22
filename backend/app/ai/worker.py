@@ -19,6 +19,7 @@ from app.applications.models import Submission
 from app.auth.models import AuditEvent, utcnow
 from app.business.models import EventParticipation
 from app.database import SessionLocal
+from app.programme.problems import ProgrammeProblem
 from app.settings import Settings
 
 
@@ -42,16 +43,25 @@ def _finish(job_id, state, failure=None, payload=None):
         elif now >= job.deadline_at:
             state, failure, payload = "failed", "job_timeout", None
         if state == "completed" and payload is not None:
-            db.add(AnalysisReport(job_id=job.id, created_at=now,
-                source_revision=job.source_revision, rubric_revision=job.rubric_revision,
-                comparison_revisions=job.comparison_revisions, payload=payload))
+            if job.kind == "announcement_draft":
+                from app.disruptions import ai
+                try:
+                    ai.save(db, job, payload)
+                except ValueError as exc:
+                    state, failure = "failed", str(exc)
+                except ProgrammeProblem:
+                    state, failure = "failed", "source_changed"
+            else:
+                db.add(AnalysisReport(job_id=job.id, created_at=now,
+                    source_revision=job.source_revision, rubric_revision=job.rubric_revision,
+                    comparison_revisions=job.comparison_revisions, payload=payload))
         job.state = state
         job.failure_code = failure
         job.updated_at = now
         job.completed_at = now
         job.lease_until = None
         if state == "completed":
-            db.add(AuditEvent(user_id=job.owner_id, action="analysis_report_create",
+            db.add(AuditEvent(user_id=job.owner_id, action=("announcement_draft_complete" if job.kind == "announcement_draft" else "analysis_report_create"),
                 resource_id=job.id, resource_revision=job.source_revision, outcome="success"))
         db.flush()
 
@@ -72,6 +82,17 @@ def _claim():
             job.state, job.failure_code = "failed", "permission_revoked"
             job.updated_at = job.completed_at = utcnow()
             return None
+        if job.kind == "announcement_draft":
+            from app.disruptions import ai
+            try:
+                facts = ai.source(db, job)
+            except (ProgrammeProblem, ValueError):
+                _mark_failed(job, "source_changed", utcnow())
+                return None
+            job.state = "running"
+            job.updated_at = utcnow()
+            job.lease_until = min(job.deadline_at, job.updated_at + timedelta(seconds=180))
+            return job.id, job.event_id, job.owner_id, facts, None
         target = db.execute(select(Submission, EventParticipation).join(
             EventParticipation, Submission.participation_id == EventParticipation.id).where(
             Submission.id == job.application_id, EventParticipation.event_id == job.event_id,
@@ -131,6 +152,13 @@ def _dispatch(job_id):
         if not service.lock_authority(db, job.owner_id, job.event_id):
             _mark_failed(job, "permission_revoked", now)
             return False
+        if job.kind == "announcement_draft":
+            from app.disruptions import ai
+            try:
+                ai.source(db, job)
+            except (ProgrammeProblem, ValueError):
+                _mark_failed(job, "source_changed", now)
+                return False
         # Serialize the rolling-window check across all worker processes.
         db.execute(text("SELECT pg_advisory_xact_lock(3227, 20261021)"))
         now = utcnow()
@@ -185,7 +213,7 @@ def _send(provider, job_id, messages, criteria, sources):
         return
     try:
         raw = _complete(provider, job_id, messages)
-        payload = service.validate_report(raw, criteria, sources)
+        payload = _validate(raw, criteria, sources)
     except httpx.HTTPStatusError as exc:
         status = exc.response.status_code
         if status in (502, 503):
@@ -193,7 +221,7 @@ def _send(provider, job_id, messages, criteria, sources):
             if _dispatch(job_id):
                 try:
                     raw = _complete(provider, job_id, messages)
-                    payload = service.validate_report(raw, criteria, sources)
+                    payload = _validate(raw, criteria, sources)
                 except Exception as retry_exc:
                     _provider_failed(job_id, retry_exc)
                     return
@@ -222,6 +250,13 @@ def _provider_failed(job_id, exc):
     logger.warning("AI analysis provider attempt failed (%s).", code)
 
 
+def _validate(raw, criteria, sources):
+    if criteria is None:
+        from app.disruptions import ai
+        return ai.validate(raw, sources)
+    return service.validate_report(raw, criteria, sources)
+
+
 def run_once(provider=None) -> bool:
     """Process one pending job; provider injection exists only at this worker seam."""
     _recover_overdue()
@@ -234,7 +269,11 @@ def run_once(provider=None) -> bool:
     settings = Settings()
     try:
         adapter = provider or SoCLaaSProvider(settings)
-        messages = _messages(sources, criteria)
+        if criteria is None:
+            from app.disruptions import ai
+            messages = ai.messages(sources)
+        else:
+            messages = _messages(sources, criteria)
         _send(adapter, job_id, messages, criteria, sources)
     except Exception as exc:
         _provider_failed(job_id, exc)

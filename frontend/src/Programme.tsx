@@ -10,6 +10,8 @@ import { WorkspaceHeader } from "./WorkspaceHeader";
 import { ApiError, programmeApi, type EventSummary, type ItemFields, type ProgrammeItem, type Room, type Venue } from "./api";
 import { localTime, localTimeChoices } from "./programmeTime";
 import { useAuth } from "./Auth";
+import { ActivityDisruptions } from "./Disruptions";
+import { disruptionApi } from "./disruptionApi";
 
 dayjs.extend(utc);
 
@@ -78,6 +80,10 @@ export function Programme() {
 }
 
 function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAccessFailure: (failure: unknown) => void }) {
+  const selectionStorageKey = `eventapp.organiser.programme.selected.${event.id}`;
+  const savedSelection = (() => {
+    try { return sessionStorage.getItem(selectionStorageKey); } catch { return null; }
+  })();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [items, setItems] = useState<ProgrammeItem[]>([]);
@@ -88,7 +94,7 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
   const [forbidden, setForbidden] = useState(false);
   const [pending, setPending] = useState(false);
   const [selected, setSelected] = useState<ProgrammeItem | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!savedSelection);
   const [editorKey, setEditorKey] = useState(0);
   const [locationKey, setLocationKey] = useState(0);
   const [attempt, setAttempt] = useState(0);
@@ -98,7 +104,8 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
     setLoading(true); setLoadError("");
     Promise.all([programmeApi.venues(event.id), programmeApi.rooms(event.id), programmeApi.items(event.id)]).then(([nextVenues, nextRooms, nextItems]) => {
       if (!active) return;
-      setVenues(nextVenues); setRooms(nextRooms); setItems(nextItems);
+      const restored = savedSelection ? nextItems.find((item) => item.id === savedSelection) ?? null : null;
+      setVenues(nextVenues); setRooms(nextRooms); setItems(nextItems); setSelected(restored); setEditing(!!restored);
     }).catch((failure: unknown) => {
       if (!active) return;
       onAccessFailure(failure); setLoadError(failure instanceof Error ? failure.message : "Unable to load programme.");
@@ -135,6 +142,10 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
   function select(item: ProgrammeItem | null) {
     if (pending || conflict || forbidden) return;
     setSelected(item); setEditing(true); setEditorKey((value) => value + 1); setError("");
+    try {
+      if (item) sessionStorage.setItem(selectionStorageKey, item.id);
+      else sessionStorage.removeItem(selectionStorageKey);
+    } catch { /* Storage is optional; the in-memory selection still works. */ }
   }
   function updateItem(value: ProgrammeItem) {
     setItems((current) => current.some((item) => item.id === value.id) ? current.map((item) => item.id === value.id ? value : item) : [...current, value]);
@@ -149,7 +160,10 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
     }, (result) => {
       setConfirmation(null);
       if (result) updateItem(result);
-      else if (chosen.resource === "programme-items") { setItems((values) => values.filter((value) => value.id !== chosen.record.id)); setSelected(null); setEditing(false); }
+      else if (chosen.resource === "programme-items") {
+        setItems((values) => values.filter((value) => value.id !== chosen.record.id)); setSelected(null); setEditing(false);
+        try { sessionStorage.removeItem(selectionStorageKey); } catch { /* Storage is optional. */ }
+      }
       else if (chosen.resource === "venues") { setVenues((values) => values.filter((value) => value.id !== chosen.record.id)); setLocationKey((value) => value + 1); }
       else { setRooms((values) => values.filter((value) => value.id !== chosen.record.id)); setLocationKey((value) => value + 1); }
     });
@@ -169,6 +183,7 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
         </Stack>}
       </Paper>
       {editing && <ItemEditor key={editorKey} event={event} rooms={rooms} venues={venues} item={selected} blocked={blocked} perform={perform} onSaved={updateItem} onPublish={() => selected && setConfirmation({ action: "publish", resource: "programme-items", record: selected })} onDelete={() => selected && setConfirmation({ action: "delete", resource: "programme-items", record: selected })} />}
+      {editing && selected && selected.state !== "draft" && <ActivityDisruptions key={`disruptions-${selected.id}-${selected.revision}`} event={event} item={selected} blocked={blocked} onSaved={updateItem}/>}
     </>}
     {confirmation && <Dialog open onClose={() => !pending && setConfirmation(null)} aria-labelledby="programme-confirm-title" fullWidth maxWidth="sm">
       <DialogTitle id="programme-confirm-title">{confirmation?.action === "publish" ? "Publish programme item?" : "Delete this record?"}</DialogTitle>
@@ -195,7 +210,7 @@ function LocationManager({ eventId, venues, rooms, items, blocked, perform, onVe
   const [maxCapacity, setMaxCapacity] = useState("");
   const [roomAccess, setRoomAccess] = useState("");
   const [roomErrors, setRoomErrors] = useState<Errors>({});
-  const publishedRoomIds = new Set(items.filter((item) => item.state === "published").map((item) => item.roomId));
+  const publishedRoomIds = new Set(items.filter((item) => item.state !== "draft").map((item) => item.roomId));
   const venueLocked = !!venue && rooms.some((value) => value.venueId === venue.id && publishedRoomIds.has(value.id));
   const roomLocked = !!room && publishedRoomIds.has(room.id);
   function editVenue(value: Venue | null) { setVenue(value); setVenueName(value?.name ?? ""); setAddress(value?.address ?? ""); setVenueAccess(value?.accessibilityDetails ?? ""); setVenueErrors({}); }
@@ -272,8 +287,16 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
   const [errors, setErrors] = useState<Errors>({});
   const [validation, setValidation] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [editingPublished, setEditingPublished] = useState(false);
+  const [pendingChange, setPendingChange] = useState<ItemFields | null>(null);
+  const [changeReason, setChangeReason] = useState("");
+  const [uncertainChange, setUncertainChange] = useState(false);
   const published = item?.state === "published";
-  const disabled = blocked || published;
+  const cancelled = item?.state === "cancelled";
+  const disabled = blocked || cancelled || (published && !editingPublished) || uncertainChange;
+  const eventStart = dayjs.utc(localTime(event.startsAt, event.timezone));
+  const eventEnd = dayjs.utc(localTime(event.endsAt, event.timezone));
+  const eventWindow = `${localTime(event.startsAt, event.timezone).replace("T", " ")} – ${localTime(event.endsAt, event.timezone).replace("T", " ")}`;
   const startChoices = useMemo(() => localTimeChoices(startsAt, event.timezone), [startsAt, event.timezone]);
   const endChoices = useMemo(() => localTimeChoices(endsAt, event.timezone), [endsAt, event.timezone]);
   function resolve(value: string, choices: ReturnType<typeof localTimeChoices>, choice: string, original?: string) {
@@ -284,7 +307,7 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
   function changed() { setDirty(true); setValidation(""); }
   function save(submit: FormEvent) {
     submit.preventDefault();
-    if (published) return;
+    if (cancelled || (published && !editingPublished) || uncertainChange) return;
     const start = resolve(startsAt, startChoices, startChoice, item?.startsAt);
     const end = resolve(endsAt, endChoices, endChoice, item?.endsAt);
     const priceMinorUnits = priceInCents(price);
@@ -300,7 +323,9 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
     if (end && (Date.parse(end) > Date.parse(event.endsAt) || Date.parse(end) <= Date.parse(event.startsAt))) next.endsAt = ["End must be within the event dates."];
     if (start && end && Date.parse(end) <= Date.parse(start)) next.endsAt = ["End must follow start."];
     setErrors(next); if (Object.keys(next).length || !start || !end || priceMinorUnits === null) return;
-    void perform(() => programmeApi.saveItem(event.id, { title: title.trim(), type, roomId, startsAt: start, endsAt: end, capacity: Number(capacity), priceMinorUnits, currency: "SGD", accessibilityDetails: optionalText(access) }, item ?? undefined), onSaved, setErrors);
+    const proposed: ItemFields = { title: title.trim(), type, roomId, startsAt: start, endsAt: end, capacity: Number(capacity), priceMinorUnits, currency: "SGD", accessibilityDetails: optionalText(access) };
+    if (published) {setPendingChange(proposed); return;}
+    void perform(() => programmeApi.saveItem(event.id, proposed, item ?? undefined), onSaved, setErrors);
   }
   async function validate() {
     if (!item || published) return;
@@ -310,19 +335,34 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
   function offsetField(label: string, choices: ReturnType<typeof localTimeChoices>, value: string, change: (value: string) => void) {
     return choices.length > 1 && <TextField id={`item-${label.toLowerCase()}-offset`} label={`${label} offset`} select value={value} onChange={(event) => { change(event.target.value); changed(); }} disabled={disabled} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }} helperText="This local time occurs twice. Choose its UTC offset."><option value="">Choose offset</option>{choices.map((choice) => <option key={choice.instant} value={choice.instant}>UTC{choice.offset}</option>)}</TextField>;
   }
+  function previewValue(field: string, value: unknown) {
+    if (value === null || value === "") return "Unknown";
+    if (field === "startsAt" || field === "endsAt") return `${localTime(String(value), event.timezone).replace("T", " ")} (${event.timezone})`;
+    if (field === "priceMinorUnits") return `SGD ${priceInDollars(Number(value))}`;
+    if (field === "roomId") {
+      const room = rooms.find((entry) => entry.id === value);
+      return room ? `${venues.find((entry) => entry.id === room.venueId)?.name ?? "Unknown venue"} / ${room.name}` : "Unknown room";
+    }
+    return String(value);
+  }
+  const previewLabels: Record<string, string> = {title: "Title", type: "Type", roomId: "Location", startsAt: "Start", endsAt: "End", capacity: "Capacity", priceMinorUnits: "Price", currency: "Currency", accessibilityDetails: "Accessibility"};
   return <Paper component="section" elevation={0} sx={panel}>
     <Stack spacing={2.5} component="form" noValidate onSubmit={save}>
       <Stack direction="row" alignItems="center" sx={actions}><Typography component="h2" variant="h2">{item ? "Item details" : "New programme item"}</Typography>{item && <><Chip label={item.state} /><Typography>Revision {item.revision}</Typography></>}</Stack>
-      {published && <Alert severity="info">Published items are read-only. Their published venue and room facts are also protected.</Alert>}
+      {published && <Alert severity="info">{editingPublished ? "Review and confirm edits to create a new published revision." : "Published items are read-only until you explicitly choose Edit published activity."} Their published venue and room facts are protected.</Alert>}
+      {published && !editingPublished && <Button disabled={blocked || uncertainChange} onClick={() => setEditingPublished(true)} sx={{alignSelf: "start"}}>Edit published activity</Button>}
+      {cancelled && <Alert severity="warning">This activity has been cancelled. Cancellation is final and the record is retained.</Alert>}
+      {uncertainChange && <Alert severity="warning" action={<Button onClick={() => void perform(() => programmeApi.item(event.id, item!.id), onSaved)}>Check current state</Button>}>The change outcome is uncertain. Check current state before submitting another change.</Alert>}
       {dirty && item && <Typography variant="body2" color="text.secondary">You have unsaved changes. Validation checks the saved revision. Save before publication.</Typography>}
       <TextField id="item-title" label="Title" value={title} onChange={(event) => { setTitle(event.target.value); changed(); }} disabled={disabled} {...fieldError(errors, "title")} />
       <TextField id="item-type" label="Type" select value={type} onChange={(event) => { setType(event.target.value as ItemFields["type"]); changed(); }} disabled={disabled} slotProps={{ select: { native: true } }} {...fieldError(errors, "type")}>{types.map((value) => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}</TextField>
       <TextField id="item-room" label="Room" select value={roomId} onChange={(event) => { setRoomId(event.target.value); changed(); }} disabled={disabled} slotProps={{ select: { native: true }, inputLabel: { shrink: true } }} {...fieldError(errors, "roomId")}><option value="">Choose a room</option>{rooms.map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</TextField>
       {roomId && <Typography variant="body2" color="text.secondary">Venue: {venues.find((venue) => venue.id === rooms.find((room) => room.id === roomId)?.venueId)?.name ?? "Unknown"}. Capacity is per item; activities may overlap in the same room.</Typography>}
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+        <Typography variant="body2" color="text.secondary">Allowed activity window: {eventWindow}. Times use the event timezone shown above.</Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
-          <Stack spacing={2}><DateTimePicker label="Starts at" value={startValue} onChange={(value) => { setStartValue(value); if (pickerWallClock(value) !== startsAt) setStartChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-start", ...fieldError(errors, "startsAt") } }} />{offsetField("Start", startChoices, startChoice, setStartChoice)}</Stack>
-          <Stack spacing={2}><DateTimePicker label="Ends at" value={endValue} onChange={(value) => { setEndValue(value); if (pickerWallClock(value) !== endsAt) setEndChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDate={dayjs.utc(localTime(event.startsAt, event.timezone))} maxDate={dayjs.utc(localTime(event.endsAt, event.timezone))} disabled={disabled} slotProps={{ textField: { id: "item-end", ...fieldError(errors, "endsAt") } }} />{offsetField("End", endChoices, endChoice, setEndChoice)}</Stack>
+          <Stack spacing={2}><DateTimePicker label="Starts at" value={startValue} onChange={(value) => { setStartValue(value); if (pickerWallClock(value) !== startsAt) setStartChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDateTime={eventStart} maxDateTime={eventEnd} disabled={disabled} slotProps={{ textField: { id: "item-start", ...fieldError(errors, "startsAt"), helperText: errors.startsAt?.join(" ") ?? `Earliest: ${localTime(event.startsAt, event.timezone).replace("T", " ")}` } }} />{offsetField("Start", startChoices, startChoice, setStartChoice)}</Stack>
+          <Stack spacing={2}><DateTimePicker label="Ends at" value={endValue} onChange={(value) => { setEndValue(value); if (pickerWallClock(value) !== endsAt) setEndChoice(""); changed(); }} timezone="UTC" format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} timeSteps={{ minutes: 1, seconds: 1 }} minDateTime={eventStart} maxDateTime={eventEnd} disabled={disabled} slotProps={{ textField: { id: "item-end", ...fieldError(errors, "endsAt"), helperText: errors.endsAt?.join(" ") ?? `Latest: ${localTime(event.endsAt, event.timezone).replace("T", " ")}` } }} />{offsetField("End", endChoices, endChoice, setEndChoice)}</Stack>
         </Box>
       </LocalizationProvider>
       <TextField id="item-capacity" label="Capacity" type="number" value={capacity} onChange={(event) => { setCapacity(event.target.value); changed(); }} disabled={disabled} slotProps={{ htmlInput: { min: 1, max: 2147483647, step: 1 } }} {...fieldError(errors, "capacity")} />
@@ -330,7 +370,8 @@ function ItemEditor({ event, rooms, venues, item, blocked, perform, onSaved, onP
       <TextField id="item-access" label="Accessibility details" value={access} onChange={(event) => { setAccess(event.target.value); changed(); }} multiline minRows={2} disabled={disabled} {...fieldError(errors, "accessibilityDetails")} />
       <Typography variant="caption" color="text.secondary">Blank accessibility details mean unknown. Enter price in SGD dollars, with up to two decimal places (maximum 21474836.47).</Typography>
       {validation && <Typography role="status">{validation}</Typography>}
-      <Stack direction="row" sx={actions}><Button type="submit" variant="contained" disabled={disabled}>Save draft</Button>{item && <><Button disabled={disabled} onClick={validate}>Validate</Button><Button disabled={disabled || dirty} variant="outlined" onClick={onPublish}>Publish</Button><Button disabled={disabled} color="error" onClick={onDelete}>Delete</Button></>}</Stack>
+      <Stack direction="row" sx={actions}><Button type="submit" variant="contained" disabled={disabled}>{published ? "Review published changes" : "Save draft"}</Button>{item && !published && !cancelled && <><Button disabled={disabled} onClick={validate}>Validate</Button><Button disabled={disabled || dirty} variant="outlined" onClick={onPublish}>Publish</Button><Button disabled={disabled} color="error" onClick={onDelete}>Delete</Button></>}</Stack>
     </Stack>
+    <Dialog open={!!pendingChange} onClose={() => !blocked && setPendingChange(null)} aria-labelledby="published-change-title" fullWidth maxWidth="md"><DialogTitle id="published-change-title">Confirm published activity changes?</DialogTitle><DialogContent><Stack spacing={2}><Typography>This creates a new public revision. Existing accepted plans are not silently replaced.</Typography>{pendingChange && Object.entries(pendingChange).map(([field, value]) => <Box key={field} sx={{display: "grid", gridTemplateColumns: {xs: "1fr", sm: "1fr 1fr"}, gap: 1, borderBottom: 1, borderColor: "divider", pb: 1, overflowWrap: "anywhere"}}><Typography>{previewLabels[field]} — Before: {previewValue(field, item?.[field as keyof ProgrammeItem] ?? null)}</Typography><Typography>After: {previewValue(field, value)}</Typography></Box>)}<TextField label="Change reason (optional)" value={changeReason} onChange={(e) => setChangeReason(e.target.value)} multiline slotProps={{htmlInput: {maxLength: 1000}}}/></Stack></DialogContent><DialogActions><Button disabled={blocked} onClick={() => setPendingChange(null)}>Keep editing</Button><Button disabled={disabled || !pendingChange} onClick={async () => {await perform(async () => {try {return await disruptionApi.change(event.id, item!, pendingChange!, changeReason);} catch (cause) {if (cause instanceof ApiError && (cause.status === 0 || cause.status >= 500)) setUncertainChange(true); throw cause;}}, onSaved, setErrors); setPendingChange(null);}}>Confirm changes</Button></DialogActions></Dialog>
   </Paper>;
 }

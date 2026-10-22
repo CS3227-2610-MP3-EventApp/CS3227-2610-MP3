@@ -2,7 +2,7 @@
 
 - Date/timezone: 2026-10-21, Asia/Singapore. Session owner: Yik Bing.
 - Repository: EventApp; branch `feat/yikbing-attendee-planning`, base `148b381b106df12ba2ddd94359f4834e4e8f8537`.
-- Source coverage: this visible conversation, actual tool output and agent handoffs. AI factual check: checked against this evidence. Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 
@@ -38,4 +38,4 @@ The user explicitly replied 'Approve F02 revision 2 and proceed' to the question
 
 ## Implementation results and remaining work
 
-F02 preferences/bookmarks/manual itinerary UI and backend are implemented. Protected replacement baseline `162a1dc96b4f08b8535f9728f04e08a8b3653680` passes the guard. Backend acceptance 22/22; frontend F02 and session/home 29/29; TypeScript/Vite build and two migration checks passed. Independent same-snapshot behaviour/security review found no actionable scoped findings. Real synthetic checks passed denied foreign/private resource access, organiser/business write denial, same/different-room overlap, overnight adjacency, rollback on accepted insert/delete failure and repeated delete. New process/client after isolated PostgreSQL restart retrieved the full saved state and two accepted versions without reseeding. Vite retains its >500 kB chunk advisory. F05 producer integration, Dylan migration graph reconciliation, assistive-technology and online/environment gates, teammate review and human log verification remain pending. The UI06 query failure from two valid alert roles was fixed by independently approved test-owner TCR04 and the corrected baseline reran cleanly. One wrong relative path command and one first-attempt frontend sandbox spawn failure are recorded in turn evidence; neither changed source. Human verification: Pending.
+Human verification: Approved by the team on 2026-10-22.

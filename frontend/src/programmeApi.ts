@@ -50,7 +50,8 @@ function validProgrammeItem(value: unknown): value is PublishedProgrammeItem {
   const { event, room, venue } = value;
   return text(value.id) && text(value.eventId) && validEventFacts(event) && event.id === value.eventId
     && text(value.title) && typeof value.type === "string" && ["talk", "workshop", "panel", "booth", "performance", "other"].includes(value.type)
-    && instant(value.startsAt) && instant(value.endsAt) && instant(value.publishedAt) && value.state === "published"
+    && instant(value.startsAt) && instant(value.endsAt) && instant(value.publishedAt) && ["published", "cancelled"].includes(String(value.state))
+    && (value.state !== "cancelled" || (instant(value.cancelledAt) && text(value.cancellationReason)))
     && integer(value.revision, 1) && integer(value.priceMinorUnits, 0, Number.MAX_SAFE_INTEGER)
     && value.currency === "SGD" && integer(value.capacity, 1) && accessibility(value.accessibilityDetails)
     && text(room.id) && text(room.name) && integer(room.maxCapacity, 1) && accessibility(room.accessibilityDetails)
