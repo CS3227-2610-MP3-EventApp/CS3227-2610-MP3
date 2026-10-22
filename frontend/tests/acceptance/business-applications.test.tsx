@@ -49,6 +49,15 @@ function expectNoPrivateStorage(...values: string[]) {
   const stored = storedValues(window.localStorage) + storedValues(window.sessionStorage) + window.location.href + JSON.stringify(window.history.state);
   for (const value of values) expect(stored).not.toContain(value);
 }
+const meRequests = () => applications.requests.filter((request) => request.path === "/api/v1/auth/me");
+const nonAuthRequests = () => applications.requests.filter((request) => !request.path.startsWith("/api/v1/auth/"));
+const sessionScreen = () => screen.queryByText(/checking your session/i);
+const pause = (milliseconds = 50) => act(async () => { await new Promise((resolve) => setTimeout(resolve, milliseconds)); });
+function persistedPageshow() {
+  const event = new Event("pageshow");
+  Object.defineProperty(event, "persisted", { value: true });
+  return event;
+}
 function expectCredentialedWrites() {
   for (const request of applications.writes()) {
     expect(request.credentials).toBe("same-origin");
@@ -72,34 +81,44 @@ describe("REQ-TCR-04 approved Unicode and organiser draft lifecycle regressions"
     expect(applications.writes()).toHaveLength(0);
     expectNoPrivateStorage(reason, content.contactEmail);
   });
-  test("REQ-REG-C1 unsaved organiser reason is concealed then restored after same-scope focus validation", async () => {
+  test("REQ-REG-C1 unsaved organiser reason stays in place during silent same-scope focus validation", async () => {
     applications.install("organiser"); applications.records = [submitted()];
     await renderPrototype(`${organiserRoute}&applicationId=${A1}`); await screen.findByText(content.description);
     await userEvent.setup().click(screen.getByRole("button", { name: /^reject application$/i }));
     const marker = "PRIVATE-SAME-SCOPE-UNSAVED-REASON";
     fireEvent.change(await screen.findByLabelText(/^decision reason$/i), { target: { value: marker } });
+    const field = screen.getByLabelText(/^decision reason$/i);
+    const before = meRequests().length;
     const release = applications.hold("/api/v1/auth/me");
     await act(async () => { window.dispatchEvent(new Event("focus")); });
-    await waitFor(() => expect(screen.queryByDisplayValue(marker)).not.toBeInTheDocument());
-    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before)); // the check runs in the background
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/^decision reason$/i)).toBe(field);
+    expect(field).toHaveValue(marker);
     await act(async () => { release(); });
-    await waitFor(() => expect(screen.getAllByText(content.description).length).toBeGreaterThan(0));
-    if (!screen.queryByLabelText(/^decision reason$/i)) await userEvent.setup().click(screen.getByRole("button", { name: /^reject application$/i }));
-    expect(await screen.findByLabelText(/^decision reason$/i)).toHaveValue(marker);
+    await pause();
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/^decision reason$/i)).toHaveValue(marker);
     expect(applications.records[0].decision).toBeNull();
     expect(applications.writes()).toHaveLength(0);
     expectNoPrivateStorage(marker, content.contactEmail);
   });
-  test("REQ-REG-C2 unsaved organiser setting survives same-scope pageshow validation", async () => {
+  test("REQ-REG-C2 unsaved organiser setting survives silent same-scope pageshow validation", async () => {
     applications.install("organiser"); await renderPrototype(organiserRoute);
     const toggle = await screen.findByRole("checkbox", { name: /^accepting applications$/i });
     expect(toggle).toBeChecked(); await userEvent.setup().click(toggle);
     expect(toggle).not.toBeChecked();
+    const before = meRequests().length;
     const release = applications.hold("/api/v1/auth/me");
-    await act(async () => { window.dispatchEvent(new Event("pageshow")); });
-    await waitFor(() => expect(screen.queryByRole("checkbox", { name: /^accepting applications$/i })).not.toBeInTheDocument());
+    await act(async () => { window.dispatchEvent(new Event("pageshow")); }); // not restored from the back/forward cache
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /^accepting applications$/i })).toBe(toggle);
+    expect(toggle).not.toBeChecked();
     await act(async () => { release(); });
-    expect(await screen.findByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked();
+    await pause();
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /^accepting applications$/i })).not.toBeChecked();
     expect(applications.events[0].applicationsOpen).toBe(true);
     expect(applications.writes()).toHaveLength(0);
   });
@@ -625,16 +644,22 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
     expect(applications.writes()).toHaveLength(0);
   });
 
-  test("AC13/15 focus revalidation conceals private content until same-scope confirmation", async () => {
+  test("AC13/15 silent focus revalidation keeps private content in place until same-scope confirmation", async () => {
     await business(true); fill({ description: "Unsaved scope-specific words" });
+    const field = description();
+    const before = meRequests().length;
     const release = applications.hold("/api/v1/auth/me");
     await act(async () => { window.dispatchEvent(new Event("focus")); });
-    await waitFor(() => expect(screen.queryByDisplayValue("Unsaved scope-specific words")).not.toBeInTheDocument());
-    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(description()).toBe(field);
+    expect(description()).toHaveValue("Unsaved scope-specific words");
     await act(async () => { release(); });
-    await screen.findByLabelText(/^description$/i);
-    await waitFor(() => expect(description()).toHaveValue("Unsaved scope-specific words"));
+    await pause();
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(description()).toHaveValue("Unsaved scope-specific words");
     expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("Unsaved scope-specific words", content.contactEmail);
   });
 
   test("AC13/15 pageshow and failed identity revalidation keep memory concealed until authorised recovery", async () => {
@@ -771,19 +796,126 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
     expectNoPrivateStorage("PRIVATE-DEPARTED-SCOPE-MARKER", content.contactEmail);
   });
 
-  test("AC13/15 unrelated membership reorder during focus revalidation preserves the same authorised scope", async () => {
+  test("AC13/15 unrelated membership reorder during silent focus revalidation preserves the same authorised scope", async () => {
     await business(true, true);
     fill({ description: "Same actor and B1 E1 private input" });
+    const field = description();
     auth.current = { ...auth.current!, businessMemberships: [...auth.current!.businessMemberships].reverse() };
+    const before = meRequests().length;
     const release = applications.hold("/api/v1/auth/me");
     await act(async () => { window.dispatchEvent(new Event("focus")); });
-    await waitFor(() => expect(screen.queryByDisplayValue("Same actor and B1 E1 private input")).not.toBeInTheDocument());
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(description()).toBe(field);
+    expect(description()).toHaveValue("Same actor and B1 E1 private input");
+    await act(async () => { release(); });
+    await pause();
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(description()).toHaveValue("Same actor and B1 E1 private input");
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("Same actor and B1 E1 private input", content.contactEmail);
+  });
+
+  test("SILENT-TCR-01a a silent focus check answered 401 conceals private content, clears private storage and writes nothing", async () => {
+    await business(true); fill({ description: "PRIVATE-401-SILENT-MARKER" });
+    auth.current = null; // the session ended while the page was in the background
+    const before = meRequests().length;
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument(); // silent until the answer arrives
+    await act(async () => { release(); });
+    await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-401-SILENT-MARKER")).not.toBeInTheDocument());
+    await waitFor(() => expect(window.location.pathname).not.toBe("/business/applications"));
+    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    expect(document.body).not.toHaveTextContent(content.description);
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("PRIVATE-401-SILENT-MARKER", content.contactEmail, content.description);
+  });
+
+  test("SILENT-TCR-01b a silent focus check returning a different actor purges the previous actor's private input", async () => {
+    await business(true); fill({ description: "PREVIOUS-ACTOR-PRIVATE-INPUT" });
+    auth.current = { ...actor("business", "Different Synthetic Owner"), id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" };
+    const before = meRequests().length;
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument();
+    await act(async () => { release(); });
+    await waitFor(() => expect(screen.queryByDisplayValue("PREVIOUS-ACTOR-PRIVATE-INPUT")).not.toBeInTheDocument());
+    await pause();
+    expect(screen.queryByDisplayValue("PREVIOUS-ACTOR-PRIVATE-INPUT")).not.toBeInTheDocument();
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("PREVIOUS-ACTOR-PRIVATE-INPUT");
+  });
+
+  test("SILENT-TCR-01c a silent focus check confirming membership loss purges the private form and confirmation", async () => {
+    await business(true); await review();
+    auth.current = { ...actor("business"), businessMemberships: [] };
+    const before = meRequests().length;
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /^confirm submission$/i })).toBeVisible(); // nothing changes until the answer
+    await act(async () => { release(); });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.queryByLabelText(/^description$/i)).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(content.description);
+    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage(content.contactEmail);
+  });
+
+  test("SILENT-TCR-01d a pageshow restored from the back/forward cache still conceals private content while /me is pending", async () => {
+    await business(true); fill({ description: "Restored-page private words" });
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(persistedPageshow()); });
+    expect(await screen.findByText(/checking your session/i)).toBeVisible();
+    expect(screen.queryByDisplayValue("Restored-page private words")).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent(content.contactEmail);
     await act(async () => { release(); });
     await screen.findByLabelText(/^description$/i);
-    await waitFor(() => expect(description()).toHaveValue("Same actor and B1 E1 private input"));
+    await waitFor(() => expect(description()).toHaveValue("Restored-page private words"));
+    expect(sessionScreen()).not.toBeInTheDocument();
     expect(applications.writes()).toHaveLength(0);
-    expectNoPrivateStorage("Same actor and B1 E1 private input", content.contactEmail);
+    expectNoPrivateStorage("Restored-page private words", content.contactEmail);
+  });
+
+  test("SILENT-TCR-01e a focus event during a held navigation revalidation does not clear the loading screen", async () => {
+    await business(true, true); fill({ description: "Unsaved across navigation and focus" });
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => {
+      window.history.pushState({}, "", "/business");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(await screen.findByText(/checking your session/i)).toBeVisible();
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await pause(100);
+    expect(screen.getByText(/checking your session/i)).toBeVisible(); // the navigation-owned check is still pending
+    expect(screen.queryByRole("heading", { name: "Business applications", level: 1 })).not.toBeInTheDocument();
+    await act(async () => { release(); });
+    await waitFor(() => expect(sessionScreen()).not.toBeInTheDocument());
+    expect(window.location.pathname).toBe("/business");
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("Unsaved across navigation and focus", content.contactEmail);
+  });
+
+  test("SILENT-TCR-01f a same-actor silent focus check does not refetch or reset the page it is on", async () => {
+    await business(true); fill({ description: "Unsaved words survive without a refetch" });
+    await pause(100);
+    const field = description();
+    const before = meRequests().length;
+    const settled = nonAuthRequests().length;
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    await act(async () => { release(); });
+    await pause(150);
+    expect(nonAuthRequests()).toHaveLength(settled); // no programme/application/discovery GET was repeated
+    expect(description()).toBe(field);
+    expect(description()).toHaveValue("Unsaved words survive without a refetch");
+    expect(applications.writes()).toHaveLength(0);
   });
 
   test("AC16 supports keyboard validation, correction, saved review and confirmation", async () => {

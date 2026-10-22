@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Box, Button, Typography } from "@mui/material";
 import { useLocation, useNavigationType } from "react-router-dom";
 import { api, ApiError } from "./api";
@@ -24,9 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0);
   const epoch = useRef(0);
   const lastAttempt = useRef(0);
+  const silentRef = useRef(false);
+  const screenRef = useRef({ loading: true, error: "" });
+  screenRef.current = { loading, error };
   const location = useLocation();
   const navigationType = useNavigationType();
-  function setActor(value: CurrentActor | null) {
+  // Stable identity: pages list setActor in effect dependencies, and silent revalidation must not refetch them.
+  const setActor = useCallback((value: CurrentActor | null) => {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
       memory.current.clear(); organiserMemory.current.clear(); destinations.current.clear();
@@ -55,25 +59,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (lostScope || actorRef.current?.businessMemberships.some((membership) => !owns(membership.businessId)) || actorRef.current?.eventMemberships.some((membership) => !assigned(membership.eventId))) setSessionNotice("");
     }
-    actorRef.current = value; updateActor(value);
-  }
+    actorRef.current = value;
+    updateActor((current) => current && value && JSON.stringify(current) === JSON.stringify(value) ? current : value);
+  }, []);
   function revalidate() { epoch.current++; setLoading(true); setAttempt((value) => value + 1); }
+  // Window focus and non-restored page show re-check the session in the background: the page stays visible.
+  // Navigation, restored (bfcache) pages and recovery keep the concealed, non-silent check, and a silent check
+  // never replaces a loading or error screen that is already showing.
+  // A check already in flight is confirming identity, so a focus during it is ignored; the error screen retries.
+  function silentRevalidate() {
+    if (screenRef.current.loading) return;
+    if (screenRef.current.error) { revalidate(); return; }
+    silentRef.current = true; setAttempt((value) => value + 1);
+  }
   useEffect(() => {
-    const listener = () => revalidate();
-    window.addEventListener("focus", listener); window.addEventListener("pageshow", listener);
-    return () => { window.removeEventListener("focus", listener); window.removeEventListener("pageshow", listener); };
+    const focus = () => silentRevalidate();
+    const pageshow = (event: Event) => { if ((event as PageTransitionEvent).persisted) revalidate(); else silentRevalidate(); };
+    window.addEventListener("focus", focus); window.addEventListener("pageshow", pageshow);
+    return () => { window.removeEventListener("focus", focus); window.removeEventListener("pageshow", pageshow); };
   }, []);
   useEffect(() => {
     // A guard redirect (replace navigation) from an already-verified, settled session is not a new
     // context; re-checking would briefly unmount the page the redirect just opened.
     if (navigationType === "REPLACE" && !loading && !error && actorRef.current && attempt === lastAttempt.current) return;
     lastAttempt.current = attempt;
+    const silent = silentRef.current && !loading && !error;
+    silentRef.current = false;
     let active = true;
     const current = ++epoch.current;
     let completionEpoch = current;
-    setLoading(true); setStillLoading(false); setError("");
+    if (!silent) { setLoading(true); setStillLoading(false); setError(""); }
     const started = performance.now();
-    const timer = setTimeout(() => { if (active && epoch.current === current && performance.now() - started >= 10000) setStillLoading(true); }, 10000);
+    const timer = silent ? undefined : setTimeout(() => { if (active && epoch.current === current && performance.now() - started >= 10000) setStillLoading(true); }, 10000);
     try { sessionStorage.removeItem("eventapp.prototype.session"); } catch { /* Optional storage. */ }
     api.me().then((value) => { if (active && epoch.current === current) { setActor(value); completionEpoch = epoch.current; } }).catch((failure: unknown) => {
       if (!active || epoch.current !== current) return;
