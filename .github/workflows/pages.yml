@@ -34,7 +34,7 @@ jobs:
         with:
           enablement: true
       - name: Upload product website
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: pages
       - name: Deploy to GitHub Pages
