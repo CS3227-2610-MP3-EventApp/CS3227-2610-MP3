@@ -38,3 +38,10 @@ def test_plain_grounded_summaries_are_kept(text):
 ])
 def test_evasive_or_ungrounded_summaries_are_withheld(text):
     assert summary(text) is None
+
+
+def test_summary_may_use_event_local_times_but_not_iso_timestamps():
+    local = ["01 Jan 2027, 10:00"]
+    assert questions._summary("test1 starts at 10:00 on 01 Jan 2027", [], ["test1"], local) == "test1 starts at 10:00 on 01 Jan 2027"
+    assert questions._summary("test1 starts at 2027-01-01T02:00:00+00:00", ["2027-01-01T02:00:00+00:00"], ["test1"], local) is None
+    assert questions._summary("test1 starts at 11:00", [], ["test1"], local) is None

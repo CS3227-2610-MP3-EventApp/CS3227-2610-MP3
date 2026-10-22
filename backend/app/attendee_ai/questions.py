@@ -4,6 +4,7 @@ import json
 import re
 import unicodedata
 from uuid import UUID
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import ValidationError
 from sqlalchemy import func, select
@@ -30,13 +31,15 @@ SYSTEM = (
     '"itemRevision":1,"field":"title|type|startsAt|endsAt|room|venueName|venueAddress|price|capacity|'
     'accessibility|state|cancellationReason","value":...}]}. Every claim must copy the exact itemId, revision '
     "and value of the supplied activity: price is priceMinorUnits, accessibility is accessibilityDetails (null "
-    "when not provided), times are the supplied ISO strings. The summary must not contain links, markup or "
-    "numbers that are not in your claims. If the programme lacks the information, items conflict, or the "
+    "when not provided), times are the supplied ISO strings. In the summary write times only as the supplied "
+    "startsAtLocal and endsAtLocal text (the event's own time zone), never as ISO strings. The summary must not "
+    "contain links, markup or numbers that are not in your claims. If the programme lacks the information, items conflict, or the "
     'question is not about this programme, return {"outcome":"unknown","reason":'
     '"insufficient_evidence|conflicting_evidence|out_of_scope"}. Do not add any other keys.')
 
 _URL = re.compile(r"(?i)(?<![a-z0-9])[a-z][a-z0-9+.\-]+:[^\s]|//|(?<![a-z0-9])www\.|(?<![a-z0-9-])[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?![a-z0-9])")
 _EMAIL = re.compile(r"\S+@\S+")
+_ISO_TIME = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}")
 _ENTITY = re.compile(r"&#?\w+;")
 _DIGITS = re.compile(r"\d+")
 _MARKUP = set("<>[]{}`\\")
@@ -122,9 +125,18 @@ def cancel_job(db: Session, owner_id: UUID, job_id: UUID) -> QuestionJobView:
     return job_view(db, job)
 
 
+def local_time(fact: PublishedProgramme, value: datetime) -> str:
+    """Event-time-zone text such as '01 Jan 2027, 10:00', the form the attendee sees on the programme page."""
+    try:
+        return value.astimezone(ZoneInfo(fact.event.timezone)).strftime("%d %b %Y, %H:%M")
+    except (ZoneInfoNotFoundError, ValueError):
+        return value.isoformat()
+
+
 def build_messages(facts: list[PublishedProgramme], question: str) -> list[dict[str, str]]:
     activities = [{"itemId": str(fact.id), "revision": fact.revision, "title": fact.title, "type": fact.type,
                    "state": fact.state, "startsAt": fact.startsAt.isoformat(), "endsAt": fact.endsAt.isoformat(),
+                   "startsAtLocal": local_time(fact, fact.startsAt), "endsAtLocal": local_time(fact, fact.endsAt),
                    "room": fact.room.name, "venueName": fact.venue.name, "venueAddress": fact.venue.address,
                    "priceMinorUnits": fact.priceMinorUnits, "capacity": fact.capacity,
                    "accessibilityDetails": fact.accessibilityDetails, "cancellationReason": fact.cancellationReason}
@@ -163,16 +175,16 @@ def _numeric_outside_ascii(text: str) -> bool:
                and not re.fullmatch(r"\d+", unicodedata.normalize("NFKC", char)) for char in text)
 
 
-def _summary(summary: str | None, values: list, titles: list[str]) -> str | None:
+def _summary(summary: str | None, values: list, titles: list[str], local_times: list[str] = ()) -> str | None:
     """Keep the model's sentence only when it is plain, short and adds no unverified numbers or links."""
     if not summary or not summary.strip() or len(summary) > SUMMARY_LIMIT:
         return None
     plain = unicodedata.normalize("NFKC", summary)
     if any(unicodedata.category(char).startswith("C") for char in plain) or _numeric_outside_ascii(summary):
         return None
-    if _MARKUP & set(plain) or _ENTITY.search(plain) or _URL.search(plain) or _EMAIL.search(plain):
+    if _MARKUP & set(plain) or _ENTITY.search(plain) or _URL.search(plain) or _EMAIL.search(plain) or _ISO_TIME.search(plain):
         return None
-    grounded = {token for text in [str(value) for value in values] + titles
+    grounded = {token for text in [str(value) for value in values] + titles + list(local_times)
                 for token in _DIGITS.findall(unicodedata.normalize("NFKC", text))}
     return summary if all(token in grounded for token in _DIGITS.findall(plain)) else None
 
@@ -207,5 +219,7 @@ def validate_output(raw: str, facts: list[PublishedProgramme]) -> dict:
                        "itemState": fact.state, "field": claim.field,
                        "value": actual.isoformat() if isinstance(actual, datetime) else actual})
     cited = [by_id[item_id].title for item_id in observed]
-    return {"outcome": "answered", "summary": _summary(answered.summary, [c["value"] for c in claims], cited),
+    local_times = [local_time(by_id[item_id], when) for item_id in observed
+                   for when in (by_id[item_id].startsAt, by_id[item_id].endsAt)]
+    return {"outcome": "answered", "summary": _summary(answered.summary, [c["value"] for c in claims], cited, local_times),
             "claims": claims, "observedProgrammeRevisions": observed}
