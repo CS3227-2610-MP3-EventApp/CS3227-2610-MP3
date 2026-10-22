@@ -1264,6 +1264,97 @@
         "title": "BusinessPreparationJob",
         "type": "object"
       },
+      "BusinessPromotionalConceptJob": {
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "concept": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PromotionalConceptView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "participationId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun",
+          "concept"
+        ],
+        "title": "BusinessPromotionalConceptJob",
+        "type": "object"
+      },
       "BusinessRegistration": {
         "additionalProperties": false,
         "properties": {
@@ -1511,6 +1602,70 @@
           "selectedLineIds"
         ],
         "title": "CreatePreparationDraft",
+        "type": "object"
+      },
+      "CreatePromotionalConcept": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Brief",
+            "type": "string"
+          },
+          "dataSharingConfirmed": {
+            "const": true,
+            "title": "Datasharingconfirmed",
+            "type": "boolean"
+          },
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expectedsetuprevision"
+          },
+          "factFields": {
+            "items": {
+              "enum": [
+                "event.title",
+                "event.startsAt",
+                "event.endsAt",
+                "event.timezone",
+                "setup.boothLabel",
+                "setup.setupInstructions"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Factfields",
+            "type": "array"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requestId",
+          "expectedEventRevision",
+          "expectedSetupRevision",
+          "brief",
+          "factFields",
+          "dataSharingConfirmed"
+        ],
+        "title": "CreatePromotionalConcept",
         "type": "object"
       },
       "CurrentActor": {
@@ -1922,6 +2077,29 @@
           "field"
         ],
         "title": "FieldError",
+        "type": "object"
+      },
+      "Freebie": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "Freebie",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -2920,6 +3098,176 @@
         "title": "ProgrammeProblem",
         "type": "object"
       },
+      "PromotionalConceptHistory": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PromotionalConceptView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "latestJob": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "latestJob"
+        ],
+        "title": "PromotionalConceptHistory",
+        "type": "object"
+      },
+      "PromotionalConceptView": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "factFields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Factfields",
+            "type": "array"
+          },
+          "freebieConcepts": {
+            "items": {
+              "$ref": "#/components/schemas/Freebie"
+            },
+            "title": "Freebieconcepts",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "layoutBrief": {
+            "title": "Layoutbrief",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "posterCopySuggestions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Postercopysuggestions",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "sourceFacts": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFact"
+            },
+            "title": "Sourcefacts",
+            "type": "array"
+          },
+          "sourceRevisions": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Sourcerevisions",
+            "type": "object"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participationId",
+          "revision",
+          "sourceRevisions",
+          "factFields",
+          "sourceFacts",
+          "posterCopySuggestions",
+          "freebieConcepts",
+          "layoutBrief",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "PromotionalConceptView",
+        "type": "object"
+      },
+      "PromotionalProblem": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "PromotionalProblem",
+        "type": "object"
+      },
       "PublicationAudit": {
         "properties": {
           "action": {
@@ -3085,6 +3433,57 @@
         "title": "PublishedProgramme",
         "type": "object"
       },
+      "RefreshPromotionalFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expectedsetuprevision"
+          },
+          "factFields": {
+            "items": {
+              "enum": [
+                "event.title",
+                "event.startsAt",
+                "event.endsAt",
+                "event.timezone",
+                "setup.boothLabel",
+                "setup.setupInstructions"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Factfields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "expectedEventRevision",
+          "expectedSetupRevision",
+          "factFields"
+        ],
+        "title": "RefreshPromotionalFacts",
+        "type": "object"
+      },
       "ReplaceAnalysisRubric": {
         "additionalProperties": false,
         "properties": {
@@ -3214,6 +3613,47 @@
           "budget"
         ],
         "title": "ReplacePreparationDraft",
+        "type": "object"
+      },
+      "ReplacePromotionalConcept": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "freebieConcepts": {
+            "items": {
+              "$ref": "#/components/schemas/Freebie"
+            },
+            "maxItems": 10,
+            "title": "Freebieconcepts",
+            "type": "array"
+          },
+          "layoutBrief": {
+            "maxLength": 4000,
+            "title": "Layoutbrief",
+            "type": "string"
+          },
+          "posterCopySuggestions": {
+            "items": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Postercopysuggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "posterCopySuggestions",
+          "freebieConcepts",
+          "layoutBrief"
+        ],
+        "title": "ReplacePromotionalConcept",
         "type": "object"
       },
       "RevisionRequest": {
@@ -3607,6 +4047,58 @@
           "setupInstructions"
         ],
         "title": "SetupSourceFacts",
+        "type": "object"
+      },
+      "SourceFact": {
+        "properties": {
+          "currentRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentrevision"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "observedRevision": {
+            "title": "Observedrevision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "observedRevision",
+          "currentRevision",
+          "status"
+        ],
+        "title": "SourceFact",
         "type": "object"
       },
       "SourceFacts": {
@@ -4040,6 +4532,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/BusinessPreparationJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
                     }
                   ],
                   "title": "Response Get Job Api V1 Ai Jobs  Jobid  Get"
@@ -4163,6 +4658,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/BusinessPreparationJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
                     }
                   ],
                   "title": "Response Cancel Job Api V1 Ai Jobs  Jobid  Cancel Post"
@@ -6828,6 +7326,267 @@
         ]
       }
     },
+    "/api/v1/business/participations/{participationId}/promotional-concepts": {
+      "get": {
+        "operationId": "history_api_v1_business_participations__participationId__promotional_concepts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "History",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_participations__participationId__promotional_concepts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePromotionalConcept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      }
+    },
     "/api/v1/business/participations/{participation_id}/setup": {
       "get": {
         "operationId": "business_get_api_v1_business_participations__participation_id__setup_get",
@@ -7113,6 +7872,485 @@
         "summary": "Adopt",
         "tags": [
           "Business preparation drafts"
+        ]
+      }
+    },
+    "/api/v1/business/promotional-concepts/{conceptId}": {
+      "delete": {
+        "operationId": "delete_api_v1_business_promotional_concepts__conceptId__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedRevision",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Expectedrevision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Delete",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      },
+      "get": {
+        "operationId": "get_api_v1_business_promotional_concepts__conceptId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      },
+      "put": {
+        "operationId": "replace_api_v1_business_promotional_concepts__conceptId__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePromotionalConcept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      }
+    },
+    "/api/v1/business/promotional-concepts/{conceptId}/refresh-facts": {
+      "post": {
+        "operationId": "refresh_api_v1_business_promotional_concepts__conceptId__refresh_facts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshPromotionalFacts"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Refresh",
+        "tags": [
+          "Business promotional concepts"
         ]
       }
     },

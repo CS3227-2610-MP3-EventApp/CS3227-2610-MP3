@@ -64,7 +64,7 @@ This index maps all **31** catalogue stories to domain capabilities and shared t
 | 16 | F07-US01 | [plan-group-meals](attendee-planning/plan-group-meals.md): plan-group-meals-AC01–05 | Draft; approval and verification pending |
 | 16 | F07-US02 | [estimate-travel-between-activities](attendee-planning/estimate-travel-between-activities.md): estimate-travel-between-activities-AC01–06 | Draft; approval and verification pending |
 | 17 | F08-US01 | [compare-venues](venue-research/compare-venues.md): compare-venues-AC01–05 | Draft; approval and verification pending |
-| 18 | F09-US01 | [draft-promotional-concepts](business-preparation/draft-promotional-concepts.md): draft-promotional-concepts-AC01–05 | Draft; approval and verification pending |
+| 18 | F09-US01 | [draft-promotional-concepts](business-preparation/draft-promotional-concepts.md): draft-promotional-concepts-AC01–06 | In review revision 3; local acceptance/provider/restart/Chrome evidence and bounded independent reviews pass; human and online gates pending |
 | 18 | F09-US02 | [compare-suppliers](business-preparation/compare-suppliers.md): compare-suppliers-AC01–05 | Draft; approval and verification pending |
 | 19 | F10-US03 | [approve-external-actions](shared/approve-external-actions.md): approve-external-actions-AC01–06 | Draft; approval and verification pending |
 | 20 | F08-US02 | [request-venue-quotations](venue-research/request-venue-quotations.md): request-venue-quotations-AC01–07 | Draft; approval and verification pending |

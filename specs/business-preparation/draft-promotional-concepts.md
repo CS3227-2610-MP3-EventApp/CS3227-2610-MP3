@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | draft-promotional-concepts |
 | Covered stories | F09-US01; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 3 / Ready |
+| Specification revision / status | 3 / In review |
 | Product roles / roadmap reference | Authenticated business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved the three F09 default bundles on 2026-10-22 in response to the original phased implementation request. Revision 3 records the bounded contract derived from that authorization; no approval of unrelated policy is implied. Shared job extension is documented in monitor-and-recover-ai-tasks r5. |
 | Review / run record | [Phase 1 run](../../workflow/agents/runs/2026-10-22-f09-phase1.md); [scenario record PC01-PC20](../../workflow/agents/runs/2026-10-22-f09-promotional-draft-scenarios.md); independent behaviour/security review findings incorporated, final executable-test review pending |
@@ -89,16 +89,24 @@ Consumes authenticated workspace/participation ownership, current event metadata
 | draft-promotional-concepts-D05: Publication and external action boundary. | Explicit Phase 1 scope; no separate policy decision | This capability only creates private drafts; it cannot publish or send content, contact suppliers, place orders or spend money. Any future public or external use requires a separate approved capability. |
 ## Verification and evidence
 
-Independent behaviour/security draft-review findings and scenario proposals PC01-PC20 are incorporated in the linked Phase 1 run and scenario records. Executable acceptance-test adequacy review, protected baseline, implementation, persistence, provider integration, browser/accessibility and deployment evidence remain pending. No runtime behavior has been verified. Ready records product decisions for this capability; it does not authorize implementation before the independent executable-test and protected-baseline gates.
+Independent draft/test reviews, protected baselines, implementation and bounded corrected-code reviews are recorded in the linked Phase 1 run. The evidence below covers local acceptance, actual provider integration, persistence/restart and isolated Chrome behaviour. Human teammate/accessibility review, session-summary verification and online/production gates remain pending. Historical drafting and red-test evidence retains its original revision and attribution.
 
 | Criterion | Evidence | Status |
 | --- | --- | --- |
-| draft-promotional-concepts-AC01 | Pending | Not verified |
-| draft-promotional-concepts-AC02 | Pending | Not verified |
-| draft-promotional-concepts-AC03 | Pending | Not verified |
-| draft-promotional-concepts-AC04 | Pending | Not verified |
-| draft-promotional-concepts-AC05 | Pending | Not verified |
-| draft-promotional-concepts-AC06 | Pending | Not verified |
+| draft-promotional-concepts-AC01 | 36 API and 7 UI acceptance cases; actual SoCLaaS generation through HTTP and isolated Chrome | Local automated/live evidence recorded in Phase 1 run; human review pending |
+| draft-promotional-concepts-AC02 | Selected-fact minimisation/current-stale-unavailable projections and explicit refresh; cached-setup regression repaired and checked | Bounded independent behaviour/security reviews pass; prose remains unverified |
+| draft-promotional-concepts-AC03 | Direct role/requester/Origin/no-store checks, same-business requester isolation and revocation at worker boundaries | Local acceptance and bounded security review pass |
+| draft-promotional-concepts-AC04 | Strict malformed/extra output checks, inert prose and selected outbound fields; strict JSON boolean acknowledgement regression | Controlled-provider tests and bounded review pass; no semantic-truth guarantee |
+| draft-promotional-concepts-AC05 | Cancellation, failure, source-change, quota, cleanup/recovery and existing-draft preservation | Local acceptance/shared regressions pass; production/resource stress remains outside local evidence |
+| draft-promotional-concepts-AC06 | Real API/worker restart retrieves edited concepts; Chrome save/reload/delete; retained-row migration fingerprints, CAS/retention and exact-resource audit checks | Local persistence evidence passes; human teammate/accessibility/summary review pending |
+
+### Phase 1 implementation evidence, 2026-10-22
+
+The [Phase 1 run](../../workflow/agents/runs/2026-10-22-f09-phase1.md) records the exact commands, ownership and reviews. Original preimplementation baseline `6eaeb917540549365f1930e4a36b3a60fcf2c216` is retained. Replacement `2226e548d02688cd675fe9e5c886f60ab0aed3e3` contains only the independently approved current-head schema expectation correction and its [TCR](../../workflow/agents/runs/2026-10-22-f09-schema-baseline-tcr.md). Exact historical schema and data-preservation assertions remain intact.
+
+Backend full regression produced 470 passing cases and four outdated current-schema expectation failures; all four affected cases passed after the test-owner correction. Focused promotional acceptance plus developer regressions passed 39/39. Final frontend regression passed 333/333 and the build passed. Real SoCLaaS HTTP/restart and isolated Chrome journeys passed on invented development records. These results are separately attributed, not represented as a single post-correction full backend run.
+
+Actual independent behaviour and security reviews passed their bounded corrected-code scopes. Rejected-mutation audits are best effort during storage failure; production audit durability, broader stress, online delivery, human teammate/accessibility review and human session-summary correctness verification remain pending. Status remains In review; no production deployment or Completed claim.
 
 ## Revision history
 

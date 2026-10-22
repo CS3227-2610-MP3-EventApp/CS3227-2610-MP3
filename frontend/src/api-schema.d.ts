@@ -314,6 +314,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/business/participations/{participationId}/promotional-concepts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_v1_business_participations__participationId__promotional_concepts_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_v1_business_participations__participationId__promotional_concepts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/business/participations/{participation_id}/setup": {
         parameters: {
             query?: never;
@@ -360,6 +378,42 @@ export interface paths {
         put?: never;
         /** Adopt */
         post: operations["adopt_api_v1_business_preparation_drafts__draftId__adopt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/business/promotional-concepts/{conceptId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_api_v1_business_promotional_concepts__conceptId__get"];
+        /** Replace */
+        put: operations["replace_api_v1_business_promotional_concepts__conceptId__put"];
+        post?: never;
+        /** Delete */
+        delete: operations["delete_api_v1_business_promotional_concepts__conceptId__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/business/promotional-concepts/{conceptId}/refresh-facts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh */
+        post: operations["refresh_api_v1_business_promotional_concepts__conceptId__refresh_facts_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1267,6 +1321,46 @@ export interface components {
              */
             updatedAt: string;
         };
+        /** BusinessPromotionalConceptJob */
+        BusinessPromotionalConceptJob: {
+            /** Completedat */
+            completedAt: string | null;
+            concept: components["schemas"]["PromotionalConceptView"] | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Eventid
+             * Format: uuid
+             */
+            eventId: string;
+            /** Failurecode */
+            failureCode: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Providermayhaverun */
+            providerMayHaveRun: boolean;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "running" | "completed" | "failed" | "cancelled";
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
         /** BusinessRegistration */
         BusinessRegistration: {
             /** Businessname */
@@ -1355,6 +1449,27 @@ export interface components {
             selectedTaskIds: string[];
             /** Syntheticdataconfirmed */
             syntheticDataConfirmed?: true | null;
+        };
+        /** CreatePromotionalConcept */
+        CreatePromotionalConcept: {
+            /** Brief */
+            brief: string;
+            /**
+             * Datasharingconfirmed
+             * @constant
+             */
+            dataSharingConfirmed: true;
+            /** Expectedeventrevision */
+            expectedEventRevision: number;
+            /** Expectedsetuprevision */
+            expectedSetupRevision: number | null;
+            /** Factfields */
+            factFields: ("event.title" | "event.startsAt" | "event.endsAt" | "event.timezone" | "setup.boothLabel" | "setup.setupInstructions")[];
+            /**
+             * Requestid
+             * Format: uuid
+             */
+            requestId: string;
         };
         /** CurrentActor */
         CurrentActor: {
@@ -1533,6 +1648,13 @@ export interface components {
             code: "invalid";
             /** Field */
             field: string;
+        };
+        /** Freebie */
+        Freebie: {
+            /** Description */
+            description: string;
+            /** Name */
+            name: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1951,6 +2073,76 @@ export interface components {
              */
             type: "about:blank";
         };
+        /** PromotionalConceptHistory */
+        PromotionalConceptHistory: {
+            /** Items */
+            items: components["schemas"]["PromotionalConceptView"][];
+            latestJob: components["schemas"]["BusinessPromotionalConceptJob"] | null;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** PromotionalConceptView */
+        PromotionalConceptView: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Factfields */
+            factFields: string[];
+            /** Freebieconcepts */
+            freebieConcepts: components["schemas"]["Freebie"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Layoutbrief */
+            layoutBrief: string;
+            /**
+             * Participationid
+             * Format: uuid
+             */
+            participationId: string;
+            /** Postercopysuggestions */
+            posterCopySuggestions: string[];
+            /** Revision */
+            revision: number;
+            /** Sourcefacts */
+            sourceFacts: components["schemas"]["SourceFact"][];
+            /** Sourcerevisions */
+            sourceRevisions: {
+                [key: string]: number | null;
+            };
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** PromotionalProblem */
+        PromotionalProblem: {
+            /** Code */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Instance */
+            instance: string;
+            /** Status */
+            status: number;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @default about:blank
+             * @constant
+             */
+            type: "about:blank";
+        };
         /** PublicationAudit */
         PublicationAudit: {
             /**
@@ -2044,6 +2236,17 @@ export interface components {
             type: "talk" | "workshop" | "panel" | "booth" | "performance" | "other";
             venue: components["schemas"]["VenueFacts"];
         };
+        /** RefreshPromotionalFacts */
+        RefreshPromotionalFacts: {
+            /** Expectedeventrevision */
+            expectedEventRevision: number;
+            /** Expectedrevision */
+            expectedRevision: number;
+            /** Expectedsetuprevision */
+            expectedSetupRevision: number | null;
+            /** Factfields */
+            factFields: ("event.title" | "event.startsAt" | "event.endsAt" | "event.timezone" | "setup.boothLabel" | "setup.setupInstructions")[];
+        };
         /** ReplaceAnalysisRubric */
         ReplaceAnalysisRubric: {
             /** Criteria */
@@ -2084,6 +2287,17 @@ export interface components {
             expectedRevision: number;
             /** Tasks */
             tasks: components["schemas"]["DraftTaskInput"][];
+        };
+        /** ReplacePromotionalConcept */
+        ReplacePromotionalConcept: {
+            /** Expectedrevision */
+            expectedRevision: number;
+            /** Freebieconcepts */
+            freebieConcepts: components["schemas"]["Freebie"][];
+            /** Layoutbrief */
+            layoutBrief: string;
+            /** Postercopysuggestions */
+            posterCopySuggestions: string[];
         };
         /** RevisionRequest */
         RevisionRequest: {
@@ -2221,6 +2435,22 @@ export interface components {
             boothLabel: string | null;
             /** Setupinstructions */
             setupInstructions: string | null;
+        };
+        /** SourceFact */
+        SourceFact: {
+            /** Currentrevision */
+            currentRevision: number | null;
+            /** Field */
+            field: string;
+            /** Observedrevision */
+            observedRevision: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "current" | "stale" | "unavailable";
+            /** Value */
+            value: string | null;
         };
         /** SourceFacts */
         SourceFacts: {
@@ -2390,7 +2620,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"];
+                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"] | components["schemas"]["BusinessPromotionalConceptJob"];
                 };
             };
             /** @description Unauthorized */
@@ -2482,7 +2712,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"];
+                    "application/json": components["schemas"]["AnalysisJob"] | components["schemas"]["BusinessPreparationJob"] | components["schemas"]["BusinessPromotionalConceptJob"];
                 };
             };
             /** @description Unauthorized */
@@ -4354,6 +4584,197 @@ export interface operations {
             };
         };
     };
+    history_api_v1_business_participations__participationId__promotional_concepts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalConceptHistory"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    create_api_v1_business_participations__participationId__promotional_concepts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                participationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePromotionalConcept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessPromotionalConceptJob"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
     business_get_api_v1_business_participations__participation_id__setup_get: {
         parameters: {
             query?: never;
@@ -4553,6 +4974,382 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_api_v1_business_promotional_concepts__conceptId__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalConceptView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    replace_api_v1_business_promotional_concepts__conceptId__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplacePromotionalConcept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalConceptView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    delete_api_v1_business_promotional_concepts__conceptId__delete: {
+        parameters: {
+            query: {
+                expectedRevision: number;
+            };
+            header?: never;
+            path: {
+                conceptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    refresh_api_v1_business_promotional_concepts__conceptId__refresh_facts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshPromotionalFacts"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalConceptView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionalProblem"];
+                    "application/problem+json": unknown;
                 };
             };
         };

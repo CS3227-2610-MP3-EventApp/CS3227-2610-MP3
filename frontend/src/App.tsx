@@ -24,6 +24,7 @@ import { BusinessApplications } from "./applications/BusinessApplications";
 import { OrganiserApplications } from "./applications/OrganiserApplications";
 import { Preparation } from "./preparation/Preparation";
 import { PreparationDrafts } from "./preparationDrafts/PreparationDrafts";
+import { PromotionalConcepts } from "./promotionalConcepts/PromotionalConcepts";
 function ApplicationRoutes() {
   const location = useLocation();
   useEffect(() => {
@@ -42,6 +43,7 @@ function ApplicationRoutes() {
     {roles.map((role) => <Route key={role} path={`/${role}`} element={<GuardedWorkspace role={role} />} />)}
     <Route path="/business/applications" element={<GuardedWorkspace role="business"><BusinessApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/business/preparation-drafts" element={<GuardedWorkspace role="business"><PreparationDrafts key={location.pathname + location.search} /></GuardedWorkspace>} />
+    <Route path="/business/promotional-concepts" element={<GuardedWorkspace role="business"><PromotionalConcepts key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/business/preparation" element={<GuardedWorkspace role="business"><Preparation key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/organiser/applications" element={<GuardedWorkspace role="organiser"><OrganiserApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="*" element={<Navigate to="/login" replace />} />

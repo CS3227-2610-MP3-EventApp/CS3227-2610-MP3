@@ -130,7 +130,13 @@ def create_job(db: Session, actor: CurrentActor, participation_id: UUID, body: C
     _authority(db, actor, participation_id)
     normalized_request = _normal_request(body)
     previous = db.scalar(select(AnalysisJob).where(
-        AnalysisJob.owner_id == actor.id, AnalysisJob.request_id == body.requestId))
+        AnalysisJob.owner_id == actor.id, AnalysisJob.workflow == "preparation",
+        AnalysisJob.request_id == body.requestId))
+    if previous is None:
+        previous = db.scalar(select(AnalysisJob).where(
+            AnalysisJob.owner_id == actor.id, AnalysisJob.request_id == body.requestId).limit(1))
+        if previous is not None:
+            raise AIError("request_conflict")
     if previous is not None:
         prior = (previous.source_snapshot or {}).get("request")
         if isinstance(prior, dict): prior = {"dataSharingConfirmed":False, **prior}

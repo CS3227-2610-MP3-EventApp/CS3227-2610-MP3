@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-22 Isaac F09 phased delivery](isaac/2026-10-22-f09-phased-delivery.md): phased implementation request, access recovery, approved promotional defaults, prerequisite checkpoint, independent acceptance baseline, implementation and verification; human verification pending.
+
 - [2026-10-22 Isaac whole Business preparation conversation](isaac/2026-10-22-business-preparation-conversation.md): phase-5 request, fixture approval, testing-guide follow-ups, approved workflow refinements, documentation synchronization, verification and remaining review gates; human verification pending.
 
 - [2026-10-22 Isaac F06 phase5](isaac/2026-10-22-f06-phase-5-drafts.md): approved AI draft/adoption scope and actual independent pipeline; evidence/limitations updated as observed.
