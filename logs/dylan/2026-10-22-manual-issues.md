@@ -25,3 +25,7 @@ The user reported three manual issues: attendee accessibility values appeared mi
 
 ## Reflection and next steps
 The AI failure was compatible with a provider formatting difference rather than a schema/grounding failure. The organiser selection fix covers component remounts and browser-tab return, but a full browser-flow check should still confirm the exact user interaction. Human verification remains pending.
+
+The organiser date/time picker was then tightened to use full event-window date-time bounds, with visible allowed-window, earliest-start, and latest-end guidance. The first UI wording caused two existing acceptance-test query collisions; replacing the informational Alert and repeated timezone labels resolved them without weakening the guidance.
+
+The final frontend validation passed with 276 tests and a production build. The date/time change is included in the follow-up commit for this session.

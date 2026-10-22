@@ -23,7 +23,7 @@ The worker may be quiet while waiting. Manual announcements need no provider key
 ## Organiser: change and cancel
 
 1. Log in as an assigned organiser. Open Programme Management, select the event, create a venue/room and a complete activity, then publish it.
-2. Open **Edit published activity**. Change the title, time within event dates, room, capacity, SGD price or accessibility notes. Review before/after facts and confirm. The item revision advances; history retains both versions.
+2. Open **Edit published activity**. Change the title, time within the event window, room, capacity, SGD price or accessibility notes. The start/end controls display the event timezone and allowed window, and constrain date/time choices to the event bounds. Review before/after facts and confirm. The item revision advances; history retains both versions.
 3. Try negative/three-decimal prices, capacity above the room's capacity and times outside the event. Expect validation, not a saved revision. Same-room overlap is allowed.
 4. Open the same item in two tabs. Save a change in one and try submitting the old revision in the other. Expect a conflict; reload/review before retrying. Submitting unchanged facts must not add history.
 5. Cancel with a nonblank reason, explicitly confirm, and verify the cancelled badge/reason. Further edits, repeat cancellation and hard deletion must be unavailable/rejected. Referenced locations remain protected.
