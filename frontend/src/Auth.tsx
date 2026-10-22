@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Box, Button, Typography } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigationType } from "react-router-dom";
 import { api, ApiError } from "./api";
 import type { CurrentActor } from "./session";
 import type { DraftMemory, OrganiserDraftMemory } from "./applications/model";
@@ -23,7 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionNotice, setSessionNotice] = useState("");
   const [attempt, setAttempt] = useState(0);
   const epoch = useRef(0);
+  const lastAttempt = useRef(0);
   const location = useLocation();
+  const navigationType = useNavigationType();
   function setActor(value: CurrentActor | null) {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
@@ -62,6 +64,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { window.removeEventListener("focus", listener); window.removeEventListener("pageshow", listener); };
   }, []);
   useEffect(() => {
+    // A guard redirect (replace navigation) from an already-verified, settled session is not a new
+    // context; re-checking would briefly unmount the page the redirect just opened.
+    if (navigationType === "REPLACE" && !loading && !error && actorRef.current && attempt === lastAttempt.current) return;
+    lastAttempt.current = attempt;
     let active = true;
     const current = ++epoch.current;
     let completionEpoch = current;

@@ -41,6 +41,12 @@ On the user's instruction (skip the full multi-agent workflow; make the existing
 Local evidence: `alembic` reports one head (`20261022_0007`); with exclusive use of the synthetic test database, `tests/test_ai_analysis.py` passed 16/16, including the target test. An earlier overlapping run (a second pytest started while the first still used the same database) produced spurious failures and a very slow run; this was self-inflicted, not a product defect. The full local suite was stopped as impractically slow (23+ minutes versus about 5 minutes in CI) and was not completed; full-suite status relies on CI. Added a 'Merge and long-run hygiene' section to `workflow/agents/README.md` to prevent recurrence. No independent agent review of this change was performed.
 
 
+## Frontend flake follow-up
+
+CI on `6023e2a` showed a one-off Node 24 failure in `REQ-REG-B` (`auth-errors.test.tsx`); a rerun passed. Cause found in the app: `Auth.tsx` re-validated the session on every pathname change, including the guard's `<Navigate replace>` from `/organiser` to `/change-password`, so the freshly opened form was briefly unmounted behind 'checking your session'. The test reproduced the failure locally. Fix: skip re-validation for a REPLACE navigation from an already-verified, settled session (`useNavigationType`); focus/pageshow, history (POP) and PUSH navigation still re-validate. The test was not changed.
+
+Local evidence: `auth-errors.test.tsx` 21/21, `WorkspaceHeader.unit.test.tsx` and `attendee-planning.test.tsx` 13/13 in isolation. A full local frontend run was slow (350 s vs about 145 s in CI) and showed 7 timeouts/failures that passed or were not reproduced in isolation; programme tests were not re-run in isolation. CI is the authoritative full run for this commit. Not merged; human/teammate review pending.
+
 ## Reflection and next steps
 
 The application and migration registrations now include both branches. The focused merge-related checks pass, but full frontend and DB-backed backend verification remain outstanding in this environment. Human review of this integration and this session summary remains pending.
