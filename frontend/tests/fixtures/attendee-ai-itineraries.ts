@@ -95,7 +95,7 @@ export function installAttendeeAi() {
   const control = {
     requests: [] as Recorded[],
     state: planningState(),
-    onCreate: (_body: Wire): Response => json(job("pending"), 202),
+    onCreate: (_body: Wire): Response | Promise<Response> => json(job("pending"), 202),
     onJob: (): Response => json(job("pending")),
     onCancel: (): Response => json(job("cancelled", { providerMayHaveRun: true })),
     onPlanningWrite: (_method: string, _path: string, _body: Wire | null): Response => { throw new Error("Unassigned planning write"); },
