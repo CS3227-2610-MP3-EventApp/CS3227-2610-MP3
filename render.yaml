@@ -6,8 +6,10 @@ services:
     healthCheckPath: /api/v1/health/live
     autoDeploy: false
     envVars:
+      # Not "production": the backend disables all AI calls there until real-data/privacy
+      # approval. This demo holds invented data only (AI_SYNTHETIC_ONLY + event allow-list).
       - key: ENVIRONMENT
-        value: production
+        value: test
       # Set in the Render dashboard (secrets, never committed):
       - key: DATABASE_URL
         sync: false
