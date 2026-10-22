@@ -835,6 +835,7 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
 
   test("SILENT-TCR-01b a silent focus check returning a different actor purges the previous actor's private input", async () => {
     await business(true); fill({ description: "PREVIOUS-ACTOR-PRIVATE-INPUT" });
+    const original = auth.current!;
     auth.current = { ...actor("business", "Different Synthetic Owner"), id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" };
     const before = meRequests().length;
     const release = applications.hold("/api/v1/auth/me");
@@ -844,6 +845,17 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
     await act(async () => { release(); });
     await waitFor(() => expect(screen.queryByDisplayValue("PREVIOUS-ACTOR-PRIVATE-INPUT")).not.toBeInTheDocument());
     await pause();
+    expect(screen.queryByDisplayValue("PREVIOUS-ACTOR-PRIVATE-INPUT")).not.toBeInTheDocument();
+    // The old actor signs back in: nothing typed under the old session may come back from in-memory drafts.
+    auth.current = original;
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await pause(100);
+    await act(async () => { window.history.pushState({}, "", "/business"); window.dispatchEvent(new PopStateEvent("popstate")); });
+    await waitFor(() => expect(window.location.pathname).toBe("/business"));
+    await waitFor(() => expect(sessionScreen()).not.toBeInTheDocument());
+    await act(async () => { window.history.pushState({}, "", savedRoute); window.dispatchEvent(new PopStateEvent("popstate")); });
+    await screen.findByLabelText(/^description$/i);
+    await waitFor(() => expect(description()).toHaveValue(content.description));
     expect(screen.queryByDisplayValue("PREVIOUS-ACTOR-PRIVATE-INPUT")).not.toBeInTheDocument();
     expect(applications.writes()).toHaveLength(0);
     expectNoPrivateStorage("PREVIOUS-ACTOR-PRIVATE-INPUT");
@@ -916,6 +928,76 @@ describe("F06 frontend AC13/15/16: scoped memory, revalidation and safe late res
     expect(description()).toBe(field);
     expect(description()).toHaveValue("Unsaved words survive without a refetch");
     expect(applications.writes()).toHaveLength(0);
+  });
+
+  test("SILENT-TCR-01g a silent focus check answered 403 conceals private content, clears private storage and writes nothing", async () => {
+    await business(true); fill({ description: "PRIVATE-403-SILENT-MARKER" });
+    const before = meRequests().length;
+    const release = applications.hold("/api/v1/auth/me", "GET", { status: 403, value: problem(403, "forbidden") });
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(sessionScreen()).not.toBeInTheDocument(); // silent until the answer arrives
+    await act(async () => { release(); });
+    await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-403-SILENT-MARKER")).not.toBeInTheDocument());
+    await waitFor(() => expect(window.location.pathname).not.toBe("/business/applications"));
+    expect(document.body).not.toHaveTextContent(content.contactEmail);
+    expect(document.body).not.toHaveTextContent(content.description);
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("PRIVATE-403-SILENT-MARKER", content.contactEmail, content.description);
+  });
+
+  test.each([
+    ["focus", "401"], ["focus", "a different actor"], ["navigation", "401"], ["navigation", "a different actor"],
+  ] as const)("SILENT-TCR-01h a late silent answer (%s supersedes, late answer %s) cannot overwrite the newer check", async (superseder, late) => {
+    await business(true); fill({ description: "Newer check decides" });
+    const field = description();
+    const good = auth.current!;
+    // Silent check A is dispatched while the "late" truth applies and is then held.
+    auth.current = late === "401" ? null : { ...actor("business", "Late Other Owner"), id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd" };
+    const before = meRequests().length;
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    // The newer check B sees the real, valid session.
+    auth.current = good;
+    await act(async () => {
+      if (superseder === "focus") window.dispatchEvent(new Event("focus"));
+      else { window.history.pushState({}, "", "/business"); window.dispatchEvent(new PopStateEvent("popstate")); }
+    });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before + 1));
+    await pause(100);
+    await act(async () => { release(); }); // A answers late
+    await pause(150);
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(applications.writes()).toHaveLength(0);
+    if (superseder === "focus") {
+      expect(window.location.pathname).toBe("/business/applications");
+      expect(description()).toBe(field);
+      expect(description()).toHaveValue("Newer check decides");
+    } else {
+      expect(window.location.pathname).toBe("/business"); // not redirected to sign-in by the late 401/other actor
+      expect(screen.queryByRole("heading", { name: /log in|sign in/i })).not.toBeInTheDocument();
+    }
+  });
+
+  test("SILENT-TCR-01i a focus while the error screen is showing retries non-silently and the page returns", async () => {
+    await business(true); fill({ description: "Retried after the error screen" });
+    applications.once("/api/v1/auth/me", "GET", { status: 503 });
+    await act(async () => { window.dispatchEvent(new Event("focus")); }); // silent check fails closed
+    expect(await screen.findByText(/temporarily unavailable|unable to open/i)).toBeVisible();
+    expect(screen.queryByDisplayValue("Retried after the error screen")).not.toBeInTheDocument();
+    const before = meRequests().length;
+    const release = applications.hold("/api/v1/auth/me");
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect(meRequests().length).toBeGreaterThan(before));
+    expect(await screen.findByText(/checking your session/i)).toBeVisible(); // the retry is visibly non-silent
+    await act(async () => { release(); });
+    await screen.findByLabelText(/^description$/i);
+    await waitFor(() => expect(description()).toHaveValue("Retried after the error screen"));
+    expect(sessionScreen()).not.toBeInTheDocument();
+    expect(screen.queryByText(/temporarily unavailable|unable to open/i)).not.toBeInTheDocument();
+    expect(applications.writes()).toHaveLength(0);
+    expectNoPrivateStorage("Retried after the error screen", content.contactEmail);
   });
 
   test("AC16 supports keyboard validation, correction, saved review and confirmation", async () => {
