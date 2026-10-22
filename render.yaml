@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: eventapp
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/v1/health/live
+    autoDeploy: false
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # Set in the Render dashboard (secrets, never committed):
+      - key: DATABASE_URL
+        sync: false
+      - key: TRUSTED_ORIGINS
+        sync: false # JSON list, e.g. ["https://eventapp.onrender.com"]
+      - key: SOCLAAS_API_KEY
+        sync: false
+      - key: SOCLAAS_BASE_URL
+        value: https://soclaas-api.comp.nus.edu.sg/v1
+      - key: SOCLAAS_MODEL
+        value: default
+      - key: AI_ENABLED
+        value: "true"
+      - key: AI_SYNTHETIC_ONLY
+        value: "true"
+      - key: AI_SYNTHETIC_EVENT_IDS
+        sync: false # JSON list of the demo event UUIDs
