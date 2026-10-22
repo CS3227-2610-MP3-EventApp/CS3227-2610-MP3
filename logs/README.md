@@ -47,3 +47,4 @@ Each teammate must add summaries for their own earlier sessions and verify the h
 
 - [2026-10-21 Yik Bing F02 attendee planning](yikbing/2026-10-21-attendee-planning-start.md): approved scope, branch coordination, protected baseline, implementation/review handoffs, frontend/backend/migration/restart evidence and remaining release gates; human verification pending.
 - [2026-10-22 Yik Bing F02 and organiser AI integration](yikbing/2026-10-22-f02-ai-integration.md): merge of master into the F02 feature branch, conflict resolutions preserving both features, schema/migration checks, focused frontend and provider verification, and remaining full-suite/database limitations; human verification pending.
+- [2026-10-22 Dylan manual issue fixes](dylan/2026-10-22-manual-issues.md): accessibility snapshot diagnosis, organiser activity selection persistence, AI JSON-fence parsing, and focused verification; human verification pending.

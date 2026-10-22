@@ -80,6 +80,10 @@ export function Programme() {
 }
 
 function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAccessFailure: (failure: unknown) => void }) {
+  const selectionStorageKey = `eventapp.organiser.programme.selected.${event.id}`;
+  const savedSelection = (() => {
+    try { return sessionStorage.getItem(selectionStorageKey); } catch { return null; }
+  })();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [items, setItems] = useState<ProgrammeItem[]>([]);
@@ -90,7 +94,7 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
   const [forbidden, setForbidden] = useState(false);
   const [pending, setPending] = useState(false);
   const [selected, setSelected] = useState<ProgrammeItem | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!savedSelection);
   const [editorKey, setEditorKey] = useState(0);
   const [locationKey, setLocationKey] = useState(0);
   const [attempt, setAttempt] = useState(0);
@@ -100,7 +104,8 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
     setLoading(true); setLoadError("");
     Promise.all([programmeApi.venues(event.id), programmeApi.rooms(event.id), programmeApi.items(event.id)]).then(([nextVenues, nextRooms, nextItems]) => {
       if (!active) return;
-      setVenues(nextVenues); setRooms(nextRooms); setItems(nextItems);
+      const restored = savedSelection ? nextItems.find((item) => item.id === savedSelection) ?? null : null;
+      setVenues(nextVenues); setRooms(nextRooms); setItems(nextItems); setSelected(restored); setEditing(!!restored);
     }).catch((failure: unknown) => {
       if (!active) return;
       onAccessFailure(failure); setLoadError(failure instanceof Error ? failure.message : "Unable to load programme.");
@@ -137,6 +142,10 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
   function select(item: ProgrammeItem | null) {
     if (pending || conflict || forbidden) return;
     setSelected(item); setEditing(true); setEditorKey((value) => value + 1); setError("");
+    try {
+      if (item) sessionStorage.setItem(selectionStorageKey, item.id);
+      else sessionStorage.removeItem(selectionStorageKey);
+    } catch { /* Storage is optional; the in-memory selection still works. */ }
   }
   function updateItem(value: ProgrammeItem) {
     setItems((current) => current.some((item) => item.id === value.id) ? current.map((item) => item.id === value.id ? value : item) : [...current, value]);
@@ -151,7 +160,10 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
     }, (result) => {
       setConfirmation(null);
       if (result) updateItem(result);
-      else if (chosen.resource === "programme-items") { setItems((values) => values.filter((value) => value.id !== chosen.record.id)); setSelected(null); setEditing(false); }
+      else if (chosen.resource === "programme-items") {
+        setItems((values) => values.filter((value) => value.id !== chosen.record.id)); setSelected(null); setEditing(false);
+        try { sessionStorage.removeItem(selectionStorageKey); } catch { /* Storage is optional. */ }
+      }
       else if (chosen.resource === "venues") { setVenues((values) => values.filter((value) => value.id !== chosen.record.id)); setLocationKey((value) => value + 1); }
       else { setRooms((values) => values.filter((value) => value.id !== chosen.record.id)); setLocationKey((value) => value + 1); }
     });
