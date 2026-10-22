@@ -16,6 +16,7 @@ Use EventApp as the product name. Historical commits may use Converge.
 - The developer cannot modify the approved test baseline: cases, assertions, fixtures, snapshots, expected outputs, test discovery/configuration, runner, baseline reference, or this protection policy. Never weaken, skip, or bypass tests to fit an implementation.
 - Report a suspected faulty test using `workflow/agents/templates/test-change-request.md`. The test owner and independent verifier investigate; humans approve changes to product behaviour. Record approval and have the test owner make the correction before issuing a new baseline.
 - Assign additional developer-owned unit tests outside the protected baseline where appropriate. Any new acceptance tests become protected after review. Test-file ownership is explicit; coordinate edits.
+- Before pushing or merging, follow "Merge and long-run hygiene" in `workflow/agents/README.md` (merged migration graphs, one test process per test database, stop slow commands, CI-flake triage).
 - Re-run affected checks after fixes. Passing tests alone does not prove coverage, real integration, security, persistence, or deployment.
 
 ## Ownership and evidence

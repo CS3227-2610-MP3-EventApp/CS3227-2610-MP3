@@ -20,7 +20,7 @@ The appearance control switches between light and dark themes. Your explicit cho
 
 ## Current feature availability
 
-Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Authenticated attendees can use Explore programme to browse published activities. Attendee itinerary and business preparation AI remain previews.
+Account registration, login, session restoration, password changes and logout use the backend. Organiser programme management and business application submission/review/decisions are available. Organiser AI application analysis is available for explicitly configured invented-data events. Authenticated attendees can use Explore programme to browse published activities and request synthetic-data AI itinerary suggestions. Business preparation AI remains a preview.
 
 ## Organiser AI application analysis
 
@@ -55,3 +55,9 @@ Attendees can open **Event announcements** from the programme and **Notification
 ## Attendee programme browsing
 
 Sign in as an attendee and choose **Explore programme** in Browse Programme. The frontend has event/activity lists, title/type/date filters, pagination and activity details including event-local times, SGD/free pricing, declared capacity and separate accessibility notes. Missing notes mean unknown; capacity is not remaining inventory. The screen uses the published programme API. Date filters match the activity’s start date in the event timezone, including activities ending the following day; all six types, including Panel, are supported. Retry and session-expiry handling are present. Only published activities appear; this journey does not reserve capacity or buy tickets.
+
+### Attendee AI itinerary suggestions
+
+After selecting an event in attendee planning, set your preferences and confirm that the event uses only synthetic data. Choose **Generate AI itinerary** to request a background suggestion. The request can be cancelled, is subject to the daily limit, and reports pending, running, completed, failed or cancelled status. A completed result shows the proposed activities, reasons, sources and constraint checks.
+
+AI output is only a suggestion: it is not saved or accepted automatically. Review every activity, especially missing accessibility information, then choose **Save as draft** if the result is still current. If preferences or published programme revisions changed, the result is marked stale and must not be saved; use manual planning or generate a fresh result. Provider failure, unavailable event configuration and infeasible constraints leave the existing planning state unchanged.
