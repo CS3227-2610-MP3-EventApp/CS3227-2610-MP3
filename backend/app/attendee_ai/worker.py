@@ -146,7 +146,7 @@ def _provider_failed(job_id, exc):
             "invalid_output" if isinstance(exc, ValueError) and str(exc) == "invalid_output" else
             "provider_unavailable")
     _finish(job_id, "failed", code)
-    logger.warning("AI itinerary provider attempt failed (%s).", code)
+    logger.warning("AI attendee provider attempt failed (%s).", code)
 
 
 def _send(provider, job_id, messages, validate, sleeper):

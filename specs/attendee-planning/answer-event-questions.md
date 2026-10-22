@@ -7,7 +7,7 @@
 | Specification revision / status | 2 / Draft |
 | Product roles / roadmap reference | Attendee; [phase 3, order 8](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Decisions AEQ-01 to AEQ-04 approved by Yik Bing in chat on 2026-10-22; exact revision-2 text (including the clarifications recorded at test design) approved by Yik Bing in chat on 2026-10-22 |
-| Review / run record | Pending independent draft review and later implementation records |
+| Review / run record | [Test plan](../../workflow/agents/runs/2026-10-22-attendee-event-questions-test-plan.md), [combined behaviour and security review](../../workflow/agents/runs/2026-10-22-attendee-event-questions-review.md) at `f115412`, [session log](../../logs/yikbing/2026-10-22-f03-us02-answer-event-questions.md); human teammate review pending |
 
 Follow the [standard](../README.md). An attendee asks a natural-language question about one event's published programme and receives an answer whose factual claims are each checked by the server against the current published records, or an explicit unknown. This contract excludes private application/business data, plans and preferences, and unsupported assertions about availability, suitability or external conditions.
 

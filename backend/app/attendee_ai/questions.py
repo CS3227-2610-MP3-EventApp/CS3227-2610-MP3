@@ -35,9 +35,11 @@ SYSTEM = (
     'question is not about this programme, return {"outcome":"unknown","reason":'
     '"insufficient_evidence|conflicting_evidence|out_of_scope"}. Do not add any other keys.')
 
-_URL = re.compile(r"(?i)https?:|www\.|://")
+_URL = re.compile(r"(?i)(?<![a-z0-9])[a-z][a-z0-9+.\-]+:[^\s]|//|(?<![a-z0-9])www\.|(?<![a-z0-9-])[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?![a-z0-9])")
 _EMAIL = re.compile(r"\S+@\S+")
+_ENTITY = re.compile(r"&#?\w+;")
 _DIGITS = re.compile(r"\d+")
+_MARKUP = set("<>[]{}`\\")
 
 
 def clean_question(text: str) -> str:
@@ -48,7 +50,7 @@ def clean_question(text: str) -> str:
             kept.append(" ")
         elif not unicodedata.category(char).startswith("C"):
             kept.append(char)
-    cleaned = " ".join("".join(kept).split())
+    cleaned = unicodedata.normalize("NFC", " ".join("".join(kept).split()))
     if not 1 <= len(cleaned) <= QUESTION_LIMIT:
         raise AIError("validation_error")
     return cleaned
@@ -155,16 +157,24 @@ def _matches(claimed, actual) -> bool:
     return type(claimed) is type(actual) and claimed == actual
 
 
+def _numeric_outside_ascii(text: str) -> bool:
+    """True for numerals the digit check cannot compare (Roman, vulgar fractions, other scripts' numbers)."""
+    return any(unicodedata.numeric(char, None) is not None and not char.isascii()
+               and not re.fullmatch(r"\d+", unicodedata.normalize("NFKC", char)) for char in text)
+
+
 def _summary(summary: str | None, values: list, titles: list[str]) -> str | None:
-    """Keep the model's sentence only when it is plain, short and adds no unverified numbers."""
+    """Keep the model's sentence only when it is plain, short and adds no unverified numbers or links."""
     if not summary or not summary.strip() or len(summary) > SUMMARY_LIMIT:
         return None
-    if "<" in summary or ">" in summary or _URL.search(summary) or _EMAIL.search(summary):
+    plain = unicodedata.normalize("NFKC", summary)
+    if any(unicodedata.category(char).startswith("C") for char in plain) or _numeric_outside_ascii(summary):
         return None
-    if any(unicodedata.category(char).startswith("C") for char in summary):
+    if _MARKUP & set(plain) or _ENTITY.search(plain) or _URL.search(plain) or _EMAIL.search(plain):
         return None
-    grounded = {token for text in [str(value) for value in values] + titles for token in _DIGITS.findall(text)}
-    return summary if all(token in grounded for token in _DIGITS.findall(summary)) else None
+    grounded = {token for text in [str(value) for value in values] + titles
+                for token in _DIGITS.findall(unicodedata.normalize("NFKC", text))}
+    return summary if all(token in grounded for token in _DIGITS.findall(plain)) else None
 
 
 def validate_output(raw: str, facts: list[PublishedProgramme]) -> dict:

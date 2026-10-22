@@ -5,6 +5,8 @@ import { ApiError } from "../api";
 import { questionApi, type QuestionClaim, type QuestionField, type QuestionJob, type UnknownReason } from "./questionApi";
 
 const POLL_MS = 2000;
+const POLL_FAILURES = 5;
+const POLL_ERROR = "The question status could not be loaded. You can still browse the programme.";
 const QUESTION_LIMIT = 300;
 const NOTICE = "Your question is sent to an external AI service. Do not enter personal details.";
 const stateLabel: Record<string, string> = { pending: "Pending", running: "Running", completed: "Completed", failed: "Failed", cancelled: "Cancelled" };
@@ -54,7 +56,7 @@ export function EventQuestions({ eventId, timezone, formatTime, formatPrice }: P
   const [job, setJob] = useState<QuestionJob | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false), [polls, setPolls] = useState(0);
-  const locked = useRef(false), alive = useRef(true);
+  const locked = useRef(false), alive = useRef(true), failures = useRef(0);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => { setJob(null); setError(""); setQuestion(""); }, [eventId]);
 
@@ -65,16 +67,21 @@ export function EventQuestions({ eventId, timezone, formatTime, formatPrice }: P
     const controller = new AbortController();
     const timer = setTimeout(() => {
       questionApi.get(jobId, controller.signal)
-        .then(value => { if (alive.current) setJob(current => current?.id === value.id ? value : current); })
-        .catch(() => undefined)
+        .then(value => { failures.current = 0; if (alive.current) setJob(current => current?.id === value.id ? value : current); })
+        .catch((failure: unknown) => {
+          if (!alive.current || controller.signal.aborted) return;
+          failures.current += 1;
+          const status = failure instanceof ApiError ? failure.status : 0;
+          if (status === 401 || status === 403 || status === 404 || failures.current >= POLL_FAILURES) { setError(POLL_ERROR); setJob(null); }
+        })
         .finally(() => { if (alive.current && !controller.signal.aborted) setPolls(count => count + 1); });
-    }, POLL_MS);
+    }, POLL_MS * 2 ** Math.min(failures.current, 2));
     return () => { clearTimeout(timer); controller.abort(); };
   }, [active, jobId, polls]);
 
   async function submit(text: string) {
     if (locked.current || active || !text.trim()) return;
-    locked.current = true; setBusy(true); setError(""); setJob(null);
+    locked.current = true; failures.current = 0; setBusy(true); setError(""); setJob(null);
     try {
       const created = await questionApi.create(eventId, { requestId: requestId(), question: text });
       if (alive.current) setJob(created);
@@ -109,13 +116,14 @@ export function EventQuestions({ eventId, timezone, formatTime, formatPrice }: P
     {job?.state === "failed" && <Alert severity="error" sx={{ my: 1 }}>The question could not be answered. You can still browse the programme.</Alert>}
     {job?.state === "cancelled" && <Typography sx={{ my: 1 }}>Question cancelled. You can still browse the programme.</Typography>}
     {job?.state === "cancelled" && job.providerMayHaveRun && <Typography sx={{ my: 1 }}>The AI provider may already have received your question.</Typography>}
+    <Box aria-live="polite">
     {job?.state === "completed" && job.stale && <Box>
       <Typography sx={{ my: 1 }}>The programme changed after this answer was prepared, so no answer is shown.</Typography>
       <Button variant="outlined" disabled={busy} onClick={() => void submit(job.question)}>Ask again</Button>
     </Box>}
     {unknown && <Box>
       <Typography sx={{ my: 1 }}>{unknownCopy[unknown.reason]}</Typography>
-      <MuiLink component={Link} to="/attendee/programme">Browse the programme</MuiLink>
+      <MuiLink component={Link} to={`/attendee/programme/events/${encodeURIComponent(eventId)}`}>Browse the programme</MuiLink>
     </Box>}
     {answered && <Box>
       <Box component="ul" role="list" aria-label="Verified facts" sx={{ pl: 3 }}>{answered.claims.map((claim, index) => <li key={`${claim.itemId}-${claim.field}-${index}`}>
@@ -130,5 +138,6 @@ export function EventQuestions({ eventId, timezone, formatTime, formatPrice }: P
       {answered.summary !== null && <Typography sx={{ my: 1 }}><strong>AI summary</strong> {answered.summary}</Typography>}
       <Typography variant="body2">Only the verified facts are checked against the programme.</Typography>
     </Box>}
+    </Box>
   </Paper>;
 }
