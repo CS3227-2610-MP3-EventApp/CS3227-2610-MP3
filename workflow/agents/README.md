@@ -27,10 +27,10 @@ Agreed by Yik Bing on 2026-10-19 as an initial usage-conscious configuration, pe
 | --- | --- | --- |
 | orchestrator | `gpt-6.1-sol` | `medium` |
 | specification_analyst | `gpt-6-luna` | `high` |
-| test_case_designer | `gpt-6.1-sol` | `high` |
+| test_case_designer | `gpt-6-luna` | `high` |
 | developer | `gpt-6-luna` | `high` |
-| behaviour_verifier | `gpt-6.1-sol` | `high` |
-| security_reviewer | `gpt-6.1-sol` | `high` |
+| behaviour_verifier | `gpt-6-luna` | `high` |
+| security_reviewer | `gpt-6-luna` | `high` |
 
 The values are set in each standalone `.codex/agents/*.toml` file using `model` and `model_reasoning_effort`. The orchestrator is normally the main chat: select GPT-6.1 Sol / Medium in the client for that chat; the orchestrator role file applies only when that custom agent is invoked and cannot switch the main chat's model. Start a new session after updating role files and check actual model selection in the client. Static validation does not establish account access or runtime discovery.
 
@@ -46,10 +46,10 @@ Approved by Yik Bing on 2026-10-19 as an initial usage-conscious configuration, 
 | --- | --- | --- | --- |
 | orchestrator (main chat) | `claude-sonnet-5-5` | `medium` | `claude-opus-5-5`, `medium` |
 | specification_analyst | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` |
-| test_case_designer | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` (`high` for authentication, persistence, concurrency or AI) |
+| test_case_designer | `claude-sonnet-5.5` | `high` | `claude-opus-5-5`, `medium` (`high` for authentication, persistence, concurrency or AI) |
 | developer | `claude-sonnet-5-5` | `medium` | `claude-sonnet-5-5`, `high` for repair; then `claude-opus-5-5`, `medium` |
-| behaviour_verifier | `claude-opus-5-5` | `medium` | `claude-opus-5-5`, `high` |
-| security_reviewer | `claude-opus-5-5` | `medium` | `claude-opus-5-5`, `high` |
+| behaviour_verifier | `claude-sonnet-5.5` | `high` | `claude-opus-5-5`, `medium` |
+| security_reviewer | `claude-sonnet-5.5` | `high` | `claude-opus-5-5`, `medium` |
 
 The values are set in each `.claude/agents/*.md` file using the `model` and `effort` frontmatter fields, with full model IDs for reproducible run records.
 

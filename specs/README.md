@@ -68,7 +68,7 @@ This index maps all **31** catalogue stories to domain capabilities and shared t
 | 18 | F09-US02 | [compare-suppliers](business-preparation/compare-suppliers.md): compare-suppliers-AC01–06 | In progress revision 3; approved and locally implemented, positive live/browser/restart evidence and final reviews pending |
 | 19 | F10-US03 | [approve-external-actions](shared/approve-external-actions.md): approve-external-actions-AC01–06 | In progress revision 2; exact business-sandbox contract approved by Isaac 2026-10-23; reviewed baseline560cbf4; organiser execution deferred |
 | 20 | F08-US02 | [request-venue-quotations](venue-research/request-venue-quotations.md): request-venue-quotations-AC01–07 | Draft; approval and verification pending |
-| 20 | F09-US03 | [review-procurement-proposals](business-preparation/review-procurement-proposals.md): review-procurement-proposals-AC01–06 | Draft; approval and verification pending |
+| 20 | F09-US03 | [review-procurement-proposals](business-preparation/review-procurement-proposals.md): review-procurement-proposals-AC01–06 | Draft revision 15; Isaac approved exact r15; test design/adequacy review, protected baseline, implementation and verification pending |
 
 ## Drafting assistance
 
