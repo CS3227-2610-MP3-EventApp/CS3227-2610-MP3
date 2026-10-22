@@ -155,3 +155,6 @@ Exact accessible names and copy (case-sensitive, whole-string unless noted):
 - Accessibility and usability: partly covered in jsdom (names, roles, keyboard, status region, description); manual assistive-technology pass deferred.
 - Expected results follow the specification; where it is silent the assumption is listed in section 1 and questioned in section 6. Assertions read observable behaviour only (HTTP, database shape through generic queries, provider messages); the table-shape discovery and generic timestamp aging are the only structural dependencies.
 - Independent review of this adequacy: pending.
+
+## 8. Correction note (F03-US01-TCR-02, 2026-10-22)
+Spec revision 3 of `generate-feasible-itineraries` removed `confirmSynthetic` from the itinerary request. The only change in this plan's test file is the `start_itinerary` helper in `backend/tests/test_attendee_event_questions.py`, which now posts `{requestId, preferenceRevision}`; no assertion, scenario or expected result of the question feature changed, and the Q&A frontend tests and fixtures are untouched. Statements above that say the extra-key rule follows the F03-US01 precedent remain correct: the itinerary slice now also rejects `confirmSynthetic` as an unknown key (422).

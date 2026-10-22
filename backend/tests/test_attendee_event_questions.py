@@ -1387,7 +1387,7 @@ def test_ac05_asking_again_after_a_stale_answer_returns_the_current_facts(world,
 def start_itinerary(w, client=None, revision=None, headers=ORIGIN):
     revision = planning(w, client)["preferences"]["revision"] if revision is None else revision
     return (client or w.attendee).post(GENERATIONS.format(w.event_id), headers=headers, json={
-        "requestId": str(uuid4()), "preferenceRevision": revision, "confirmSynthetic": True})
+        "requestId": str(uuid4()), "preferenceRevision": revision})
 
 
 def itinerary_output(item):
