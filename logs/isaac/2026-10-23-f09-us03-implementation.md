@@ -20,7 +20,7 @@
 - Implemented `frontend/src/procurement/` (`model.ts` validation/amount/pagination/error mapping, `markers.ts` no-retry markers, `ProcurementProposals.tsx` page), the `/business/procurement-proposals` route, a supplier-research link and marker clearing on logout/actor change in `Auth.tsx`; developer unit tests in `frontend/src/procurement/model.unit.test.ts`. Backend and F10 unchanged.
 - Assistant decisions under Isaac's delegation: confirmation dialogs for approve/cancel/revise; proposal quantity is the researched quantity (editable in revisions); shortlist entries show price known/unknown without amounts; a list load failure hides the whole private page; a snapshot 404 marks only the shortlist unavailable; malformed markers stay fail-closed until sign-out; superseded open revisions are labelled "Superseded (view only)".
 - Five corrections to the unfrozen acceptance file, with reasons in the [test plan](../../workflow/agents/test-plans/2026-10-23-f09-us03.md). These were made by the implementer and need test-owner/independent review.
-- Spec moved to In review with evidence; [spec index](../../specs/README.md), [testing guide](../../docs/ExternalActionTesting.md) and test plan updated.
+- Spec moved to In review with evidence; [spec index](../../specs/README.md), [testing guide](../../docs/archive/ExternalActionTesting.md) and test plan updated.
 - Temporary `.claude/launch.json`, scratchpad seed/capture scripts and a temporary validation test were used for local checks and removed or left outside the repository.
 
 ## Verification and limitations

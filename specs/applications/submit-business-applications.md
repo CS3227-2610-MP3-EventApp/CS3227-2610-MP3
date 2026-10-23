@@ -162,7 +162,7 @@ Active protected baseline: `254bc0507788c0ef1c255ad2238e3894eb4e798b`, all17 pat
 | AC16 / shared UI feedback and keyboard | Root real keyboard form/confirmation, AX heading, no horizontal overflow at320px, controlled pending response on production build | Pending4ms; still-pending10018ms; terminal clears pending; no private browser storage; screenshots visually inspected |
 | Remaining AC16 / release gates | Chrome+NVDA, actual400% browser zoom, reduced-motion checks, comprehensive accessibility/production visual sign-off, human teammate and summary correctness review | Pending; automated AX/layout checks do not establish WCAG conformance; no production delivery claimed |
 
-Use the [Git Bash website/API guide](../../docs/BusinessApplicationsTesting.md) for manual review. Actual identities, defects, protected-test correction history and residual checks are in the [frontend run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md) and [session log](../../logs/isaac/2026-10-21-complete-business-applications.md). No push, merge or deployment.
+Use the [Git Bash website/API guide](../../docs/archive/BusinessApplicationsTesting.md) for manual review. Actual identities, defects, protected-test correction history and residual checks are in the [frontend run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md) and [session log](../../logs/isaac/2026-10-21-complete-business-applications.md). No push, merge or deployment.
 
 ## Approved current revision 6 amendment - 2026-10-22
 

@@ -4,7 +4,7 @@ A copy-and-paste walkthrough of every Business feature: F06 (applications, setup
 
 Commands are given for **Windows PowerShell** and **macOS/Linux (bash/zsh)**. Git Bash on Windows uses the bash commands. Run commands from the repository root unless a step says otherwise.
 
-> EventApp has no website screen for creating events or organiser accounts; an operator CLI does that (by design, see [access-authorised-workspaces](../specs/shared/access-authorised-workspaces.md)). Step 2 runs it once with the example values below. Everything else happens in the website.
+> EventApp has no website screen for creating events or organiser accounts; an operator CLI does that (by design, see [access-authorised-workspaces](../../specs/shared/access-authorised-workspaces.md)). Step 2 runs it once with the example values below. Everything else happens in the website.
 
 ## Example values used throughout
 
@@ -230,7 +230,7 @@ This step switches between the two windows; each item says which to use.
 
 1. Home → **Open promotional concepts** → choose the participation.
 2. Brief: `Playful poster and freebie ideas for handmade cups and free coffee tastings.` Tick the event title, start time and booth label.
-3. **Generate concepts** → **Refresh status**. **Expect:** poster copy, freebie ideas and a layout brief marked as unverified, with sourced facts shown separately.
+3. **Generate concepts**. **Expect:** a spinner while it's queued and in progress; the page checks automatically, so there's no need to press **Refresh status**. When it finishes, a "Your promotional concepts are ready." notification appears and the concepts open: poster copy, freebie ideas and a layout brief marked as unverified, with sourced facts shown separately.
 4. Change the first poster line to `Sip, hold, take home: Kopi & Clay at Booth 12` → **Save draft** → reload. **Expect:** the edit persists.
 5. **Delete draft** → confirm. **Expect:** it disappears from history.
 
@@ -243,7 +243,7 @@ This step switches between the two windows; each item says which to use.
    - Delivery area: `Central Singapore`
    - Needed by: leave empty
 
-   Then **Research suppliers** → **Refresh status**.
+   Then **Research suppliers**. **Expect:** a spinner while it's queued and in progress; the page checks automatically, so there's no need to press **Refresh status**. When it finishes, a "Your supplier comparison is ready." notification appears.
 2. **Expect:** 1–3 offers with source host, retrieval time, field quotes and *unknown* where a value isn't sourced; subtotals are estimates. If the partial-research warning appears, available offers can still be saved. Use **Save selected offers** beneath the offers, or **Save shortlist** above the comparisons. Select the first offer → **Save selected offers** below the offers → reload. **Expect:** the selection persists, including for partial research.
 3. Try deleting that comparison. **Expect:** blocked until you clear the selection and save.
 4. Reselect the offer and save, then click **Procurement proposals from this shortlist**.
@@ -263,6 +263,6 @@ This step switches between the two windows; each item says which to use.
 
 ## Recording results
 
-Note pass/fail per step, with screenshots where useful, in your session log under `logs/`. A failed AI step should still leave manual data unchanged; report it rather than retrying blindly. Automated test commands are in the [DeveloperGuide](DeveloperGuide.md).
+Note pass/fail per step, with screenshots where useful, in your session log under `logs/`. A failed AI step should still leave manual data unchanged; report it rather than retrying blindly. Automated test commands are in the [DeveloperGuide](../DeveloperGuide.md).
 
 Detailed per-feature guides: [Business applications](BusinessApplicationsTesting.md), [preparation and AI drafts](BusinessPreparationTesting.md), [promotional concepts](PromotionalConceptsTesting.md), [supplier research](SupplierResearchTesting.md), [procurement / sandbox actions](ExternalActionTesting.md).

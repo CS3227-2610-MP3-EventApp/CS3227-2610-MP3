@@ -1,12 +1,12 @@
 # Supplier research
 
-Phase 2 implements F09-US02 under [compare-suppliers](../specs/business-preparation/compare-suppliers.md) and shared AI-task revision 6. Actual checks, review findings and remaining gates belong in the [run record](../workflow/agents/runs/2026-10-22-f09-phase2.md).
+Phase 2 implements F09-US02 under [compare-suppliers](../../specs/business-preparation/compare-suppliers.md) and shared AI-task revision 6. Actual checks, review findings and remaining gates belong in the [run record](../../workflow/agents/runs/2026-10-22-f09-phase2.md).
 
 Apply backend migrations and start the API, frontend and existing AI worker (`uv run python -m app.ai.worker`). Open **Supplier research** in the Business workspace and select an owned participation. Application acceptance is not required. Comparisons, jobs and shortlist belong only to their creator, including within the same business.
 
 Configure `TAVILY_API_KEY`, `SOCLAAS_API_KEY` and `SOCLAAS_MODEL` in ignored `backend/.env`. Never put keys in a `VITE_` variable, source, screenshots or logs. Development needs the existing explicit AI opt-in/event allowlist and per-request sharing confirmation. Production calls remain disabled. Synthetic checks use separate invented records and process-local synthetic allowlisting.
 
-Read the disclosure, choose printing, snacks or freebies, and enter a brief, quantity, coarse Singapore delivery area and optional needed-by date. Do not enter contacts or a street address; free text is not automatically scrubbed. **Research suppliers** queues one Tavily Basic discovery request, independently retrieves up to three public pages within five total retrieval attempts, and uses SoCLaaS to extract evidence. Search snippets cannot ground an offer. Use **Refresh status** or **Cancel job**; cancellation cannot undo a request already sent or its possible provider charge.
+Read the disclosure, choose printing, snacks or freebies, and enter a brief, quantity, coarse Singapore delivery area and optional needed-by date. Do not enter contacts or a street address; free text is not automatically scrubbed. **Research suppliers** queues one Tavily Basic discovery request, independently retrieves up to three public pages within five total retrieval attempts, and uses SoCLaaS to extract evidence. Search snippets cannot ground an offer. Status checks run automatically while queued or in progress. **Refresh status** and **Cancel job** remain available; cancellation cannot undo a request already sent or its possible provider charge.
 
 Inspect field quotes, source host, retrieval time, listed currency/quantity basis, unknowns and qualifications. Prices and exact SGD item subtotals are estimates, not quotations. Shipping, tax and fees are excluded from subtotals. Unsupported currency precision or ambiguous product/price association remains unknown; no FX conversion occurs. Sources older than 24 hours are marked stale. A source link does not establish seller identity, safety, suitability, inventory or reliability.
 
@@ -25,7 +25,7 @@ These are manual verification instructions, not a claim that this session exerci
 
 ## Checks
 
-Use the isolated database environment in [DeveloperGuide](DeveloperGuide.md); never run concurrent resetting suites against the same test database. From `backend/`, run `uv run pytest tests/test_supplier_research.py`, then `uv run pytest tests unit_tests developer_checks`. Set `PYTHONPATH` to the backend directory plus its virtual-environment site-packages where required on Windows.
+Use the isolated database environment in [DeveloperGuide](../DeveloperGuide.md); never run concurrent resetting suites against the same test database. From `backend/`, run `uv run pytest tests/test_supplier_research.py`, then `uv run pytest tests unit_tests developer_checks`. Set `PYTHONPATH` to the backend directory plus its virtual-environment site-packages where required on Windows.
 
 From `frontend/`, run `npm.cmd test -- tests/supplier-research.test.tsx src/supplierResearch`, `npm.cmd test`, and `npm.cmd run build`. Use `NODE_OPTIONS=--no-experimental-webstorage` for the documented Node compatibility case; other platforms use `npm`.
 

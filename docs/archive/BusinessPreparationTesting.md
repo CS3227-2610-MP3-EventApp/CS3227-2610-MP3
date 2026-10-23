@@ -2,11 +2,11 @@
 
 F06-US03 covers persisted manual tasks/budgets; F06-US04 adds private editable AI drafts and explicitly confirmed, selected append-only adoption. Booth/setup supplies current organiser facts. Follow the numbered sections in order. Commands use **Git Bash on Windows**, matching [Business application testing](BusinessApplicationsTesting.md). Do not paste these shell commands into PowerShell.
 
-Contracts: [manual preparation r4](../specs/business-preparation/manage-preparation-tasks-and-budgets.md), [setup v1](../specs/business-preparation/assign-booths-and-publish-setup-details.md), [AI preparation r3](../specs/business-preparation/generate-preparation-drafts.md), and [shared business jobs r3](../specs/shared/monitor-and-recover-ai-tasks.md). [Phase 5 evidence](../workflow/agents/runs/2026-10-22-preparation-drafts-implementation.md) distinguishes actual checks from pending independent/human/browser review. These instructions do not mark those gates complete.
+Contracts: [manual preparation r4](../../specs/business-preparation/manage-preparation-tasks-and-budgets.md), [setup v1](../../specs/business-preparation/assign-booths-and-publish-setup-details.md), [AI preparation r3](../../specs/business-preparation/generate-preparation-drafts.md), and [shared business jobs r3](../../specs/shared/monitor-and-recover-ai-tasks.md). [Phase 5 evidence](../../workflow/agents/runs/2026-10-22-preparation-drafts-implementation.md) distinguishes actual checks from pending independent/human/browser review. These instructions do not mark those gates complete.
 
 ## 1. Prepare dependencies and databases
 
-Start Docker Desktop. Prerequisites are Python3.12, uv, and Node.js ^20.19.0 or >=22.12.0; see [DeveloperGuide](DeveloperGuide.md). From the repository root:
+Start Docker Desktop. Prerequisites are Python3.12, uv, and Node.js ^20.19.0 or >=22.12.0; see [DeveloperGuide](../DeveloperGuide.md). From the repository root:
 
 ```bash
 docker compose --profile test up -d db test-db
@@ -174,7 +174,7 @@ npm test
 npm run build
 ```
 
-The earlier snapshot had321 tests; current refinements add cases. Expect the entire current suite and build to pass. The existing bundle-size warning is nonfatal. For just Phase5 UI, use `npm test -- tests/preparation-drafts.test.tsx` (25cases at the earlier snapshot). The independently designed acceptance baseline has one explicitly approved fixture type annotation recorded in [DRAFTS-TCR-03](../workflow/agents/runs/2026-10-22-preparation-drafts-fixture-types-tcr.md); its independent review remains pending.
+The earlier snapshot had321 tests; current refinements add cases. Expect the entire current suite and build to pass. The existing bundle-size warning is nonfatal. For just Phase5 UI, use `npm test -- tests/preparation-drafts.test.tsx` (25cases at the earlier snapshot). The independently designed acceptance baseline has one explicitly approved fixture type annotation recorded in [DRAFTS-TCR-03](../../workflow/agents/runs/2026-10-22-preparation-drafts-fixture-types-tcr.md); its independent review remains pending.
 
 For the full backend regression suite, use the same guarded environment and `uv run python -m pytest tests unit_tests -q`. Earlier full execution passed414/415 before the placeholder-job repair; all111 affected cases passed afterward. Do not treat that history as a newly executed full415-case pass. Future test counts can change; investigate failures instead of editing expectations to fit code.
 
@@ -194,7 +194,7 @@ Expect two PASS messages: migration/current-column preservation with the startin
 
 Stop the worker and API with Ctrl+C. In the API terminal set `export AI_ENABLED=false` before restarting for ordinary manual work. Close the dedicated worker terminal so its inherited AI opt-in cannot keep running; do not persist the temporary event allowlist/AI enablement into shared configuration. The frontend may remain running for manual preparation.
 
-Record date, specification revision3, staged diff/commit under test, commands, actual results and manual observations in the [Phase5 session log](../logs/isaac/2026-10-22-f06-phase-5-drafts.md) or a new dated session log. Human teammate/security review, browser accessibility, human log verification and online delivery remain distinct from passing local tests.
+Record date, specification revision3, staged diff/commit under test, commands, actual results and manual observations in the [Phase5 session log](../../logs/isaac/2026-10-22-f06-phase-5-drafts.md) or a new dated session log. Human teammate/security review, browser accessibility, human log verification and online delivery remain distinct from passing local tests.
 
 ## Refinement checks added on2026-10-22
 

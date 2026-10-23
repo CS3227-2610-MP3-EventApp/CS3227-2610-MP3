@@ -1,10 +1,10 @@
 # Organiser AI application analysis: local testing
 
-This guide accompanies F04-US02 and the organiser job-control slice of F10-US02. Implementation and verification evidence are recorded in the [run record](../workflow/agents/runs/2026-10-21-organiser-ai-analysis.md); pending checks there are not passing claims. Use a dedicated event containing invented records only.
+This guide accompanies F04-US02 and the organiser job-control slice of F10-US02. Implementation and verification evidence are recorded in the [run record](../../workflow/agents/runs/2026-10-21-organiser-ai-analysis.md); pending checks there are not passing claims. Use a dedicated event containing invented records only.
 
 ## Start and configure
 
-Follow [DeveloperGuide](DeveloperGuide.md) to start PostgreSQL, migrate with `uv run alembic upgrade head`, start FastAPI, provision an organiser/event and start the frontend. Compose defaults to development port 5432; Dylan's existing running development container currently binds 5434. Check `docker compose ps` and match `DATABASE_URL` to that binding. The separate disposable test database uses 5433.
+Follow [DeveloperGuide](../DeveloperGuide.md) to start PostgreSQL, migrate with `uv run alembic upgrade head`, start FastAPI, provision an organiser/event and start the frontend. Compose defaults to development port 5432; Dylan's existing running development container currently binds 5434. Check `docker compose ps` and match `DATABASE_URL` to that binding. The separate disposable test database uses 5433.
 
 Add these settings to your ignored `backend/.env`, filling the key and exact accessible model locally:
 
@@ -68,4 +68,4 @@ Automated fake-provider tests validate application behavior and PostgreSQL persi
 
 ## 2026-10-22 data-sharing refinement
 
-The current UI uses a normal confirmation disclosure and Start analysis; it no longer asks for an invented-data pledge. For explicitly authorized development real-data use, set AI_ENABLED=true, AI_SYNTHETIC_ONLY=false, AI_REAL_DATA_ENABLED=true and AI_ALLOWED_EVENT_IDS to the exact event UUID list in both API and worker processes. Keep key/model backend-only. Use the root-safe Python3.12 worker command in [DeveloperGuide](DeveloperGuide.md). Contacts remain excluded, but free text can contain personal data; provider retention is unverified and local deletion does not delete provider copies. Production deployment/calls remain disabled. Earlier synthetic-only steps above are retained historical configuration; the current refinement supersedes their UI confirmation instruction.
+The current UI uses a normal confirmation disclosure and Start analysis; it no longer asks for an invented-data pledge. For explicitly authorized development real-data use, set AI_ENABLED=true, AI_SYNTHETIC_ONLY=false, AI_REAL_DATA_ENABLED=true and AI_ALLOWED_EVENT_IDS to the exact event UUID list in both API and worker processes. Keep key/model backend-only. Use the root-safe Python3.12 worker command in [DeveloperGuide](../DeveloperGuide.md). Contacts remain excluded, but free text can contain personal data; provider retention is unverified and local deletion does not delete provider copies. Production deployment/calls remain disabled. Earlier synthetic-only steps above are retained historical configuration; the current refinement supersedes their UI confirmation instruction.

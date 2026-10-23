@@ -25,7 +25,7 @@ Current outcome: Phase 2 (compare suppliers, F09-US02) is complete and committed
 - Prompt changes: constraints on unknown-field reasons, on names being literal quote substrings and on picking one sentence first, then updated for D06/D07.
 - Process: custom role models were unavailable, so general-purpose agents performed test-designer, developer, behaviour-review and security-review roles with role instructions. The test designer owned protected-test changes (TCR-F09-R4, TCR-F09-R5), including two corrections of faulty test fixtures/assertions at the developer's report; the developer did not edit protected tests. Reviewers were read-only.
 - Reviewer findings and dispositions: missing default unknown reasons, identity not tied to a source, model-written reasons and hostile name text (fixed); repair CPU cost, newline joins, loose suffix matching and persisted newlines (fixed); a suggestion to suppress source failures for sources with saved offers was rejected because it would hide omissions, and the spec was amended.
-- Documentation: `docs/SupplierResearchTesting.md`, the compare-suppliers spec, the Phase 2 run record (including an approval record) and this log were updated. A handoff record with the updated delivery table is at `workflow/agents/runs/2026-10-23-f09-phase3-handoff.md`.
+- Documentation: `docs/archive/SupplierResearchTesting.md`, the compare-suppliers spec, the Phase 2 run record (including an approval record) and this log were updated. A handoff record with the updated delivery table is at `workflow/agents/runs/2026-10-23-f09-phase3-handoff.md`.
 - A stray `d.txt` diff dump was committed by mistake and removed by amending the commit before any push.
 
 ## Checks and results

@@ -36,7 +36,7 @@ Actual agent ownership and handoffs:
 - `/root/phase3_security` independently reviewed source/actor permissions, exact binding, network isolation, locking, destinations and audits. Reviewers did not implement their reviewed fixes.
 - Root coordinated ownership, approval, baseline creation, serial database leases, review snapshots, documentation, regression execution and this log. All subagents were completed at the stop checkpoint.
 
-The implemented module owns proposal revisions, approvals, receipts and idempotency records. Supplier data remains supplier-owned and is consumed through an additive authorized read interface. Documentation includes [ExternalActionTesting.md](../../docs/ExternalActionTesting.md); specification/index, architecture, run record and log-index updates were also made during the implementation session.
+The implemented module owns proposal revisions, approvals, receipts and idempotency records. Supplier data remains supplier-owned and is consumed through an additive authorized read interface. Documentation includes [ExternalActionTesting.md](../../docs/archive/ExternalActionTesting.md); specification/index, architecture, run record and log-index updates were also made during the implementation session.
 
 ## Checks and results
 

@@ -1,6 +1,6 @@
 # Business sandbox action approval
 
-Phase 3 implements [approve-external-actions revision 2](../specs/shared/approve-external-actions.md). It is an API/service foundation for Phase 4; the business procurement editor is described below. Organiser email integration is not included. All execution outcomes refer to simulations. No seller is contacted and no order, booking or payment is made.
+Phase 3 implements [approve-external-actions revision 2](../../specs/shared/approve-external-actions.md). It is an API/service foundation for Phase 4; the business procurement editor is described below. Organiser email integration is not included. All execution outcomes refer to simulations. No seller is contacted and no order, booking or payment is made.
 
 ## API walkthrough
 
@@ -19,7 +19,7 @@ Unknown prices remain unknown. Exact source-backed SGD arithmetic is an estimate
 
 ## Automated verification
 
-Acceptance: `backend/tests/test_external_actions.py`; [independent test plan](../workflow/agents/test-plans/2026-10-23-f09-phase3.md); [run/baseline/evidence](../workflow/agents/runs/2026-10-23-f09-phase3.md).
+Acceptance: `backend/tests/test_external_actions.py`; [independent test plan](../../workflow/agents/test-plans/2026-10-23-f09-phase3.md); [run/baseline/evidence](../../workflow/agents/runs/2026-10-23-f09-phase3.md).
 
 From `backend/`, use Python 3.12 and the existing guarded, isolated synthetic test database. `DATABASE_URL` must identify development separately; `TEST_DATABASE_URL` must identify the dedicated synthetic test target and `EVENTAPP_ALLOW_TEST_DB_RESET=true` must be explicit. Never point resettable tests at development or production. Do not print environment credentials. Run database suites serially because fixtures reset the isolated database.
 
@@ -31,7 +31,7 @@ Controlled internal test seams provide deterministic server time and failed/unce
 
 ## Phase 4 procurement proposal editor (F09-US03)
 
-[review-procurement-proposals revision 15](../specs/business-preparation/review-procurement-proposals.md) adds the business UI at `/business/procurement-proposals?participationId=<id>`, linked from **Supplier research** as **Procurement proposals from this shortlist**. It consumes the API above; it does not change it.
+[review-procurement-proposals revision 15](../../specs/business-preparation/review-procurement-proposals.md) adds the business UI at `/business/procurement-proposals?participationId=<id>`, linked from **Supplier research** as **Procurement proposals from this shortlist**. It consumes the API above; it does not change it.
 
 1. Choose **Purchase/cart proposal** or **Quotation request** and select saved shortlist entries. Entries from one research snapshot can be combined; other snapshots are disabled until the selection is cleared. Unknown-price entries stay selectable. The quantity is the researched quantity.
 2. Quotation requests accept an optional unverified recipient email and request text. They are private simulation data, never sent and never stored in the browser.

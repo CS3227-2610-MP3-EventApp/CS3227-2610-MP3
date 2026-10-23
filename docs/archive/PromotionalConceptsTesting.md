@@ -1,6 +1,6 @@
 # Promotional concepts
 
-Phase 1 covers F09-US01 under [promotional concepts revision 3](../specs/business-preparation/draft-promotional-concepts.md). The [run record](../workflow/agents/runs/2026-10-22-f09-phase1.md) records actual results and outstanding reviews; this guide is not a completion claim.
+Phase 1 covers F09-US01 under [promotional concepts revision 3](../../specs/business-preparation/draft-promotional-concepts.md). The [run record](../../workflow/agents/runs/2026-10-22-f09-phase1.md) records actual results and outstanding reviews; this guide is not a completion claim.
 
 Apply the latest backend migrations, then start the API, frontend and the existing AI worker (`uv run python -m app.ai.worker`). Select **Promotional concepts** from the Business workspace. Select a business and an existing participation. Application acceptance is not required. Other members, including another owner of the same business, cannot open your creator-private concepts or jobs.
 
@@ -14,7 +14,7 @@ Edit poster text, freebie names/descriptions and layout notes, then choose **Sav
 
 ## Automated checks
 
-Use the documented isolated test database environment from [DeveloperGuide](DeveloperGuide.md). From `backend/`, run `uv run pytest tests/test_promotional_concepts.py`, then `uv run pytest tests unit_tests developer_checks`. On Windows, use the documented virtual-environment `PYTHONPATH` if migration subprocesses need it. Do not run two backend suites concurrently against the disposable database.
+Use the documented isolated test database environment from [DeveloperGuide](../DeveloperGuide.md). From `backend/`, run `uv run pytest tests/test_promotional_concepts.py`, then `uv run pytest tests unit_tests developer_checks`. On Windows, use the documented virtual-environment `PYTHONPATH` if migration subprocesses need it. Do not run two backend suites concurrently against the disposable database.
 
 From `frontend/`, use `npm.cmd test -- tests/promotional-concepts.test.tsx`, then `npm.cmd test` and `npm.cmd run build`. The documented Node compatibility flag is `NODE_OPTIONS=--no-experimental-webstorage` when needed. On other platforms use `npm`.
 

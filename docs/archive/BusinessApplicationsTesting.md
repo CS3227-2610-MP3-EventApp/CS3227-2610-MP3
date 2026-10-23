@@ -1,8 +1,8 @@
 # Test Business applications locally
 
-F06-US01 covers open-event browsing and private draft/create/edit/review/submit. F04-US01 and the status/reason portion of F06-US02 add organiser approval/rejection and the business outcome. For the subsequent booth/setup, manual preparation and AI-draft journey, follow [Business preparation testing](BusinessPreparationTesting.md). See [submit r4](../specs/applications/submit-business-applications.md), [decision r2](../specs/applications/decide-applications-and-show-outcomes.md) and [current implementation evidence](../workflow/agents/runs/2026-10-21-open-participation-requests.md). The approved slice is implemented and In review; the run records passing automated/browser evidence and pending human checks. Human/NVDA review is recorded separately.
+F06-US01 covers open-event browsing and private draft/create/edit/review/submit. F04-US01 and the status/reason portion of F06-US02 add organiser approval/rejection and the business outcome. For the subsequent booth/setup, manual preparation and AI-draft journey, follow [Business preparation testing](BusinessPreparationTesting.md). See [submit r4](../../specs/applications/submit-business-applications.md), [decision r2](../../specs/applications/decide-applications-and-show-outcomes.md) and [current implementation evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md). The approved slice is implemented and In review; the run records passing automated/browser evidence and pending human checks. Human/NVDA review is recorded separately.
 
-For all backend and frontend automated tests, use [Run all automated tests in Git Bash](DeveloperGuide.md#run-all-automated-tests-in-git-bash-windows). The website steps below cover manual testing.
+For all backend and frontend automated tests, use [Run all automated tests in Git Bash](../DeveloperGuide.md#run-all-automated-tests-in-git-bash-windows). The website steps below cover manual testing.
 
 ## Git Bash startup
 
