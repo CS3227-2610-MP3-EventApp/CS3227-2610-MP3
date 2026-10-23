@@ -88,6 +88,8 @@ h3 { font-size: 1.35rem; margin-bottom: 10px; }
 .button { border: 1px solid var(--ink); border-radius: 999px; display: inline-block; font-weight: 700; padding: 11px 20px; text-decoration: none; }
 .button.primary { background: var(--ink); color: var(--white); }
 .button.primary:hover, .button.primary:focus-visible { background: var(--teal); border-color: var(--teal); }
+.button.live { border-color: var(--teal); color: var(--teal); }
+.button.live:hover, .button.live:focus-visible { background: var(--teal); color: var(--white); }
 .button.secondary { border-color: var(--line); }
 .button.secondary:hover, .button.secondary:focus-visible { border-color: var(--coral); color: var(--coral-dark); }
 

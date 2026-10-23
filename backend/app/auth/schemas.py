@@ -102,7 +102,7 @@ class CurrentActor(BaseModel):
 
 class AuthFieldError(BaseModel):
     field: Literal["username", "email", "displayName", "password", "businessName", "identifier", "role", "currentPassword", "newPassword", "request"]
-    code: Literal["required", "password_length", "invalid"]
+    code: Literal["required", "password_length", "invalid", "already_exists"]
 
 
 class Problem(BaseModel):
@@ -113,3 +113,8 @@ class Problem(BaseModel):
     instance: str
     code: str
     fieldErrors: list[AuthFieldError] | None = None
+
+
+class ContactProfile(BaseModel):
+    displayName: str
+    email: str

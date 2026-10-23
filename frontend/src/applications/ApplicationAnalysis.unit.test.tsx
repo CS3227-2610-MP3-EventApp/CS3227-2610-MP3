@@ -31,7 +31,6 @@ test("status polling recovers from a temporary read failure without creating ano
   const user = userEvent.setup();
   await user.click(await screen.findByRole("button", { name: "Analyse application" }));
   const dialog = await screen.findByRole("dialog");
-  await user.click(within(dialog).getByRole("checkbox"));
   await user.click(within(dialog).getByRole("button", { name: "Start analysis" }));
   expect(await screen.findByText(/Job status is temporarily unavailable/)).toBeVisible();
   expect(await screen.findByText("Analysis completed", {}, { timeout: 5000 })).toBeVisible();

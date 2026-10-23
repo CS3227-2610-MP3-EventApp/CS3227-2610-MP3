@@ -27,7 +27,7 @@ Final documentation review noticed the shared AI-task Draft still described only
 - Extended existing AI jobs with a real workflow kind and source-change target, sharing limits/cancellation/deadlines. Model output selects bounded editorial phrases; server records render authoritative facts. Manual authoring remains independent of AI.
 - Added organiser change/cancel/history/announcement UI and minimal attendee announcement/inbox screens, preserving timezone, SGD and theme conventions. Before/after previews use named locations, event-local times and SGD dollars.
 - Added notification persistence and owner-scoped routes behind an explicit integration gate. No fake F02 records or successful fabricated empty recipient result. Historic blocked changes are not retargeted later.
-- Updated architecture/security/user/developer guidance and [testing/handoff](../../docs/DisruptionsTesting.md).
+- Updated architecture/security/user/developer guidance and [testing/handoff](../../docs/archive/DisruptionsTesting.md).
 
 ## Verification and limitations
 

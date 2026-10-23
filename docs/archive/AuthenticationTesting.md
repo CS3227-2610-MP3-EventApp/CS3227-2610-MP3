@@ -26,7 +26,7 @@ npm run dev
 
 Open `http://localhost:5173` or `http://127.0.0.1:5173`. If Vite chooses another port, stop it and free port 5173 or explicitly configure the backend's `TRUSTED_ORIGINS` for that port. The Vite proxy still targets backend port 8000. These commands deliberately use the already configured container on port 5433 to avoid the workstation's existing port-5432 listener.
 
-This database is disposable: the automated backend suite resets its schema. Do not run it concurrently with manual testing or expect manually created accounts to survive a later test-suite run. For daily development, use the separate development database described in the [developer guide](DeveloperGuide.md#backend-foundation).
+This database is disposable: the automated backend suite resets its schema. Do not run it concurrently with manual testing or expect manually created accounts to survive a later test-suite run. For daily development, use the separate development database described in the [developer guide](../DeveloperGuide.md#backend-foundation).
 
 ## Prepare an organiser
 

@@ -11,9 +11,11 @@ The logs were reviewed and approved by the team on 22 October 2026.
 The project used React, FastAPI, PostgreSQL, SoC LLM access through SoCLaaS, and a
 specialised-agent workflow. The most developed product areas were authentication, business
 applications, organiser programme management, organiser application analysis, attendee
-programme browsing/planning, and organiser disruption announcements. Some planned attendee
-and business AI capabilities and online deployment remained release work rather than being
-claimed as complete.
+programme browsing/planning, and organiser disruption announcements. The product website is
+deployed through GitHub Pages, and the application is now hosted at
+[eventapp-ws7v.onrender.com](https://eventapp-ws7v.onrender.com/). Some planned attendee and
+business AI capabilities, full production environment separation, and complete deployed
+cross-role verification remain release work rather than being claimed as complete.
 
 ## 2. AI security
 
@@ -69,6 +71,19 @@ current revision `4`. The backend correctly rejected it as `invalid_output`. We 
 required current revision explicit in the prompt and added a regression test. This showed why
 valid JSON is not sufficient: AI output must also be grounded in the current server facts.
 
+**Isaac on security versus useful uncertainty.** Supplier research taught me that stricter
+validation can make an AI feature less useful without resolving its underlying uncertainty.
+Review repeatedly found delivery statements attributed to the wrong product through
+parentheses, slashes and other qualifiers. Adding delimiter rules caught those examples,
+but could not establish general semantic understanding. My more useful product decision
+was to allow source-backed supplier/product listings with unknown prices or delivery, and
+reject defective offers individually. Forged source IDs and malformed output still failed
+the whole extraction. The lesson was to specify which uncertainty users can safely see,
+and which failures invalidate trust in the result. After the approved changes, the log
+records 9 successful live runs out of 12; this small sample supports practical improvement,
+not a reliability guarantee. [Sources: grounding review](../logs/isaac/2026-10-23-f09-phase2-delivery-grounding-review.md)
+and [approved revisions and live results](../logs/isaac/2026-10-23-f09-phase2-completion-and-handoff.md).
+
 ### Limits and human oversight
 
 AI requests are bounded by input size, output size, timeouts, daily quotas, active-job limits,
@@ -82,8 +97,19 @@ mechanism. AI announcement drafting produces a private draft, while preview expi
 freshness, exact-text approval, and immutable publication are enforced by the server.
 
 The remaining limitation is that local synthetic-data and provider checks do not prove
-production readiness. Production real-data processing, deployed provider configuration,
-online isolation, and a full production deployment check still require team verification.
+production readiness. The application now has a hosted entry point, but production real-data
+processing, deployed provider configuration, online isolation, and a full production
+cross-role smoke test still require team verification.
+
+**Isaac on approval when an outcome is uncertain.** A procurement specification needs to
+explain what happens when the user clicks Execute but never receives a response. A timeout
+does not establish that nothing happened. For the sandbox procurement UI, I chose no
+automatic execute retry and a minimal cross-tab/reload marker containing identifiers only.
+Approval also binds the exact server-derived proposal revision and payload; changed
+quotation text needs a new revision and approval. This made me see approval as a lifecycle
+contract covering edits, interrupted requests and recovery, rather than simply a confirmation
+button. The recorded scope was simulation: it does not establish safe real purchasing or
+payment execution. [Source: procurement decisions and handoff](../logs/isaac/2026-10-23-f09-us03-start-and-tcr-correction.md).
 
 ## 3. Spec-Driven Development
 
@@ -127,6 +153,25 @@ test-change request, selected a supported rollback point, updated the expected b
 revisions, and reran the migration and full backend suite. This was a concrete example of a
 requirement/test contract needing to evolve with an approved architecture change.
 
+**Yik Bing's account of the migration test.** After merging my F02 branch with the organiser AI
+work, CI failed because a protected test assumed the Alembic head had one parent. My first
+response was to avoid editing the test: I instructed the orchestrator to skip the full workflow,
+stopped the test-owner agent before it changed anything, and added a no-op migration so the graph
+had a single head again (`6023e2a`). I judged this proportionate because the cause was
+understood, the change was small and no product behaviour was involved. The cost was that the
+test no longer exercised a downgrade of real schema changes, which I accepted because F02
+rollback is intentionally unsupported. A teammate later updated the test itself (`e78ba84`), so
+the final resolution combined a source-side fix with a test change.
+
+**Yik Bing on approved test changes.** The rule that the developer must not edit protected tests
+held, but tests still changed three times in my own work, and each time through a controlled
+route. An old prototype test expected all attendee actions to be disabled, and a behaviour
+reviewer assessed it before the test owner corrected it. F02 received a replacement protected
+baseline instead of in-place edits. For the silent session re-check, the spec decision was
+recorded first, a verifier reviewed the proposal, and the test owner rewrote four protected tests
+and added six under `SILENT-TCR-01`. What made these changes safe was the order: decision,
+independent review, then test edit by the owner, never an edit by the implementer.
+
 ### How tests showed intent
 
 The strongest tests were not just schema checks. They exercised:
@@ -146,6 +191,15 @@ problem. The team added regression coverage instead of weakening the tests. Conv
 reported published-announcement edit vulnerability was checked against the existing shared
 draft-state guard and withdrawn when it was disproved. This was a useful reminder that a
 review finding must be reproduced against the actual code before changing the product.
+
+**Isaac on testing the tests before trusting a baseline.** The first procurement UI suite
+reported 143 failures and three passes before the feature existed. Independent reviewers
+found that the three role checks passed vacuously, and that some other assertions could pass
+without loading a proposal. Even a large red suite therefore did not establish that every
+scenario would detect its intended defect. I would ask the test designer to state the
+precondition each assertion reaches and the wrong behaviour it distinguishes. Protecting a
+baseline is valuable only after reviewing whether its assertions discriminate between a
+working feature and an absent or broken one. [Source: pre-implementation test review](../logs/isaac/2026-10-23-f09-us03-start-and-tcr-correction.md).
 
 ### Where SDD was excessive
 
@@ -175,6 +229,17 @@ than an established platform fact. Regardless of the cause, the project's extens
 multi-agent and SDD conversations consumed enough tokens that the team experienced
 insufficient remaining capacity. This made the process itself compete with implementation,
 testing, and deployment work.
+
+**Yik Bing's workflow adjustment.** In response, I reduced the workflow for my own work rather
+than for the team. I replaced up to six role agents with two subagents: one test designer and one behaviour verifier, with security
+checked through an explicit checklist in the behaviour review instead of a dedicated pass. I
+kept the parts I judged most valuable: tests written independently of the implementation, a
+protected baseline, and an independent review of a frozen snapshot. The trade-off is that
+security received less dedicated attention, so I recorded this limitation in my session log and
+did not claim a separate security review. This was a personal adjustment agreed locally, not a
+change to the team's process, and I have not measured its cost saving. It did make the
+proportionality argument concrete: I kept the safeguards that independently caught errors and
+dropped the ceremony around them.
 
 My conclusion is not that SDD has no value. It is that SDD should be proportional to risk and
 project size. For a short three-person student project, I would use:
@@ -209,6 +274,16 @@ Examples from the logs include independent review of the F05 disruption workflow
 coverage for authority revocation and history pagination, security review of AI boundaries,
 and merge review preserving both F02 and F05 routes.
 
+**Isaac on the limits of parallel agent work.** During merge verification, four stale test
+processes competed over one resettable database, producing deadlocks, unexpected records
+and missing tables. Assigning different files to agents had not isolated their shared
+execution resource. The useful distinction is between parallel reasoning and parallel
+mutation: reviewers can inspect the same frozen change concurrently, but database-reset
+suites need exclusive ownership or separate databases. A handoff should therefore include
+running process IDs, database ownership and cleanup state alongside code and spec revisions.
+Otherwise, more agents can reduce the credibility of the test evidence they produce.
+[Source: merge execution failures and recovery](../logs/isaac/2026-10-21-merge-conversation.md).
+
 ### Handoffs and evidence
 
 A useful handoff included the specification revision, permitted files, dependencies, expected
@@ -223,6 +298,16 @@ reproduction before acceptance. The orchestrator had to correct and integrate wo
 The migration merge and F02/F05 integration also showed that separate agents can each be
 locally correct while their assumptions about shared revision history conflict.
 
+**Isaac on reviewing the reviewer's evidence.** In the external-action phase, a behaviour
+reviewer reported a migration downgrade/upgrade roundtrip, but inspection showed the helper
+always ran upgrade. Calling it with an older target had not performed the claimed downgrade.
+The reviewer withdrew the claim; the corrected explicit procedure remained unexecuted at
+that checkpoint. This exposed a different failure from an implementation bug: independent
+agents can supply convincing evidence descriptions with misunderstood tool semantics.
+Future handoffs should retain the actual procedure and assert the intermediate state,
+such as the database revision after downgrade, so a person can verify what happened.
+[Source: migration evidence correction](../logs/isaac/2026-10-23-f09-phase3-approval-contract.md).
+
 ### Where errors or malicious instructions could enter
 
 An incorrect requirement could enter through an analyst's interpretation. A developer could
@@ -233,9 +318,10 @@ files could conceal an incompatible contract if they were hand-edited.
 
 The project reduced these risks through file ownership, explicit source-of-truth rules,
 independent reviewers, protected tests, strict model validation, server-side authorisation,
-and human approval before external effects. The controls did not remove the need for a human:
-the logs still record unresolved deployment and integration gates rather than presenting
-local evidence as a production guarantee.
+and human approval before external effects. The controls did not remove the need for a human: the logs record the successful GitHub Pages
+deployment and hosted application URL, while still separating those facts from unresolved
+production integration and verification gates rather than presenting local evidence as a
+production guarantee.
 
 ## 5. Overall lessons and next steps
 
@@ -245,9 +331,20 @@ plausible specification with the wrong route; a test can pass while an integrati
 is still incomplete. Grounding, protected tests, focused reviews, and human approval caught
 several of these issues.
 
+**Yik Bing on human judgment.** The process supplied gates, but I still chose when to scale it
+back. I stopped further AI testing to save credits and tested by hand instead, and I skipped the
+full workflow for the migration fix because the cause was understood and the change was small.
+These choices worked because I understood each problem and its risks, and I recorded the
+trade-offs in my session log rather than claiming the checks had been done. I would be wary of
+using the same shortcuts when the cause was unclear or the risk was higher.
+
 The most important process improvement would be proportionality. For a similar short project,
 I would agree the security boundaries and acceptance tests early, use a compact shared
 specification, delegate only tasks with genuinely separate context, and spend the saved time
-on browser testing, deployment, production separation, and reflection. The final project
-should be judged not only by how much process documentation it contains, but by whether the
-documentation helped the team deliver a secure, testable, and honestly described product.
+on browser testing, deployment, production separation, and reflection. In this project, the
+static product website was deployed first and the application later received a hosted entry
+point; that made deployment concrete, but it also showed that a hosted URL is not by itself
+evidence that every role, provider, migration and security boundary has been verified online.
+The final project should be judged not only by how much process documentation it contains, but
+by whether the documentation helped the team deliver a secure, testable, and honestly
+described product.

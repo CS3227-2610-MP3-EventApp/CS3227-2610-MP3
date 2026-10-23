@@ -1,3 +1,4 @@
+import { displayDate } from "./displayDate";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Stack, SvgIcon, TextField, Tooltip, Typography } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -170,7 +171,7 @@ function EventProgramme({ event, onAccessFailure }: { event: EventSummary; onAcc
     setConfirmation(null);
   }
   const blocked = pending || conflict || forbidden;
-  const displayInstant = (value: string) => new Intl.DateTimeFormat(undefined, { timeZone: event.timezone, dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  const displayInstant = (value: string) => displayDate(value, event.timezone);
   return <Stack spacing={3}>
     <Typography color="text.secondary">Times use {event.timezone}. Event runs {displayInstant(event.startsAt)} – {displayInstant(event.endsAt)}.</Typography>
     {loading ? <Typography role="status">Loading programme…</Typography> : loadError ? <Alert severity="error" action={<Button onClick={() => setAttempt((value) => value + 1)}>Reload</Button>}>{loadError}</Alert> : <>

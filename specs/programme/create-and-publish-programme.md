@@ -1,10 +1,11 @@
 # Create and publish an event programme
 
+> Current revision 8: the **Approved current revision 8 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | create-and-publish-programme |
 | Covered stories | [F01-US01, F01-US02, F01-US03, F04-US03](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 7 / In review; successor path of `specs/F01-published-programme.md` revision 4 |
+| Specification revision / status | 8 / In review |
 | Product roles / roadmap | Organiser and attendee; [phase 1](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Dylan approved exact written revision 6 on 2026-10-20. Revision 7 records the requesting user's 2026-10-21 instruction to fix the merge, retain both features and synchronize the specifications; teammate review of the integration amendment remains pending. |
 | Review / run record | [Reviews, protected baseline and implementation handoffs](../../workflow/agents/runs/2026-10-20-organiser-programme.md) |
@@ -148,3 +149,11 @@ The attendee branch independently recorded revision 8 approval of its revision-7
 Yik Bing subsequently authorized completing the attendee integration and accepted the recommendation to use the shared producer contract, including event-local start-date filtering. This supersedes the earlier attendee-only overlap-date proposal; an activity spanning midnight appears under its start date only. All existing acceptance IDs remain unchanged. The attendee consumer uses the HTTP/DTO contract above, six types including `panel`, generated OpenAPI schema aliases and total-based pagination. The client requests pages of 20 within the approved 1–100 limit. Attendee and organiser components remain separate.
 
 Independent test-owner corrections and replacement protected baseline `1b720adbb008cd7f52aa05db0b34887e2baeef6d` are recorded in the [integration test change](../../workflow/agents/runs/2026-10-21-attendee-integration-test-change.md) and [test plan](../../workflow/agents/runs/2026-10-21-attendee-integration-test-plan.md). Implementation and verification evidence is recorded in the [integration session](../../logs/yikbing/2026-10-21-attendee-integration.md). Online AC09, human teammate review and log correctness verification remain separate; local tests do not establish full F01 completion.
+
+## Approved current revision 8 amendment - 2026-10-22
+
+Isaac explicitly approved these amendments and the refinement acceptance plan on2026-10-22. This current amendment supersedes conflicting wording/criteria in the retained previous revision below; unchanged requirements remain authoritative. Historical approvals/evidence are not transferred to new behavior. New executable tests are written by root against the human-reviewed scenarios; independent executable-delta/implementation review remains pending. No subagents or commits.
+
+Displayed event/activity dates follow shared UI r5 DD MMM YYYY HH:mm event-local presentation. Preserve authoritative ISO payloads, precision and DST repeated/nonexistent-time handling; inputs may retain seconds controls. Exact known generated demo titles may be renamed with Event revision advancement, never mutate frozen published snapshots or heuristic-match arbitrary real titles.
+
+Revision 8 /2026-10-22: user-approved Business refinements; test-first failures and implementation/results belong in [the refinement run](../../workflow/agents/runs/2026-10-22-business-refinements-test-plan.md). Human implementation/accessibility review remains pending.

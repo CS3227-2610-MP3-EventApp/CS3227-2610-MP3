@@ -89,6 +89,8 @@ ORGANISER_AI_JOB_COLUMNS = {
     "comparison_revisions", "state", "failure_code", "provider_may_have_run", "created_at", "updated_at",
     "completed_at", "deadline_at", "lease_until", "dispatch_at", "kind", "source_change_id",
     "announcement_draft_id",
+    # MERGE-TCR-01: business AI workflow columns (F06/F09/F10) merged from the business branch.
+    "workflow", "business_participation_id", "source_snapshot",
 }
 
 

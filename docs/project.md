@@ -10,9 +10,19 @@ The proposed [shared UI capability Draft](../specs/shared/navigate-eventapp-work
 
 Accessibility and performance references for the Draft are [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [W3C navigation guidance](https://www.w3.org/WAI/tutorials/menus/structure/) and [web.dev Core Web Vitals](https://web.dev/articles/vitals). These references guide proposed, testable requirements; no conformance or measured performance is claimed.
 
+## Approved F06 implementation sequence (2026-10-21)
+
+Isaac authorised phase-by-phase implementation, actual independent agent/test gates, conversation/pipeline logs under logs/isaac and a local commit after each phase; no push, merge or deployment. Order: existing application/status checkpoint → manual tasks/budget → organiser booth/setup → business shared-job foundation → separate editable AI preparation drafts with explicitly confirmed selected append-only adoption. Existing human review gates stay pending rather than blocking approved downstream development.
+
+Approved manual caps are200 tasks/lines, quantity1–1,000,000 and unit price up to SGD1,000,000,000, with exact decimal-string aggregate minor-unit totals. Assigned organisers publish/change/clear accepted businesses' plain-text booth/setup details; no reservation/exclusivity/programme effect. Business AI reuses configured SoCLaaS for explicitly confirmed invented dev/test data only, excludes identity/contact/decisions, and stays disabled in production. Limits:10 jobs/owner/UTCday,1 active,30 dispatches/minute,60s provider,180s job and30-day terminal retention. Model estimates are not supplier quotations; adoption never silently replaces manual records. Capability specs own the detailed versioned interfaces and evidence.
+
 ## Approved Business request amendment (2026-10-21)
 
 Isaac approved access/shared UI r4, submit r4 and bounded decision r2 before edits. Businesses browse named open events and submit one frozen application as the participation request; organisers open/close applications and decide submitted requests without exchanging business IDs. Settings default closed; closure blocks new drafts/submission while preserving editable own drafts and reviewable submissions. Rejection reason is required (1-1000 trimmed characters), acceptance reason optional (maximum1000). Legacy grants remain history only. No automatic date cutoff, resubmission, reconsideration or booth/setup assignment is included. RD01-RD07 remain authoritative. See [current evidence](../workflow/agents/runs/2026-10-21-open-participation-requests.md); implementation and required human verification remain separately tracked.
+
+### F06 Phase 5 continuation (2026-10-22)
+
+Isaac requested completion of the in-progress approved AI preparation capability without subagents and with all files staged, no commit. This supersedes the earlier local-commit instruction for this session. Existing specification revision3 and reviewed preimplementation baseline77cbabb are reused. Actual SoCLaaS generation/edit/selected append/API restart is evidenced using invented records and process-local opt-in only; independent implementation review and human/browser/accessibility/deployment gates remain outstanding in the Phase5 run. No production AI enablement or supplier/order/payment scope is added.
 
 ## Accepted review decisions
 
@@ -210,3 +220,11 @@ FastAPI provides [OAuth2 scope integration](https://fastapi.tiangolo.com/advance
 | 2026-10-15 | Accepted RD01-RD07 and confirmed deadline; implementation remained deferred. |
 | 2026-10-17 | Consolidated stories/scopes into the canonical catalogue; adopted one phase-priority roadmap and task-based coordination; permitted concurrent same-room activities and clarified attendee warnings. |
 | 2026-10-19 | Recorded requesting teammate's shared-authentication plan and current backend foundation; replaced provider/multiple-role/temporary-expiry assumptions with the bounded one-role CLI/cookie contract; RD01–RD07 unchanged. |
+
+## 2026-10-22 Business refinement approval
+
+Isaac requested and approved canonical contract/test amendments for duplicate account feedback, realistic event display names, regional dates everywhere, own contact defaults, separate setup Save/Publish, compact full-width checklists, overall budget limits/optional breakdowns, context-preserving Back navigation, block context selections, scroll-preserving access revalidation and professional AI wording. He selected spending limit plus optional breakdowns and development real-data intent. No subagents, commits, merge, push or deployment authorized. Root verified worker import with Python3.12 from the backend project and a configured DATABASE_URL; F06-US04 generation does not depend on F09. Minimal real-data dev opt-in/allowlisting and unverified provider retention are explicit. Shared/story/architecture/testing docs are updated with the canonical existing specs, preserving RD01-RD07 and prior evidence.
+
+## Approved F09 Phase 2 scope (2026-10-22)
+
+Isaac selected Tavily broad discovery, Singapore/SGD estimates with unknown unsupported costs, creator-private participation research/shortlists,24-hour evidence staleness, immutable refresh snapshots and saved-until-deleted evidence. He explicitly approved compare-suppliers revision3/shared-job revision6 after independent acceptance design/review, and instructed this continuation to stop after Phase2. The scoped local implementation includes independent behaviour/security checks and a local phase commit; no push, merge, production enabling, supplier contact, cart, order or payment is authorized. Human review and session-summary verification remain separate gates.

@@ -1,8 +1,8 @@
 # Test Business applications locally
 
-F06-US01 covers open-event browsing and private draft/create/edit/review/submit. F04-US01 and the status/reason portion of F06-US02 add organiser approval/rejection and the business outcome. Booth/setup and AI remain separate. See [submit r4](../specs/applications/submit-business-applications.md), [decision r2](../specs/applications/decide-applications-and-show-outcomes.md) and [current implementation evidence](../workflow/agents/runs/2026-10-21-open-participation-requests.md). The approved slice is implemented and In review; the run records passing automated/browser evidence and pending human checks. Human/NVDA review is recorded separately.
+F06-US01 covers open-event browsing and private draft/create/edit/review/submit. F04-US01 and the status/reason portion of F06-US02 add organiser approval/rejection and the business outcome. For the subsequent booth/setup, manual preparation and AI-draft journey, follow [Business preparation testing](BusinessPreparationTesting.md). See [submit r4](../../specs/applications/submit-business-applications.md), [decision r2](../../specs/applications/decide-applications-and-show-outcomes.md) and [current implementation evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md). The approved slice is implemented and In review; the run records passing automated/browser evidence and pending human checks. Human/NVDA review is recorded separately.
 
-For all backend and frontend automated tests, use [Run all automated tests in Git Bash](DeveloperGuide.md#run-all-automated-tests-in-git-bash-windows). The website steps below cover manual testing.
+For all backend and frontend automated tests, use [Run all automated tests in Git Bash](../DeveloperGuide.md#run-all-automated-tests-in-git-bash-windows). The website steps below cover manual testing.
 
 ## Git Bash startup
 
@@ -40,7 +40,7 @@ ORG_USERNAME="manual-org-$(date +%s)"
 
 uv run python -m app.auth.bootstrap event \
   --id "$EVENT_ID" \
-  --title 'Manual Test Event' \
+  --title 'Singapore Community Festival 2027' \
   --timezone Asia/Singapore \
   --starts-at 2027-01-01T09:00:00+08:00 \
   --ends-at 2027-01-01T18:00:00+08:00
@@ -62,7 +62,7 @@ Enter an initial password at the hidden prompts and remember it for first sign-i
 Use synthetic accounts and contact data. Keep the Business and organiser sessions in separate browser profiles or normal/incognito windows, because accounts share a session cookie within one browser profile.
 
 1. Sign in as the organiser. On the initial password-change screen, try the initial password again: expect "The new password must be different from your current password." Try an incorrect current password with a different valid replacement: expect a specific current-password error without being signed out. Required fields, 8-128 character bounds and confirmation mismatch must explain how to correct them. Then use a valid different password.
-2. Open **Application Reviews**. The assigned-event selector must show **Manual Test Event** (or your event title), rather than a UUID alone. Applications start closed. Turn on **Accepting applications**, choose **Save application settings**, check the exact event/change, then **Confirm settings**. Cancelling this confirmation must send no change.
+2. Open **Application Reviews**. The assigned-event selector must show **Singapore Community Festival 2027** (or your event title), rather than a UUID alone. Applications start closed. Turn on **Accepting applications**, choose **Save application settings**, check the exact event/change, then **Confirm settings**. Cancelling this confirmation must send no change.
 3. In a separate Business session, register a synthetic Business account and open **Applications**. Select the named open event; no Business ID exchange or prior grant is needed. Complete participant type, description, requested space, contact name and contact email, then **Save draft**. Reload and verify the saved draft returns.
 4. Check the organiser submitted list: the private draft must be absent. Close applications, then return to the existing Business draft: it remains visible/editable, but submission is unavailable until reopening. A different business without an existing application must not discover this closed event.
 5. Reopen applications. Edit and save the draft. Choose **Review submission**, verify the exact saved content/revision and freeze warning, and cancel once. Open review again and **Submit application**. Expect read-only frozen content and pending organiser decision, with no edit/resubmit control.
@@ -91,3 +91,7 @@ Use separate private cookie sessions. Every mutation needs the exact trusted Ori
 - POST organiser detail `/decision` with `{"expectedRevision":SUBMITTED_RECORD_REVISION,"outcome":"rejected","reason":"Synthetic reason"}` or accepted with optional/null reason. Decision increments record revision, preserves frozen revision/time, and returns BusinessApplication v2. Rejection requires1-1000 trimmed characters; acceptance max1000. Once decided, repeated/competing calls return409 with only the authorised currentApplication. Use the submitted RECORD revision, not frozen content revision.
 
 Record denial/state-preservation checks: unauthenticated/wrong-role/unrelated/revoked actors; draft/wrong-event organiser access; missing/untrusted Origin; strict types/unknown fields; absent versus unlisted closed event create; settings/edit/decision conflicts; no-store on success/error. Verify other businesses cannot see contacts/reasons. Confirm no booth/publication/preparation side effects. Preserve fresh synthetic records across API/database restart; do not reseed to simulate persistence. Record actual observations and failures, not inferred passes.
+
+## 2026-10-22 application refinements
+
+Duplicate registration reports which normalized username/email/business-name field is already registered, without exposing another actor. New application contacts default to your signed-in owner's display name/email and remain editable; saved or typed contacts are not replaced. All displayed event dates use DD MMM YYYY HH:mm in the event region. The setup editor now separates Save setup (organiser-only draft) from Publish setup (explicitly shared); follow [Business preparation testing](BusinessPreparationTesting.md).

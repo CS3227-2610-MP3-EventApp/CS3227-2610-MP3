@@ -1,10 +1,11 @@
 # Navigate EventApp workspaces
 
+> Current revision 5: the **Approved current revision 5 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | navigate-eventapp-workspaces |
 | Covered stories | Cross-cutting presentation contract for all 31 [catalogue stories](../../docs/UserStoriesAndFeatures.md#story-to-spec-links); domain criteria remain in their linked specs |
-| Specification revision / status | 4 / In review |
+| Specification revision / status | 5 / In review |
 | Product roles / roadmap | Attendee, organiser and business participant; [shared UI foundation, order 1a](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | The Material UI prototype direction was approved by the requesting teammate on 2026-10-18. This is not full production visual sign-off. Isaac explicitly answered "Approve revision 3; Chrome + NVDA" on 2026-10-21 for UI-02-05 and their F06-US01 use. On2026-10-21 the user approved the r4 category/safe reason/next-action amendment; exact readiness/review metadata owned by orchestrator. Production visual sign-off and actual verification remain pending; see the [F06 completion run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md). |
 | Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
@@ -107,3 +108,11 @@ Approval metadata update, 2026-10-21: exact r3 approved for F06-US01 delivery. E
 ## Current revision-4 evidence
 
 Current evidence (2026-10-21): implementation fingerprint `a9b755d3120f94b9bf85278d7753eec7ff2fa9944ca9531ade46a5c5bc4508e6`, protected baseline `6a9f01c15796509ec11db968090139149c6688c6` (22 paths). Backend195 tests passed; frontend173 tests and production build passed, with an independent full173-test rerun. Both independent final reviews approved the same snapshot. Real Chrome/UI/API/PostgreSQL normal journeys, restarts, keyboard and targeted Unicode/input-recovery checks passed with revision attribution. See [the current run](../../workflow/agents/runs/2026-10-21-open-participation-requests.md) and [session summary](../../logs/isaac/2026-10-21-open-participation-requests.md). Human teammate/summary verification, Chrome+NVDA, actual400% browser zoom and comprehensive accessibility sign-off remain pending. This is In review, not Verified/Completed or deployed.
+
+## Approved current revision 5 amendment - 2026-10-22
+
+Isaac explicitly approved these amendments and the refinement acceptance plan on2026-10-22. This current amendment supersedes conflicting wording/criteria in the retained previous revision below; unchanged requirements remain authoritative. Historical approvals/evidence are not transferred to new behavior. New executable tests are written by root against the human-reviewed scenarios; independent executable-delta/implementation review remains pending. No subagents or commits.
+
+AC13: visible instants use DD MMM YYYY HH:mm (24-hour) in event IANA timezone, timezone labelled in context; non-event instants use labelled browser timezone. Calendar-only dates render DD MMM YYYY without UTC shift. Editable calendar controls retain ISO values/native format with accessible instructions; API/storage/time datetime attributes stay ISO. Applies to all application/outcome/programme/preparation/AI report views. AC14: focus/pageshow rechecks authority while preserving route/context/scroll and same-scope unsaved memory. Following submit-business-applications r5 (SILENT-TCR-01, merged 2026-10-23), window focus and non-restored page-show checks are silent: the page stays mounted and visible, so position and input are preserved without restoration. Navigation and bfcache-restored page-show checks still conceal private content; no heading focus/scroll-to-top on a same-route check. Access loss purges, late departed responses suppressed. AC15: professional normal product labels, realistic demo names and block checkbox rows; no invented-data pledge. Keep truthful availability/privacy/deployment status; do not claim unverified production readiness.
+
+Revision 5 /2026-10-22: user-approved Business refinements; test-first failures and implementation/results belong in [the refinement run](../../workflow/agents/runs/2026-10-22-business-refinements-test-plan.md). Human implementation/accessibility review remains pending.

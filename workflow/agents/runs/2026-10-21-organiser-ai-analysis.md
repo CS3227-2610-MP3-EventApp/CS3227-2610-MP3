@@ -37,7 +37,7 @@ User's temporary Luna/low `.codex/agents` changes remain local and excluded from
 - Independent behaviour and security reviewers reviewed staged application snapshot `caab311eea30d827167d56859c81d4af925ea95b`, following fixes from snapshot `84f76452bf77e090aa7574ac7c670e77c13a251e`. Both found no remaining blocking issue in their targeted final reviews. Fixes gate report reads on completed state, bound transient polling retries, pass remaining persisted deadlines to provider calls, and refresh dispatch timestamps after the advisory lock.
 - Independent test owner added five supplemental recovery/retention/atomicity scenarios. Behaviour reviewer approved their adequacy after strengthening expired-lease coverage to include a committed potentially billed dispatch and exactly one provider-attempt record; security reviewer also reviewed the scenarios. Freeze and final targeted command results are recorded below.
 - No key/model live probe, manual browser journey, actual process-restart survival, broad multi-process stress, deployed verification, privacy approval or exact-written-spec human signoff is claimed. Specifications remain Draft pending human review rather than falsely marked fully verified. Fake-provider tests do not prove live integration.
-- Setup and manual test flows: [AIAnalysisTesting](../../../docs/AIAnalysisTesting.md). Temporary `.codex/agents` Luna/low changes remain unstaged and excluded from baseline commits.
+- Setup and manual test flows: [AIAnalysisTesting](../../../docs/archive/AIAnalysisTesting.md). Temporary `.codex/agents` Luna/low changes remain unstaged and excluded from baseline commits.
 
 ## Final protected snapshot and checks
 

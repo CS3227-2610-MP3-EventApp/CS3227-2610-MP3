@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import cookie_auth, get_current_actor
 from app.auth.models import Business, BusinessMembership, PasswordCredential, User, utcnow
 from app.auth.problems import AuthProblem
-from app.auth.schemas import AttendeeRegistration, BusinessRegistration, CurrentActor, LoginRequest, PasswordChangeRequest, Problem
+from app.auth.schemas import AttendeeRegistration, BusinessRegistration, CurrentActor, LoginRequest, PasswordChangeRequest, Problem, ContactProfile
 from app.auth.service import COOKIE, actor, audit, audit_denial, authenticate, digest, fresh_session, hasher, presented_session, revoke_others, set_cookie, verify
 from app.database import get_db
 from app.settings import Settings
@@ -41,7 +41,11 @@ def register(body: AttendeeRegistration, request: Request, response: Response, d
         db.rollback()
         if getattr(exc.orig, "sqlstate", None) == "23505":
             audit_denial("registration")
-            raise AuthProblem("registration_conflict") from None
+            fields = []
+            if db.scalar(select(User.id).where(User.username == body.username)) is not None: fields.append("username")
+            if db.scalar(select(User.id).where(User.email == body.email)) is not None: fields.append("email")
+            if isinstance(body, BusinessRegistration) and db.scalar(select(Business.id).where(Business.normalized_name == body.businessName.casefold())) is not None: fields.append("businessName")
+            raise AuthProblem("registration_conflict", fields) from None
         raise
     set_cookie(response, token)
     return result
@@ -121,3 +125,11 @@ def change_password(body: PasswordChangeRequest, request: Request, response: Res
     db.commit()
     set_cookie(response, token, max_age=max(0, int((context.session.expires_at - now).total_seconds())))
     return result
+
+
+@router.get("/contact-profile", response_model=ContactProfile)
+def contact_profile(current: Annotated[CurrentActor, Depends(get_current_actor)], db: DB):
+    from app.auth.dependencies import completed
+    completed(current)
+    user = db.get(User, current.id)
+    return ContactProfile(displayName=user.display_name, email=user.email)
