@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-23 Isaac AI input limitation](isaac/2026-10-23-ai-input-limitation.md): user-guide warning about irrelevant LLM inputs and guardrail misses; human verification pending.
+
 - [2026-10-23 Isaac guides and testing archive](isaac/2026-10-23-guides-and-testing-archive.md): stage-guide relocation, connected three-role smoke walkthrough, historical screenshot provenance, cross-platform AI setup and implementation diagrams; human verification pending.
 
 - [2026-10-23 Isaac partial supplier research saving](isaac/2026-10-23-partial-research-save.md): save control beside available offers, partial-result guidance, focused test evidence and specification/documentation synchronization; human verification pending.

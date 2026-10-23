@@ -2,6 +2,10 @@
 
 Start with the [three-role smoke walkthrough](#three-role-smoke-walkthrough) for a demonstration, or use the feature reference below it. **Organizer** is labelled **Organiser** in EventApp's interface. Local setup and operator commands are in the [developer guide](DeveloperGuide.md#run-locally); earlier stage-specific testing guides are in the [archive](archive/README.md).
 
+## Known AI limitation
+
+Irrelevant or out-of-scope inputs to EventApp's LLM-assisted features may return unexpected, inaccurate or unrelated values. Guardrails may miss certain situations and do not guarantee that every response is relevant or correct. Keep requests focused on the feature's purpose, check generated results against the published programme or other source evidence, and review AI suggestions before saving, accepting or using them. If a result is unexpected, rephrase the request or use the manual workflow.
+
 ## Three-role smoke walkthrough
 
 This walkthrough connects Organizer, Business and Attendee actions in one example event. Allow about 45-60 minutes plus first-time installation. Each **Expect** statement is a check to perform, not a claim that this session executed it. AI wording and supplier results vary.
