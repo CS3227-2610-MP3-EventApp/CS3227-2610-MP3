@@ -1,0 +1,48 @@
+# Supplier research
+
+Phase 2 implements F09-US02 under [compare-suppliers](../../specs/business-preparation/compare-suppliers.md) and shared AI-task revision 6. Actual checks, review findings and remaining gates belong in the [run record](../../workflow/agents/runs/2026-10-22-f09-phase2.md).
+
+Apply backend migrations and start the API, frontend and existing AI worker (`uv run python -m app.ai.worker`). Open **Supplier research** in the Business workspace and select an owned participation. Application acceptance is not required. Comparisons, jobs and shortlist belong only to their creator, including within the same business.
+
+Configure `TAVILY_API_KEY`, `SOCLAAS_API_KEY` and `SOCLAAS_MODEL` in ignored `backend/.env`. Never put keys in a `VITE_` variable, source, screenshots or logs. Development needs the existing explicit AI opt-in/event allowlist and per-request sharing confirmation. Production calls remain disabled. Synthetic checks use separate invented records and process-local synthetic allowlisting.
+
+Read the disclosure, choose printing, snacks or freebies, and enter a brief, quantity, coarse Singapore delivery area and optional needed-by date. Do not enter contacts or a street address; free text is not automatically scrubbed. **Research suppliers** queues one Tavily Basic discovery request, independently retrieves up to three public pages within five total retrieval attempts, and uses SoCLaaS to extract evidence. Search snippets cannot ground an offer. Status checks run automatically while queued or in progress. **Refresh status** and **Cancel job** remain available; cancellation cannot undo a request already sent or its possible provider charge.
+
+Inspect field quotes, source host, retrieval time, listed currency/quantity basis, unknowns and qualifications. Prices and exact SGD item subtotals are estimates, not quotations. Shipping, tax and fees are excluded from subtotals. Unsupported currency precision or ambiguous product/price association remains unknown; no FX conversion occurs. Sources older than 24 hours are marked stale. A source link does not establish seller identity, safety, suitability, inventory or reliability.
+
+Select offers and choose **Save selected offers** beneath a comparison's offers or **Save shortlist** above the comparisons. Both buttons save all current selections for the participation. A **Partial research: some sources could not be used.** warning does not block selection or saving: surviving validated offers, including listing-only offers with unknown price or delivery, remain usable. Comparisons are saved automatically when research completes; the save buttons persist your shortlist selections. Saved revisions prevent lost updates; reload saved state to resolve a conflict. Refreshing research creates a new immutable comparison and preserves prior selections. Clear a comparison's selections and save before deleting it. Deletion requires confirmation; old jobs cannot resurrect deleted comparisons. Saved evidence and shortlist remain until deleted, while jobs expire after 30 days. Local deletion does not promise provider-side deletion. No supplier contact, email, cart, order, approval or payment occurs in Phase 2.
+
+Uncertain writes are reconciled with saved server state rather than automatically replayed. Existing evidence and manual preparation remain available after source/provider failures. Access loss clears private UI state. Use **Reload saved state** after uncertainty or a stale/deleted resource.
+
+## Manual partial-result save check
+
+1. Open a completed partial comparison with at least one available offer. Confirm the warning explains that available offers can still be selected and saved.
+2. Tick an offer and click **Save selected offers** directly beneath the offers. Expect **Private shortlist saved.** Reload and confirm the offer remains selected.
+3. Change the selection and use **Save shortlist** above the comparisons. Reload and confirm the same persistence behavior. Both controls save the full selection across comparisons, rather than only the comparison beside the button.
+4. Confirm missing prices/delivery remain unknown and source-failure warnings remain visible after saving. Clear selections and save before deleting a referenced comparison.
+
+These are manual verification instructions, not a claim that this session exercised a live partial result. A job with zero validated offers still fails without a new comparison; existing saved comparisons remain available.
+
+## Checks
+
+Use the isolated database environment in [DeveloperGuide](../DeveloperGuide.md); never run concurrent resetting suites against the same test database. From `backend/`, run `uv run pytest tests/test_supplier_research.py`, then `uv run pytest tests unit_tests developer_checks`. Set `PYTHONPATH` to the backend directory plus its virtual-environment site-packages where required on Windows.
+
+From `frontend/`, run `npm.cmd test -- tests/supplier-research.test.tsx src/supplierResearch`, `npm.cmd test`, and `npm.cmd run build`. Use `NODE_OPTIONS=--no-experimental-webstorage` for the documented Node compatibility case; other platforms use `npm`.
+
+The immutable baseline and protected paths are recorded in the run record. Synthetic acceptance tests do not establish real source/provider behaviour or deployed socket safety. Developer checks additionally exercise concrete numeric-peer/TLS and watchdog seams. `tools/supplier-http-smoke.py` checks actual providers, fresh synthetic HTTP records, migration preservation, restart persistence, CAS and deletion. `tools/supplier-browser-smoke.mjs` checks an isolated Chrome journey. These scripts make real bounded research/model calls with configured keys; run deliberately. Human review, accessibility assessment, provider retention and online production isolation remain separate gates.
+
+## SoCLaaS limits and observed failures
+
+The approved supplier workflow makes one SoCLaaS extraction call, with no model/tool loop. EventApp applies a shared 30-dispatches-per-minute gate, a 60-second provider timeout, a 40,000-codepoint outbound limit, a 4,000-token output limit, and a 40,000-character response-content limit. The shared AI-task contract allows one retry only after an explicit HTTP 502/503; `invalid_output` is not retried. The SoCLaaS API reference supplied during the Phase 2 review documents per-key rate/concurrency and budget limits, including HTTP 429 responses, but does not state numeric per-key thresholds. The configured model catalogue entry reports a 262,144-token context length and no separate `max_context_tokens` value; this is not evidence that a live request reached the context limit.
+
+Recent real research attempts reached extraction but failed strict evidence validation with `invalid_output`; no provider `429`, timeout or truncation was observed. The latest observed output did not support every claimed commercial field with acceptable source context. Keep the approved single-call behavior: do not split extraction into extra calls or retry invalid output unless the product contract is revised and approved. A failed extraction is not a successful research snapshot.
+
+A later diagnostic round found three distinct live failure causes: an over-long/empty `unknownFields[].reason`, names that were not literal substrings of their quotes, and every offer rejected by the strict price/delivery validators. Revision 4 (D06) saves identity-only listing offers. Revision 5 (D07) makes validation flexible: a defective offer (absent quote, unsupported identity, bad name) rejects only itself and is shown as a source failure with fixed wording, while valid sibling offers are saved. The whole extraction still fails for malformed output, a forged `sourceId`, or when no offer survives. Before rejecting, the server deterministically repairs whitespace-only quote differences and trailing corporate suffixes (Ltd, Limited, Pte, Inc, LLC, Co) on names; it never adds text. Rejection reason codes (no content) are logged to tune the prompt.
+
+Measured live HTTP smoke success: roughly 1 of 3 runs after r4, and 9 of 12 (75%) after r5 (5/6 before and 4/6 after the review hardening; same synthetic request, real Tavily/pages/SoCLaaS; small sample, model-dependent). The Chrome journey also passed. A failed run still leaves no snapshot. Deferred, not implemented: a bounded model re-ask with validation errors, server-side derivation of names/prices from model-selected spans, JSON-LD/schema.org pre-extraction, candidate page ranking, curated supplier lists, and a "no supported offers" UI state. These need contract or product approval.
+
+## Pinned model
+
+The configured text model is `qwen3.6:35b`, selected from the live SoCLaaS catalogue after a deliberate three-candidate synthetic extraction check under the existing timeout/output limits. It was the only tested candidate to return validated extraction within those limits. `qwen3.8:27b` timed out and `gemma4:26b` failed validation. This small task probe is not a universal quality benchmark. Keep the explicit identifier in `SOCLAAS_MODEL`; the adapter verifies availability and never silently switches to `default` or another model. Model selection does not relax schema, source, privacy or arithmetic checks. `tools/supplier-model-probe.py` deliberately makes real provider calls with fixed invented text.
+
+DB-dependent developer checks must run together with tests/test_supplier_research.py (or the full tests directory) so its protected conftest separation guard initializes before application imports. Do not run those DB-dependent files alone against the development configuration.

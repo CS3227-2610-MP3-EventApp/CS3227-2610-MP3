@@ -55,7 +55,7 @@ export function Login() {
       setActor(actor);
       setPassword("");
       navigate(actor.mustChangePassword ? "/change-password" : `/${actor.role}`);
-    } catch (failure) { if (alive.current) {setError(uncertain(failure) ? "Outcome not confirmed - the server result could not be confirmed." : failure instanceof ApiError ? failure.message : "The request could not be completed."); setAction(uncertain(failure) ? "Check session before trying again." : errorAction(failure)); setCategory(uncertain(failure) ? "" : errorCategory(failure)); setUnknown(uncertain(failure)); if (failure instanceof ApiError) setFieldErrors(Object.fromEntries(failure.fieldErrors.filter((field) => ["identifier","password"].includes(field.field)).map((field) => [field.field,fieldMessage(field.code)])));} }
+    } catch (failure) { if (alive.current) {setError(uncertain(failure) ? "Outcome not confirmed - the server result could not be confirmed." : failure instanceof ApiError ? failure.message : "The request could not be completed."); setAction(uncertain(failure) ? "Check session before trying again." : errorAction(failure)); setCategory(uncertain(failure) ? "" : errorCategory(failure)); setUnknown(uncertain(failure)); if (failure instanceof ApiError) setFieldErrors(Object.fromEntries(failure.fieldErrors.filter((field) => ["identifier","password"].includes(field.field)).map((field) => [field.field,fieldMessage(field.code, field.field)])));} }
     finally { if (alive.current) {lock.current = false; setPending(false); progress.finish("");} }
   }
 
@@ -140,7 +140,7 @@ export function Register({ role }: { role: "attendee" | "business" }) {
       if (!alive.current) return;
       setActor(actor);
       navigate(`/${actor.role}`);
-    } catch (failure) { if (alive.current) {setError(uncertain(failure) ? "Outcome not confirmed - the server result could not be confirmed." : failure instanceof ApiError ? failure.message : "The request could not be completed."); setAction(uncertain(failure) ? "Check session before trying again." : errorAction(failure)); setCategory(uncertain(failure) ? "" : errorCategory(failure)); setUnknown(uncertain(failure)); if (failure instanceof ApiError) setErrors(Object.fromEntries(failure.fieldErrors.filter((field) => fields.includes(field.field as Field)).map((field) => [field.field,fieldMessage(field.code)])));} }
+    } catch (failure) { if (alive.current) {setError(uncertain(failure) ? "Outcome not confirmed - the server result could not be confirmed." : failure instanceof ApiError ? failure.message : "The request could not be completed."); setAction(uncertain(failure) ? "Check session before trying again." : errorAction(failure)); setCategory(uncertain(failure) ? "" : errorCategory(failure)); setUnknown(uncertain(failure)); if (failure instanceof ApiError) setErrors(Object.fromEntries(failure.fieldErrors.filter((field) => fields.includes(field.field as Field)).map((field) => [field.field,fieldMessage(field.code, field.field)])));} }
     finally { if (alive.current) {lock.current = false; setPending(false); progress.finish("");} }
   }
 

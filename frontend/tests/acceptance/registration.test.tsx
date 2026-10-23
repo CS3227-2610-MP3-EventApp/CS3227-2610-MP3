@@ -157,11 +157,11 @@ describe("AC03-AC04 and AC07 registration", () => {
   });
 
   test("retains valid registration input and shows a server failure without opening a workspace", async () => {
-    auth.failure = { status: 409, detail: "Registration could not be completed." };
+    auth.failure = { status: 409, detail: "An account already exists with this username or email, or the business name is already registered." };
     await renderPrototype("/register/business");
     const user = await fillRegistration("business");
     await user.click(screen.getByRole("button", { name: /create account/i }));
-    expect(await screen.findByText("Registration could not be completed.")).toBeVisible();
+    expect(await screen.findByText("An account already exists with this username or email, or the business name is already registered.")).toBeVisible();
     expect(screen.getByLabelText(/^username$/i)).toHaveValue("tester");
     expect(screen.getByLabelText(/business name/i)).toHaveValue("Synthetic Studio");
     expect(window.location.pathname).toBe("/register/business");

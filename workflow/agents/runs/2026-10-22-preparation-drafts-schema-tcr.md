@@ -1,0 +1,7 @@
+# DRAFTS-TCR-01 additive schema compatibility
+
+- Designer/owner `/root/preparation_scenarios`,2026-10-22. Phase4 source31b9fddd5e4fcc48f91c112190ef9147abd97b59; immutable preceding baseline in phase run.
+- Prospective exact HEAD schema expectation lacks approved new preparation_drafts table from migration0010. No actual failing schema run claimed.
+- Proposed owner correction only after independent approval: add literal preparation_drafts to nonhistorical expected table set in backend/tests/test_business_applications.py; retain exact equality, historical branch, constraints and discovery. No new product expectation; separate editable draft persistence already approved r3.
+- Independent assessment: actual behaviour reviewer prospectively approved literal-only correction, relayed by orchestrator. Automatic approval review initially rejected protected change for missing exact user authorization; no workaround attempted. User subsequently explicitly replied “Approve the table-name-only addition” on2026-10-22. After new authority owner added only preparation_drafts to nonhistorical expected set; equality/history/constraints/discovery unchanged. No production edits. Replacement baseline/affected check evidence belongs in run after final delta review.
+- Final status: Reviewed; actual `/root/phase2_final_behaviour` and `/root/phase2_final_security` approved exact applied literal and backend adequacy through read-only assessment, without execution. Metadata frozen; root records combined immutable baseline after UI review. No new passing runtime claim.

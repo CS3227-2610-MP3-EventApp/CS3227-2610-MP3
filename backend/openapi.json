@@ -166,6 +166,75 @@
         "title": "AcceptedSummary",
         "type": "object"
       },
+      "AdoptPreparationDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedDraftRevision": {
+            "minimum": 1.0,
+            "title": "Expecteddraftrevision",
+            "type": "integer"
+          },
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedPreparationRevision": {
+            "minimum": 1.0,
+            "title": "Expectedpreparationrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "minimum": 1.0,
+            "title": "Expectedsetuprevision",
+            "type": "integer"
+          },
+          "lineIndexes": {
+            "items": {
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Lineindexes",
+            "type": "array"
+          },
+          "taskIndexes": {
+            "items": {
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Taskindexes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedDraftRevision",
+          "expectedPreparationRevision",
+          "expectedSetupRevision",
+          "expectedEventRevision",
+          "taskIndexes",
+          "lineIndexes"
+        ],
+        "title": "AdoptPreparationDraft",
+        "type": "object"
+      },
+      "AdoptionResult": {
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/PreparationDraftView"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/PreparationView"
+          }
+        },
+        "required": [
+          "draft",
+          "preparation"
+        ],
+        "title": "AdoptionResult",
+        "type": "object"
+      },
       "AnalysisComparison": {
         "additionalProperties": false,
         "properties": {
@@ -989,6 +1058,72 @@
         "title": "ApplicationSettings",
         "type": "object"
       },
+      "ApprovalInput": {
+        "additionalProperties": false,
+        "properties": {
+          "proposalRevision": {
+            "minimum": 1.0,
+            "title": "Proposalrevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "proposalRevision"
+        ],
+        "title": "ApprovalInput",
+        "type": "object"
+      },
+      "ApprovalView": {
+        "properties": {
+          "approvalId": {
+            "format": "uuid",
+            "title": "Approvalid",
+            "type": "string"
+          },
+          "approvedAt": {
+            "title": "Approvedat",
+            "type": "string"
+          },
+          "approvedBy": {
+            "format": "uuid",
+            "title": "Approvedby",
+            "type": "string"
+          },
+          "expiresAt": {
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "payloadDigest": {
+            "title": "Payloaddigest",
+            "type": "string"
+          },
+          "proposalRevision": {
+            "title": "Proposalrevision",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "valid",
+              "expired",
+              "cancelled",
+              "consumed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approvalId",
+          "proposalRevision",
+          "approvedBy",
+          "approvedAt",
+          "expiresAt",
+          "payloadDigest",
+          "state"
+        ],
+        "title": "ApprovalView",
+        "type": "object"
+      },
       "AskQuestion": {
         "additionalProperties": false,
         "properties": {
@@ -1051,7 +1186,8 @@
             "enum": [
               "required",
               "password_length",
-              "invalid"
+              "invalid",
+              "already_exists"
             ],
             "title": "Code",
             "type": "string"
@@ -1078,6 +1214,261 @@
           "code"
         ],
         "title": "AuthFieldError",
+        "type": "object"
+      },
+      "BudgetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetLineInput"
+            },
+            "maxItems": 200,
+            "title": "Lines",
+            "type": "array"
+          },
+          "overallLimitMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 100000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overalllimitminorunits"
+          }
+        },
+        "required": [
+          "currency",
+          "lines"
+        ],
+        "title": "BudgetInput",
+        "type": "object"
+      },
+      "BudgetLineInput": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "priceBasis": {
+            "enum": [
+              "unknown",
+              "estimate",
+              "quotation"
+            ],
+            "title": "Pricebasis",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "quotationBasis": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotationbasis"
+          },
+          "unitPriceMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 100000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitpriceminorunits"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unitPriceMinorUnits",
+          "priceBasis"
+        ],
+        "title": "BudgetLineInput",
+        "type": "object"
+      },
+      "BudgetLineView": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "priceBasis": {
+            "enum": [
+              "unknown",
+              "estimate",
+              "quotation"
+            ],
+            "title": "Pricebasis",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "quotationBasis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotationbasis"
+          },
+          "unitPriceMinorUnits": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitpriceminorunits"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "quantity",
+          "unitPriceMinorUnits",
+          "priceBasis",
+          "quotationBasis"
+        ],
+        "title": "BudgetLineView",
+        "type": "object"
+      },
+      "BudgetView": {
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "isComplete": {
+            "title": "Iscomplete",
+            "type": "boolean"
+          },
+          "knownSubtotalMinorUnits": {
+            "title": "Knownsubtotalminorunits",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetLineView"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "overallLimitMinorUnits": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overalllimitminorunits"
+          },
+          "remainingMinorUnits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remainingminorunits"
+          },
+          "totalMinorUnits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totalminorunits"
+          }
+        },
+        "required": [
+          "currency",
+          "lines",
+          "totalMinorUnits",
+          "knownSubtotalMinorUnits",
+          "isComplete"
+        ],
+        "title": "BudgetView",
         "type": "object"
       },
       "BusinessApplication": {
@@ -1209,6 +1600,188 @@
         "title": "BusinessMembershipActor",
         "type": "object"
       },
+      "BusinessPreparationJob": {
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreparationDraftView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "participationId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun",
+          "draft"
+        ],
+        "title": "BusinessPreparationJob",
+        "type": "object"
+      },
+      "BusinessPromotionalConceptJob": {
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "concept": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PromotionalConceptView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "participationId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun",
+          "concept"
+        ],
+        "title": "BusinessPromotionalConceptJob",
+        "type": "object"
+      },
       "BusinessRegistration": {
         "additionalProperties": false,
         "properties": {
@@ -1249,6 +1822,113 @@
           "businessName"
         ],
         "title": "BusinessRegistration",
+        "type": "object"
+      },
+      "BusinessSupplierResearchJob": {
+        "additionalProperties": false,
+        "properties": {
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurecode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "providerMayHaveRun": {
+            "title": "Providermayhaverun",
+            "type": "boolean"
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplierResearchSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "participationId",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "completedAt",
+          "failureCode",
+          "providerMayHaveRun",
+          "snapshot"
+        ],
+        "title": "BusinessSupplierResearchJob",
+        "type": "object"
+      },
+      "CancelInput": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedProposalRevision": {
+            "minimum": 1.0,
+            "title": "Expectedproposalrevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedProposalRevision"
+        ],
+        "title": "CancelInput",
         "type": "object"
       },
       "CancelRequest": {
@@ -1468,9 +2148,38 @@
         "title": "ChangeRequest",
         "type": "object"
       },
+      "ContactProfile": {
+        "properties": {
+          "displayName": {
+            "title": "Displayname",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "displayName",
+          "email"
+        ],
+        "title": "ContactProfile",
+        "type": "object"
+      },
       "CreateAnalysis": {
         "additionalProperties": false,
         "properties": {
+          "dataSharingConfirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Datasharingconfirmed"
+          },
           "expectedRubricRevision": {
             "minimum": 1.0,
             "title": "Expectedrubricrevision",
@@ -1487,16 +2196,22 @@
             "type": "string"
           },
           "syntheticDataConfirmed": {
-            "const": true,
-            "title": "Syntheticdataconfirmed",
-            "type": "boolean"
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Syntheticdataconfirmed"
           }
         },
         "required": [
           "requestId",
           "expectedRubricRevision",
-          "expectedSubmittedRevision",
-          "syntheticDataConfirmed"
+          "expectedSubmittedRevision"
         ],
         "title": "CreateAnalysis",
         "type": "object"
@@ -1577,6 +2292,217 @@
           "body"
         ],
         "title": "CreateDraft",
+        "type": "object"
+      },
+      "CreatePreparationDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "dataSharingConfirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Datasharingconfirmed"
+          },
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedPreparationRevision": {
+            "minimum": 1.0,
+            "title": "Expectedpreparationrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "minimum": 1.0,
+            "title": "Expectedsetuprevision",
+            "type": "integer"
+          },
+          "needs": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Needs",
+            "type": "string"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          },
+          "selectedLineIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Selectedlineids",
+            "type": "array"
+          },
+          "selectedTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Selectedtaskids",
+            "type": "array"
+          },
+          "syntheticDataConfirmed": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Syntheticdataconfirmed"
+          }
+        },
+        "required": [
+          "requestId",
+          "expectedPreparationRevision",
+          "expectedSetupRevision",
+          "expectedEventRevision",
+          "needs",
+          "selectedTaskIds",
+          "selectedLineIds"
+        ],
+        "title": "CreatePreparationDraft",
+        "type": "object"
+      },
+      "CreatePromotionalConcept": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Brief",
+            "type": "string"
+          },
+          "dataSharingConfirmed": {
+            "const": true,
+            "title": "Datasharingconfirmed",
+            "type": "boolean"
+          },
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expectedsetuprevision"
+          },
+          "factFields": {
+            "items": {
+              "enum": [
+                "event.title",
+                "event.startsAt",
+                "event.endsAt",
+                "event.timezone",
+                "setup.boothLabel",
+                "setup.setupInstructions"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Factfields",
+            "type": "array"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requestId",
+          "expectedEventRevision",
+          "expectedSetupRevision",
+          "brief",
+          "factFields",
+          "dataSharingConfirmed"
+        ],
+        "title": "CreatePromotionalConcept",
+        "type": "object"
+      },
+      "CreateSupplierResearch": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Brief",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "printing",
+              "snacks",
+              "freebies"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "dataSharingConfirmed": {
+            "const": true,
+            "title": "Datasharingconfirmed",
+            "type": "boolean"
+          },
+          "deliveryArea": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Deliveryarea",
+            "type": "string"
+          },
+          "neededBy": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Neededby"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requestId",
+          "category",
+          "brief",
+          "quantity",
+          "deliveryArea",
+          "dataSharingConfirmed"
+        ],
+        "title": "CreateSupplierResearch",
         "type": "object"
       },
       "CurrentActor": {
@@ -1736,6 +2662,30 @@
         "title": "Draft",
         "type": "object"
       },
+      "DraftBudgetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "const": "SGD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/DraftLineInput"
+            },
+            "maxItems": 200,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currency",
+          "lines"
+        ],
+        "title": "DraftBudgetInput",
+        "type": "object"
+      },
       "DraftCommand": {
         "additionalProperties": false,
         "properties": {
@@ -1830,6 +2780,117 @@
         "title": "DraftItem",
         "type": "object"
       },
+      "DraftLineInput": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "priceBasis": {
+            "enum": [
+              "unknown",
+              "estimate",
+              "quotation"
+            ],
+            "title": "Pricebasis",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "quotationBasis": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotationbasis"
+          },
+          "unitPriceMinorUnits": {
+            "anyOf": [
+              {
+                "maximum": 100000000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitpriceminorunits"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unitPriceMinorUnits",
+          "priceBasis",
+          "quotationBasis"
+        ],
+        "title": "DraftLineInput",
+        "type": "object"
+      },
+      "DraftTaskInput": {
+        "additionalProperties": false,
+        "properties": {
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "dueDate"
+        ],
+        "title": "DraftTaskInput",
+        "type": "object"
+      },
       "EditDraft": {
         "additionalProperties": false,
         "properties": {
@@ -1914,6 +2975,35 @@
         "title": "EventMembershipActor",
         "type": "object"
       },
+      "EventSourceFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "endsAt": {
+            "title": "Endsat",
+            "type": "string"
+          },
+          "startsAt": {
+            "title": "Startsat",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "startsAt",
+          "endsAt",
+          "timezone"
+        ],
+        "title": "EventSourceFacts",
+        "type": "object"
+      },
       "EventSummary": {
         "properties": {
           "endsAt": {
@@ -1955,6 +3045,21 @@
         "title": "EventSummary",
         "type": "object"
       },
+      "ExecuteInput": {
+        "additionalProperties": false,
+        "properties": {
+          "idempotencyKey": {
+            "format": "uuid",
+            "title": "Idempotencykey",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotencyKey"
+        ],
+        "title": "ExecuteInput",
+        "type": "object"
+      },
       "FieldError": {
         "properties": {
           "code": {
@@ -1972,6 +3077,29 @@
           "field"
         ],
         "title": "FieldError",
+        "type": "object"
+      },
+      "Freebie": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "title": "Freebie",
         "type": "object"
       },
       "GenerateAnnouncement": {
@@ -2143,6 +3271,34 @@
           "currency"
         ],
         "title": "ItemFields",
+        "type": "object"
+      },
+      "ItemInput": {
+        "additionalProperties": false,
+        "properties": {
+          "offerId": {
+            "format": "uuid",
+            "title": "Offerid",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "snapshotId": {
+            "format": "uuid",
+            "title": "Snapshotid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshotId",
+          "offerId",
+          "quantity"
+        ],
+        "title": "ItemInput",
         "type": "object"
       },
       "ItemReplacement": {
@@ -2451,6 +3607,82 @@
           "settingsRevision"
         ],
         "title": "OrganiserEventSummary",
+        "type": "object"
+      },
+      "OrganiserSetupDetails": {
+        "properties": {
+          "boothLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boothlabel"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "hasUnpublishedChanges": {
+            "title": "Hasunpublishedchanges",
+            "type": "boolean"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "published": {
+            "$ref": "#/components/schemas/SetupDetails"
+          },
+          "publishedRevision": {
+            "title": "Publishedrevision",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "setupInstructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setupinstructions"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "required": [
+          "participationId",
+          "eventId",
+          "revision",
+          "boothLabel",
+          "setupInstructions",
+          "updatedAt",
+          "publishedRevision",
+          "published",
+          "hasUnpublishedChanges"
+        ],
+        "title": "OrganiserSetupDetails",
         "type": "object"
       },
       "Page_Announcement_": {
@@ -3019,6 +4251,235 @@
         "title": "Preferences",
         "type": "object"
       },
+      "PreparationDraftHistory": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PreparationDraftView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "latestJob": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessPreparationJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "latestJob"
+        ],
+        "title": "PreparationDraftHistory",
+        "type": "object"
+      },
+      "PreparationDraftView": {
+        "properties": {
+          "adoptedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adoptedat"
+          },
+          "adoptedPreparationRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adoptedpreparationrevision"
+          },
+          "budget": {
+            "additionalProperties": true,
+            "title": "Budget",
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "jobId": {
+            "format": "uuid",
+            "title": "Jobid",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "sourceFacts": {
+            "$ref": "#/components/schemas/SourceFacts"
+          },
+          "sourceRevisions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Sourcerevisions",
+            "type": "object"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DraftTaskInput"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "jobId",
+          "participationId",
+          "revision",
+          "sourceRevisions",
+          "sourceFacts",
+          "tasks",
+          "budget",
+          "createdAt",
+          "adoptedAt",
+          "adoptedPreparationRevision"
+        ],
+        "title": "PreparationDraftView",
+        "type": "object"
+      },
+      "PreparationProblem": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "currentRevision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentrevision"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "PreparationProblem",
+        "type": "object"
+      },
+      "PreparationView": {
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/BudgetView"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskView"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "participationId",
+          "revision",
+          "tasks",
+          "budget"
+        ],
+        "title": "PreparationView",
+        "type": "object"
+      },
       "Preview": {
         "additionalProperties": false,
         "properties": {
@@ -3353,6 +4814,415 @@
         "title": "ProgrammeProblem",
         "type": "object"
       },
+      "PromotionalConceptHistory": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PromotionalConceptView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "latestJob": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "latestJob"
+        ],
+        "title": "PromotionalConceptHistory",
+        "type": "object"
+      },
+      "PromotionalConceptView": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "factFields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Factfields",
+            "type": "array"
+          },
+          "freebieConcepts": {
+            "items": {
+              "$ref": "#/components/schemas/Freebie"
+            },
+            "title": "Freebieconcepts",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "layoutBrief": {
+            "title": "Layoutbrief",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "posterCopySuggestions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Postercopysuggestions",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "sourceFacts": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFact"
+            },
+            "title": "Sourcefacts",
+            "type": "array"
+          },
+          "sourceRevisions": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Sourcerevisions",
+            "type": "object"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participationId",
+          "revision",
+          "sourceRevisions",
+          "factFields",
+          "sourceFacts",
+          "posterCopySuggestions",
+          "freebieConcepts",
+          "layoutBrief",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "PromotionalConceptView",
+        "type": "object"
+      },
+      "PromotionalProblem": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "PromotionalProblem",
+        "type": "object"
+      },
+      "ProposalInput": {
+        "additionalProperties": false,
+        "properties": {
+          "actionType": {
+            "enum": [
+              "quotation_request",
+              "purchase_cart"
+            ],
+            "title": "Actiontype",
+            "type": "string"
+          },
+          "expectedShortlistRevision": {
+            "minimum": 1.0,
+            "title": "Expectedshortlistrevision",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemInput"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "recipientEmail": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipientemail"
+          },
+          "requestText": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requesttext"
+          },
+          "shortlistId": {
+            "format": "uuid",
+            "title": "Shortlistid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participationId",
+          "actionType",
+          "shortlistId",
+          "expectedShortlistRevision",
+          "items"
+        ],
+        "title": "ProposalInput",
+        "type": "object"
+      },
+      "ProposalList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "ProposalList",
+        "type": "object"
+      },
+      "ProposalView": {
+        "properties": {
+          "actionType": {
+            "enum": [
+              "quotation_request",
+              "purchase_cart"
+            ],
+            "title": "Actiontype",
+            "type": "string"
+          },
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovalView"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "businessId": {
+            "format": "uuid",
+            "title": "Businessid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "creatorId": {
+            "format": "uuid",
+            "title": "Creatorid",
+            "type": "string"
+          },
+          "executionReceipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReceiptView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "const": "simulation",
+            "title": "Mode",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "payloadDigest": {
+            "title": "Payloaddigest",
+            "type": "string"
+          },
+          "proposalId": {
+            "format": "uuid",
+            "title": "Proposalid",
+            "type": "string"
+          },
+          "proposalRevision": {
+            "title": "Proposalrevision",
+            "type": "integer"
+          },
+          "recipientVerification": {
+            "anyOf": [
+              {
+                "const": "unverified",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipientverification"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/RevisionView"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "shortlistId": {
+            "format": "uuid",
+            "title": "Shortlistid",
+            "type": "string"
+          },
+          "shortlistRevision": {
+            "title": "Shortlistrevision",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "open",
+              "cancelled",
+              "simulated",
+              "failed",
+              "uncertain"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposalId",
+          "proposalRevision",
+          "creatorId",
+          "businessId",
+          "participationId",
+          "actionType",
+          "mode",
+          "recipientVerification",
+          "payload",
+          "shortlistId",
+          "shortlistRevision",
+          "payloadDigest",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "approvals",
+          "executionReceipt",
+          "revisions"
+        ],
+        "title": "ProposalView",
+        "type": "object"
+      },
       "PublicationAudit": {
         "properties": {
           "action": {
@@ -3409,6 +5279,21 @@
           "previewId"
         ],
         "title": "PublishRequest",
+        "type": "object"
+      },
+      "PublishSetup": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expectedRevision"
+        ],
+        "title": "PublishSetup",
         "type": "object"
       },
       "PublishedProgramme": {
@@ -3653,6 +5538,191 @@
         "title": "QuestionJobView",
         "type": "object"
       },
+      "RawListedPrice": {
+        "additionalProperties": false,
+        "properties": {
+          "amountMinorUnits": {
+            "anyOf": [
+              {
+                "pattern": "^(0|[1-9][0-9]{0,17})$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Integer minor currency units (for example, SGD 2.80 is 280); fractional minor units, ambiguous ranges, and unconfirmed price tiers are unknown.",
+            "title": "Amountminorunits"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "minLength": 3,
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "quantityBasis": {
+            "anyOf": [
+              {
+                "pattern": "^[1-9][0-9]{0,6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantitybasis"
+          },
+          "unitLabel": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitlabel"
+          }
+        },
+        "required": [
+          "amountMinorUnits",
+          "currency",
+          "unitLabel",
+          "quantityBasis"
+        ],
+        "title": "RawListedPrice",
+        "type": "object"
+      },
+      "ReceiptView": {
+        "properties": {
+          "actorId": {
+            "format": "uuid",
+            "title": "Actorid",
+            "type": "string"
+          },
+          "approvalId": {
+            "format": "uuid",
+            "title": "Approvalid",
+            "type": "string"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "title": "Completedat",
+            "type": "string"
+          },
+          "executionId": {
+            "format": "uuid",
+            "title": "Executionid",
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "format": "uuid",
+            "title": "Idempotencykey",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "simulated",
+              "failed",
+              "uncertain"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "proposalRevision": {
+            "title": "Proposalrevision",
+            "type": "integer"
+          },
+          "reasonCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasoncode"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "title": "Startedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "executionId",
+          "proposalRevision",
+          "approvalId",
+          "actorId",
+          "idempotencyKey",
+          "startedAt",
+          "completedAt",
+          "outcome"
+        ],
+        "title": "ReceiptView",
+        "type": "object"
+      },
+      "RefreshPromotionalFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedEventRevision": {
+            "minimum": 1.0,
+            "title": "Expectedeventrevision",
+            "type": "integer"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "expectedSetupRevision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expectedsetuprevision"
+          },
+          "factFields": {
+            "items": {
+              "enum": [
+                "event.title",
+                "event.startsAt",
+                "event.endsAt",
+                "event.timezone",
+                "setup.boothLabel",
+                "setup.setupInstructions"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Factfields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "expectedEventRevision",
+          "expectedSetupRevision",
+          "factFields"
+        ],
+        "title": "RefreshPromotionalFacts",
+        "type": "object"
+      },
       "ReplaceAnalysisRubric": {
         "additionalProperties": false,
         "properties": {
@@ -3728,6 +5798,255 @@
         "title": "ReplaceApplication",
         "type": "object"
       },
+      "ReplacePreparation": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/BudgetInput"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskInput"
+            },
+            "maxItems": 200,
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "tasks",
+          "budget"
+        ],
+        "title": "ReplacePreparation",
+        "type": "object"
+      },
+      "ReplacePreparationDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/DraftBudgetInput"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DraftTaskInput"
+            },
+            "maxItems": 200,
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "tasks",
+          "budget"
+        ],
+        "title": "ReplacePreparationDraft",
+        "type": "object"
+      },
+      "ReplacePromotionalConcept": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "freebieConcepts": {
+            "items": {
+              "$ref": "#/components/schemas/Freebie"
+            },
+            "maxItems": 10,
+            "title": "Freebieconcepts",
+            "type": "array"
+          },
+          "layoutBrief": {
+            "maxLength": 4000,
+            "title": "Layoutbrief",
+            "type": "string"
+          },
+          "posterCopySuggestions": {
+            "items": {
+              "maxLength": 4000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Postercopysuggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "posterCopySuggestions",
+          "freebieConcepts",
+          "layoutBrief"
+        ],
+        "title": "ReplacePromotionalConcept",
+        "type": "object"
+      },
+      "ReplaceShortlist": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "selectedOffers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierSelection"
+            },
+            "maxItems": 100,
+            "title": "Selectedoffers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "selectedOffers"
+        ],
+        "title": "ReplaceShortlist",
+        "type": "object"
+      },
+      "ResearchSource": {
+        "additionalProperties": false,
+        "properties": {
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "finalUrl": {
+            "title": "Finalurl",
+            "type": "string"
+          },
+          "isStale": {
+            "title": "Isstale",
+            "type": "boolean"
+          },
+          "provider": {
+            "const": "tavily_page_fetch",
+            "default": "tavily_page_fetch",
+            "title": "Provider",
+            "type": "string"
+          },
+          "requestedUrl": {
+            "title": "Requestedurl",
+            "type": "string"
+          },
+          "retrievedAt": {
+            "format": "date-time",
+            "title": "Retrievedat",
+            "type": "string"
+          },
+          "searchResultUrl": {
+            "title": "Searchresulturl",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "title": "Sourceid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "searchResultUrl",
+          "requestedUrl",
+          "finalUrl",
+          "retrievedAt",
+          "isStale",
+          "excerpt"
+        ],
+        "title": "ResearchSource",
+        "type": "object"
+      },
+      "RevisionInput": {
+        "additionalProperties": false,
+        "properties": {
+          "actionType": {
+            "enum": [
+              "quotation_request",
+              "purchase_cart"
+            ],
+            "title": "Actiontype",
+            "type": "string"
+          },
+          "expectedProposalRevision": {
+            "minimum": 1.0,
+            "title": "Expectedproposalrevision",
+            "type": "integer"
+          },
+          "expectedShortlistRevision": {
+            "minimum": 1.0,
+            "title": "Expectedshortlistrevision",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemInput"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "recipientEmail": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipientemail"
+          },
+          "requestText": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requesttext"
+          },
+          "shortlistId": {
+            "format": "uuid",
+            "title": "Shortlistid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participationId",
+          "actionType",
+          "shortlistId",
+          "expectedShortlistRevision",
+          "items",
+          "expectedProposalRevision"
+        ],
+        "title": "RevisionInput",
+        "type": "object"
+      },
       "RevisionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3741,6 +6060,93 @@
           "expectedRevision"
         ],
         "title": "RevisionRequest",
+        "type": "object"
+      },
+      "RevisionView": {
+        "properties": {
+          "actionType": {
+            "enum": [
+              "quotation_request",
+              "purchase_cart"
+            ],
+            "title": "Actiontype",
+            "type": "string"
+          },
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovalView"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "executionReceipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReceiptView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "payloadDigest": {
+            "title": "Payloaddigest",
+            "type": "string"
+          },
+          "proposalRevision": {
+            "title": "Proposalrevision",
+            "type": "integer"
+          },
+          "shortlistId": {
+            "format": "uuid",
+            "title": "Shortlistid",
+            "type": "string"
+          },
+          "shortlistRevision": {
+            "title": "Shortlistrevision",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "open",
+              "cancelled",
+              "simulated",
+              "failed",
+              "uncertain"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposalRevision",
+          "actionType",
+          "payload",
+          "shortlistId",
+          "shortlistRevision",
+          "payloadDigest",
+          "state",
+          "createdAt",
+          "updatedAt",
+          "approvals",
+          "executionReceipt"
+        ],
+        "title": "RevisionView",
         "type": "object"
       },
       "Room": {
@@ -3920,6 +6326,374 @@
         "title": "RoomReplacement",
         "type": "object"
       },
+      "SaveSetup": {
+        "additionalProperties": false,
+        "properties": {
+          "boothLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boothlabel"
+          },
+          "expectedRevision": {
+            "minimum": 1.0,
+            "title": "Expectedrevision",
+            "type": "integer"
+          },
+          "setupInstructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setupinstructions"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "boothLabel",
+          "setupInstructions"
+        ],
+        "title": "SaveSetup",
+        "type": "object"
+      },
+      "SetupDetails": {
+        "properties": {
+          "boothLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boothlabel"
+          },
+          "eventId": {
+            "format": "uuid",
+            "title": "Eventid",
+            "type": "string"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "setupInstructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setupinstructions"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "required": [
+          "participationId",
+          "eventId",
+          "revision",
+          "boothLabel",
+          "setupInstructions",
+          "updatedAt"
+        ],
+        "title": "SetupDetails",
+        "type": "object"
+      },
+      "SetupProblem": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "currentRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentrevision"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "fieldErrors": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fielderrors"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "const": "about:blank",
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "code"
+        ],
+        "title": "SetupProblem",
+        "type": "object"
+      },
+      "SetupSourceFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "boothLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boothlabel"
+          },
+          "setupInstructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setupinstructions"
+          }
+        },
+        "required": [
+          "boothLabel",
+          "setupInstructions"
+        ],
+        "title": "SetupSourceFacts",
+        "type": "object"
+      },
+      "ShortlistView": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Createdat"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "selectedOffers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierSelection"
+            },
+            "title": "Selectedoffers",
+            "type": "array"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "required": [
+          "id",
+          "participationId",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "selectedOffers"
+        ],
+        "title": "ShortlistView",
+        "type": "object"
+      },
+      "SourceFact": {
+        "properties": {
+          "currentRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentrevision"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "observedRevision": {
+            "title": "Observedrevision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "observedRevision",
+          "currentRevision",
+          "status"
+        ],
+        "title": "SourceFact",
+        "type": "object"
+      },
+      "SourceFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/EventSourceFacts"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/SetupSourceFacts"
+          }
+        },
+        "required": [
+          "event",
+          "setup"
+        ],
+        "title": "SourceFacts",
+        "type": "object"
+      },
+      "SourceFailure": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "unsafe_destination",
+              "fetch_failed",
+              "unsupported_content",
+              "too_large"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "displayMessage": {
+            "title": "Displaymessage",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "title": "Sourceid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "code",
+          "displayMessage"
+        ],
+        "title": "SourceFailure",
+        "type": "object"
+      },
       "StateCommand": {
         "additionalProperties": false,
         "properties": {
@@ -3948,6 +6722,468 @@
           "expectedRevision"
         ],
         "title": "SubmitApplication",
+        "type": "object"
+      },
+      "SupplierEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "evidenceQuote": {
+            "title": "Evidencequote",
+            "type": "string"
+          },
+          "field": {
+            "enum": [
+              "supplierName",
+              "productDescription",
+              "listedPrice.amountMinorUnits",
+              "listedPrice.currency",
+              "listedPrice.unitLabel",
+              "listedPrice.quantityBasis",
+              "deliveryEstimate",
+              "minimumOrderQuantity",
+              "availability",
+              "qualifications"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "title": "Sourceid",
+            "type": "string"
+          },
+          "sourceLocator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourcelocator"
+          }
+        },
+        "required": [
+          "field",
+          "sourceId",
+          "evidenceQuote",
+          "sourceLocator"
+        ],
+        "title": "SupplierEvidence",
+        "type": "object"
+      },
+      "SupplierOffer": {
+        "additionalProperties": false,
+        "properties": {
+          "availability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability"
+          },
+          "deliveryEstimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliveryestimate"
+          },
+          "estimatedCurrency": {
+            "anyOf": [
+              {
+                "const": "SGD",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimatedcurrency"
+          },
+          "estimatedItemSubtotalMinorUnits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimateditemsubtotalminorunits"
+          },
+          "evidenceByField": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierEvidence"
+            },
+            "title": "Evidencebyfield",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "listedPrice": {
+            "$ref": "#/components/schemas/RawListedPrice"
+          },
+          "minimumOrderQuantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimumorderquantity"
+          },
+          "productDescription": {
+            "title": "Productdescription",
+            "type": "string"
+          },
+          "qualifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Qualifications",
+            "type": "array"
+          },
+          "supplierName": {
+            "title": "Suppliername",
+            "type": "string"
+          },
+          "unknownFields": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierUnknownField"
+            },
+            "title": "Unknownfields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "supplierName",
+          "productDescription",
+          "evidenceByField",
+          "listedPrice",
+          "estimatedItemSubtotalMinorUnits",
+          "estimatedCurrency",
+          "deliveryEstimate",
+          "minimumOrderQuantity",
+          "availability",
+          "unknownFields",
+          "qualifications"
+        ],
+        "title": "SupplierOffer",
+        "type": "object"
+      },
+      "SupplierResearchHistory": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierResearchSnapshot"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "latestJob": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BusinessSupplierResearchJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "latestJob"
+        ],
+        "title": "SupplierResearchHistory",
+        "type": "object"
+      },
+      "SupplierResearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "title": "Brief",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "printing",
+              "snacks",
+              "freebies"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "deliveryArea": {
+            "title": "Deliveryarea",
+            "type": "string"
+          },
+          "neededBy": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Neededby"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category",
+          "brief",
+          "quantity",
+          "deliveryArea",
+          "neededBy"
+        ],
+        "title": "SupplierResearchRequest",
+        "type": "object"
+      },
+      "SupplierResearchSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "isStale": {
+            "title": "Isstale",
+            "type": "boolean"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierOffer"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Offers",
+            "type": "array"
+          },
+          "participationId": {
+            "format": "uuid",
+            "title": "Participationid",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/SupplierResearchRequest"
+          },
+          "revision": {
+            "const": 1,
+            "default": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "sourceFailures": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFailure"
+            },
+            "title": "Sourcefailures",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "partial"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participationId",
+          "createdAt",
+          "status",
+          "request",
+          "offers",
+          "sources",
+          "sourceFailures",
+          "isStale"
+        ],
+        "title": "SupplierResearchSnapshot",
+        "type": "object"
+      },
+      "SupplierSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "offerId": {
+            "format": "uuid",
+            "title": "Offerid",
+            "type": "string"
+          },
+          "snapshotId": {
+            "format": "uuid",
+            "title": "Snapshotid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshotId",
+          "offerId"
+        ],
+        "title": "SupplierSelection",
+        "type": "object"
+      },
+      "SupplierUnknownField": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "reason"
+        ],
+        "title": "SupplierUnknownField",
+        "type": "object"
+      },
+      "TaskInput": {
+        "additionalProperties": false,
+        "properties": {
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status"
+        ],
+        "title": "TaskInput",
+        "type": "object"
+      },
+      "TaskView": {
+        "properties": {
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_started",
+              "in_progress",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "dueDate"
+        ],
+        "title": "TaskView",
         "type": "object"
       },
       "UpdateApplicationSettings": {
@@ -4283,7 +7519,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalysisJob"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AnalysisJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPreparationJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessSupplierResearchJob"
+                    }
+                  ],
+                  "title": "Response Get Job Api V1 Ai Jobs  Jobid  Get"
                 }
               }
             },
@@ -4398,7 +7648,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalysisJob"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AnalysisJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPreparationJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BusinessSupplierResearchJob"
+                    }
+                  ],
+                  "title": "Response Cancel Job Api V1 Ai Jobs  Jobid  Cancel Post"
                 }
               }
             },
@@ -7489,6 +10753,122 @@
         ]
       }
     },
+    "/api/v1/auth/contact-profile": {
+      "get": {
+        "operationId": "contact_profile_api_v1_auth_contact_profile_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Contact Profile",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "login_api_v1_auth_login_post",
@@ -8069,6 +11449,391 @@
         "summary": "Register Business",
         "tags": [
           "Authentication"
+        ]
+      }
+    },
+    "/api/v1/business/action-approvals/{approvalId}/execute": {
+      "post": {
+        "operationId": "execute_api_v1_business_action_approvals__approvalId__execute_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approvalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Approvalid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Execute",
+        "tags": [
+          "Business external action sandbox"
+        ]
+      }
+    },
+    "/api/v1/business/action-proposals": {
+      "get": {
+        "operationId": "list_actions_api_v1_business_action_proposals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "List Actions",
+        "tags": [
+          "Business external action sandbox"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_action_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business external action sandbox"
+        ]
+      }
+    },
+    "/api/v1/business/action-proposals/{proposalId}": {
+      "get": {
+        "operationId": "read_api_v1_business_action_proposals__proposalId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposalid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "Business external action sandbox"
+        ]
+      }
+    },
+    "/api/v1/business/action-proposals/{proposalId}/approvals": {
+      "post": {
+        "operationId": "approve_api_v1_business_action_proposals__proposalId__approvals_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposalid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Approve",
+        "tags": [
+          "Business external action sandbox"
+        ]
+      }
+    },
+    "/api/v1/business/action-proposals/{proposalId}/cancel": {
+      "post": {
+        "operationId": "cancel_api_v1_business_action_proposals__proposalId__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposalid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Cancel",
+        "tags": [
+          "Business external action sandbox"
+        ]
+      }
+    },
+    "/api/v1/business/action-proposals/{proposalId}/revisions": {
+      "post": {
+        "operationId": "revise_api_v1_business_action_proposals__proposalId__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposalid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Revise",
+        "tags": [
+          "Business external action sandbox"
         ]
       }
     },
@@ -8913,6 +12678,1727 @@
         "summary": "Submit",
         "tags": [
           "Business applications"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/preparation": {
+      "get": {
+        "operationId": "get_api_v1_business_participations__participationId__preparation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "Business preparation"
+        ]
+      },
+      "put": {
+        "operationId": "replace_api_v1_business_participations__participationId__preparation_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePreparation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace",
+        "tags": [
+          "Business preparation"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/preparation-drafts": {
+      "get": {
+        "operationId": "history_api_v1_business_participations__participationId__preparation_drafts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationDraftHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "History",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_participations__participationId__preparation_drafts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePreparationDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessPreparationJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/promotional-concepts": {
+      "get": {
+        "operationId": "history_api_v1_business_participations__participationId__promotional_concepts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "History",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_participations__participationId__promotional_concepts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePromotionalConcept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessPromotionalConceptJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/supplier-research": {
+      "get": {
+        "operationId": "history_api_v1_business_participations__participationId__supplier_research_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierResearchHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "History",
+        "tags": [
+          "Business supplier research"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_business_participations__participationId__supplier_research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierResearch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessSupplierResearchJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "Business supplier research"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participationId}/supplier-shortlist": {
+      "get": {
+        "operationId": "get_shortlist_api_v1_business_participations__participationId__supplier_shortlist_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Shortlist",
+        "tags": [
+          "Business supplier research"
+        ]
+      },
+      "put": {
+        "operationId": "replace_shortlist_api_v1_business_participations__participationId__supplier_shortlist_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participationid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceShortlist"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace Shortlist",
+        "tags": [
+          "Business supplier research"
+        ]
+      }
+    },
+    "/api/v1/business/participations/{participation_id}/setup": {
+      "get": {
+        "operationId": "business_get_api_v1_business_participations__participation_id__setup_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupDetails"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Business Get",
+        "tags": [
+          "Business setup"
+        ]
+      }
+    },
+    "/api/v1/business/preparation-drafts/{draftId}": {
+      "get": {
+        "operationId": "read_api_v1_business_preparation_drafts__draftId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draftId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draftid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationDraftView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      },
+      "put": {
+        "operationId": "edit_api_v1_business_preparation_drafts__draftId__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draftId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draftid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePreparationDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationDraftView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Edit",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      }
+    },
+    "/api/v1/business/preparation-drafts/{draftId}/adopt": {
+      "post": {
+        "operationId": "adopt_api_v1_business_preparation_drafts__draftId__adopt_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draftId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draftid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptPreparationDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdoptionResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Adopt",
+        "tags": [
+          "Business preparation drafts"
+        ]
+      }
+    },
+    "/api/v1/business/promotional-concepts/{conceptId}": {
+      "delete": {
+        "operationId": "delete_api_v1_business_promotional_concepts__conceptId__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedRevision",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Expectedrevision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Delete",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      },
+      "get": {
+        "operationId": "get_api_v1_business_promotional_concepts__conceptId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      },
+      "put": {
+        "operationId": "replace_api_v1_business_promotional_concepts__conceptId__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacePromotionalConcept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Replace",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      }
+    },
+    "/api/v1/business/promotional-concepts/{conceptId}/refresh-facts": {
+      "post": {
+        "operationId": "refresh_api_v1_business_promotional_concepts__conceptId__refresh_facts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conceptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conceptid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshPromotionalFacts"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalConceptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionalProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Refresh",
+        "tags": [
+          "Business promotional concepts"
+        ]
+      }
+    },
+    "/api/v1/business/supplier-research/{snapshotId}": {
+      "delete": {
+        "operationId": "delete_snapshot_api_v1_business_supplier_research__snapshotId__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Snapshotid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedRevision",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Expectedrevision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Delete Snapshot",
+        "tags": [
+          "Business supplier research"
+        ]
+      },
+      "get": {
+        "operationId": "get_snapshot_api_v1_business_supplier_research__snapshotId__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Snapshotid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierResearchSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Snapshot",
+        "tags": [
+          "Business supplier research"
         ]
       }
     },
@@ -11643,6 +17129,432 @@
         "summary": "Publish",
         "tags": [
           "Disruptions"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{event_id}/participations/{participation_id}/setup": {
+      "get": {
+        "operationId": "organiser_get_api_v1_organiser_events__event_id__participations__participation_id__setup_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "participation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserSetupDetails"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Organiser Get",
+        "tags": [
+          "Business setup"
+        ]
+      },
+      "put": {
+        "operationId": "organiser_save_api_v1_organiser_events__event_id__participations__participation_id__setup_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "participation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSetup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserSetupDetails"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Organiser Save",
+        "tags": [
+          "Business setup"
+        ]
+      }
+    },
+    "/api/v1/organiser/events/{event_id}/participations/{participation_id}/setup/publish": {
+      "post": {
+        "operationId": "publish_setup_api_v1_organiser_events__event_id__participations__participation_id__setup_publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "participation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishSetup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserSetupDetails"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Method Not Allowed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Publish Setup",
+        "tags": [
+          "Business setup"
         ]
       }
     },

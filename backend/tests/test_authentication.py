@@ -75,12 +75,12 @@ def problem(response, status, code):
     assert response.headers["content-type"].startswith("application/problem+json")
     body = response.json()
     expected = {"type", "title", "status", "detail", "instance", "code"}
-    if code == "validation_error":
+    if code in {"validation_error", "registration_conflict"}:
         expected.add("fieldErrors")
         fields = body["fieldErrors"]
         assert fields and fields == sorted(fields, key=lambda item: (item["field"], item["code"]))
         assert len({(item["field"], item["code"]) for item in fields}) == len(fields)
-        assert all(set(item) == {"field", "code"} and item["code"] in {"required", "password_length", "invalid"} for item in fields)
+        assert all(set(item) == {"field", "code"} and item["code"] in ({"already_exists"} if code == "registration_conflict" else {"required", "password_length", "invalid"}) for item in fields)
         assert {item["field"] for item in fields} <= {"username", "email", "displayName", "password", "businessName", "identifier", "role", "currentPassword", "newPassword", "request"}
     assert set(body) == expected
     assert body["type"] == "about:blank" and body["status"] == status and body["code"] == code

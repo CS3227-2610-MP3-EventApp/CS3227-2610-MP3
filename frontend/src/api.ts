@@ -5,9 +5,9 @@ export class ApiError extends Error {
 }
 const allowedFields = ["participantType", "description", "requestedSpace", "contactName", "contactEmail", "businessId", "eventId", "expectedRevision", "applicationsOpen", "outcome", "reason", "identifier", "role", "displayName", "username", "email", "businessName", "password", "currentPassword", "newPassword", "request"];
 const reasons: Record<string, string> = {
-  invalid_credentials: "Invalid credentials.", unauthenticated: "Authentication required.", forbidden: "Access is not permitted.", password_change_required: "Password change required.", registration_conflict: "Registration could not be completed.", validation_error: "Request validation failed.", current_password_incorrect: "The current password is incorrect.", password_unchanged: "The new password must be different from your current password.", not_found: "Resource not found.", application_exists: "Application already exists.", revision_conflict: "Application revision changed.", event_revision_conflict: "Event settings changed.", applications_closed: "Applications are closed for this event.", application_submitted: "Application has already been submitted.", application_decided: "Application already has a decision.", eligibility_retired: "Business eligibility approvals are no longer used.", internal_error: "Request could not be completed.", service_unavailable: "Request could not be completed.",
+  invalid_credentials: "Invalid credentials.", unauthenticated: "Authentication required.", forbidden: "Access is not permitted.", password_change_required: "Password change required.", registration_conflict: "An account already exists with this username or email, or the business name is already registered.", validation_error: "Request validation failed.", current_password_incorrect: "The current password is incorrect.", password_unchanged: "The new password must be different from your current password.", not_found: "Resource not found.", application_exists: "Application already exists.", revision_conflict: "Application revision changed.", event_revision_conflict: "Event settings changed.", applications_closed: "Applications are closed for this event.", application_submitted: "Application has already been submitted.", application_decided: "Application already has a decision.", eligibility_retired: "Business eligibility approvals are no longer used.", internal_error: "Request could not be completed.", service_unavailable: "Request could not be completed.",
 };
-export const fieldMessage = (code: string) => code === "required" ? "This field is required." : code === "password_length" ? "Use between 8 and 128 characters." : "Check this field.";
+export const fieldMessage = (code: string, field?: string) => code === "already_exists" ? field === "email" ? "An account with this email already exists. Sign in or use another email." : field === "username" ? "An account with this username already exists. Sign in or choose another username." : field === "businessName" ? "This business name is already registered." : "Already registered. Use another value or sign in." : code === "required" ? "This field is required." : code === "password_length" ? "Use between 8 and 128 characters." : "Check this field.";
 export function errorAction(error: unknown) {
   const code = error instanceof ApiError ? error.code : "";
   if (code === "invalid_credentials") return "Check your identifier, password and selected role, then try again.";
@@ -23,6 +23,7 @@ export function errorAction(error: unknown) {
   return "Check your input or refresh the latest state before trying again.";
 }
 export function errorCategory(error: unknown) {
+  if (error instanceof ApiError && error.code === "registration_conflict") return "Account already exists";
   if (!(error instanceof ApiError)) return "Temporarily unavailable";
   if (error.code === "applications_closed") return "Needs correction";
   if (error.status === 401) return "Sign in required";
@@ -44,7 +45,7 @@ export async function request<T>(path: string, method = "GET", body?: unknown, s
       const problem = await response.json();
       if (scope === "organiser" && typeof problem?.detail === "string") detail = problem.detail;
       if (typeof problem?.code === "string" && Object.hasOwn(reasons, problem.code) && (scope === "domain" || !["current_password_incorrect", "password_unchanged"].includes(problem.code) || path === "/change-password")) { code = problem.code; detail = reasons[code]; }
-      if (code === "validation_error" && Array.isArray(problem?.fieldErrors)) fieldErrors = problem.fieldErrors.filter((f: { field?: unknown; code?: unknown }) => typeof f?.field === "string" && allowedFields.includes(f.field) && ["required", "password_length", "invalid"].includes(String(f.code))).map((f: {field: string; code: string}) => ({field: f.field, code: f.code}));
+      if (["validation_error", "registration_conflict"].includes(code) && Array.isArray(problem?.fieldErrors)) fieldErrors = problem.fieldErrors.filter((f: { field?: unknown; code?: unknown }) => typeof f?.field === "string" && allowedFields.includes(f.field) && ["required", "password_length", "invalid", "already_exists"].includes(String(f.code))).map((f: {field: string; code: string}) => ({field: f.field, code: f.code}));
       fields = fieldErrors.map((f) => f.field);
       if (scope === "domain" && response.status === 409 && ["application_decided", "revision_conflict"].includes(code)) currentApplication = problem.currentApplication;
       if (problem?.errors && typeof problem.errors === "object") for (const [field, messages] of Object.entries(problem.errors)) if (Array.isArray(messages) && messages.every((message) => typeof message === "string")) errors[field] = messages;

@@ -11,6 +11,8 @@ import { appearanceColors } from "./theme";
 import { AttendeeProgramme } from "./AttendeeProgramme";
 import { AttendeePlanning } from "./attendee-planning/AttendeePlanning";
 import { useFeedback } from "./applications/shared";
+import { PreparationCard } from "./preparation/PreparationCard";
+import { clearMarkers } from "./procurement/markers";
 
 const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [string, string, string][] }> = {
   attendee: {
@@ -28,7 +30,7 @@ const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [
     cards: [
       ["Programme Management", "Shape the activities and experiences that bring your event to life.", "▦"],
       ["Application Reviews", "Keep business applications and considered decisions in one place.", "▤"],
-      ["AI Application Analysis", "Review invented application information with evidence-based AI support in a dedicated synthetic-data event.", "✧"],
+      ["AI Application Analysis", "Review submitted applications with evidence-based AI support.", "✧"],
     ],
   },
   business: {
@@ -37,7 +39,7 @@ const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [
     cards: [
       ["Applications", "Keep track of your business’s next event opportunities and applications.", "▦"],
       ["Preparation & Budget", "Bring tasks, practical details and event costs into focus.", "▤"],
-      ["AI Preparation Draft", "Explore future AI support for a thoughtful first preparation plan.", "✧"],
+      ["AI Preparation Draft", "Create private editable preparation suggestions and review estimates before adoption.", "✧"],
     ],
   },
 };
@@ -68,7 +70,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
   async function signOut() {
     if (lock.current || unknown) return;
     lock.current = true; setPending(true); progress.start(); setError(""); setSessionNotice("");
-    try { await api.logout(); if (!alive.current) return; setActor(null); navigate("/login", { replace: true }); }
+    try { await api.logout(); clearMarkers(null); if (!alive.current) return; setActor(null); navigate("/login", { replace: true }); }
     catch (failure) {if (alive.current) {if (!(failure instanceof ApiError) || failure.status === 0 || failure.status >= 500) {setUnknown(true); setError(failure instanceof ApiError && failure.status >= 500 ? "Request could not be completed." : "Unable to reach EventApp. Please try again."); setSessionNotice("Outcome not confirmed - the sign-out result could not be confirmed. Check session before trying again.");} else setSessionNotice(errorFeedback(failure));}}
     finally {if (alive.current) {lock.current = false; setPending(false); progress.finish("");}}
   }
@@ -108,18 +110,20 @@ export function Workspace({ session }: { session: CurrentActor }) {
           <Box sx={{ position: "relative", maxWidth: 470 }}>
             <Chip label="YOUR WORKSPACE" size="small" sx={{ bgcolor: "background.paper", color: colors.tintText, fontSize: 15, fontWeight: 700, letterSpacing: 1, mb: 2 }} />
             <Typography component="p" sx={{ fontSize: { xs: 32, sm: 43.5 }, lineHeight: 1.25, fontWeight: 650, letterSpacing: "-0.7px", overflowWrap: "anywhere" }}>{content.intro}</Typography>
-            <Typography variant="body2" sx={{ mt: 1.5, color: colors.tintText }}>{session.role === "organiser" ? "Prepare your event programme, manage locations and publish activities when they are ready." : session.role === "business" ? "Applications are available below. Other features remain previews." : "Browse published activities and build your personal itinerary. AI assistance remains a preview."}</Typography>
+            <Typography variant="body2" sx={{ mt: 1.5, color: colors.tintText }}>{session.role === "organiser" ? "Prepare your event programme, manage locations and publish activities when they are ready." : session.role === "business" ? "Applications, Preparation & Budget and AI Preparation Draft are available below." : "Browse published activities and build your personal itinerary. AI assistance remains a preview."}</Typography>
           </Box>
         </Paper>
-        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 2.5, flexWrap: "wrap", gap: 1.5 }}><Typography component="h2" variant="h2">Your starting points</Typography>{session.role !== "organiser" && <Typography variant="caption" color="text.secondary">{session.role === "business" ? "01 / AVAILABLE · 02 / PREVIEWS" : "02 / AVAILABLE · 01 / PREVIEW"}</Typography>}</Stack>
+        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 2.5, flexWrap: "wrap", gap: 1.5 }}><Typography component="h2" variant="h2">Your starting points</Typography>{session.role !== "organiser" && <Typography variant="caption" color="text.secondary">{session.role === "business" ? "03 / AVAILABLE · 00 / PREVIEWS" : "02 / AVAILABLE · 01 / PREVIEW"}</Typography>}</Stack>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 2.5 }}>
           {content.cards.map(([title, description, glyph], index) => <Paper component="article" key={title} elevation={0} sx={{ p: 3, border: 1, borderColor: "divider", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: "100%", mb: 3 }}><Box aria-hidden="true" sx={{ display: "grid", placeItems: "center", width: 54, height: 54, fontSize: 37.5, color: index === 2 ? colors.lavenderText : "secondary.main", bgcolor: index === 2 ? colors.lavender : colors.tint, borderRadius: 2 }}>{glyph}</Box><Typography variant="caption" color="text.secondary">0{index + 1}</Typography></Stack>
             <Typography component="h3" variant="h2" sx={{ fontSize: 27, mb: 1 }}>{title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>{description}</Typography>
-            {session.role === "attendee" && index === 0 ? <Button component={RouterLink} to="/attendee/programme" variant="outlined" size="small" sx={{ mt: "auto" }}>Explore programme</Button> : session.role === "attendee" && index === 1 ? <Button component={RouterLink} to="/attendee/planning" variant="outlined" size="small" sx={{ mt: "auto" }}>Open My Itinerary</Button> : session.role === "organiser" ? <Button component={RouterLink} to={index === 0 ? "/organiser/programme" : organiserApplicationsPath(index === 1 ? "review" : "analysis")} variant="contained" size="small" sx={{ mt: "auto" }}>{index === 0 ? "Open programme" : index === 1 ? "Review applications" : "Open analysis"}</Button> : session.role === "business" && index === 0 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to={destinations.get(session.role) ?? `/${session.role}/applications`} variant="outlined" size="small" sx={{ mt: "auto" }}>Open applications</Button></> : <><Chip label="Preview" size="small" sx={{ mb: 2 }} /><Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button></>}
+            {session.role === "attendee" && index === 0 ? <Button component={RouterLink} to="/attendee/programme" variant="outlined" size="small" sx={{ mt: "auto" }}>Explore programme</Button> : session.role === "attendee" && index === 1 ? <Button component={RouterLink} to="/attendee/planning" variant="outlined" size="small" sx={{ mt: "auto" }}>Open My Itinerary</Button> : session.role === "organiser" ? <Button component={RouterLink} to={index === 0 ? "/organiser/programme" : organiserApplicationsPath(index === 1 ? "review" : "analysis")} variant="contained" size="small" sx={{ mt: "auto" }}>{index === 0 ? "Open programme" : index === 1 ? "Review applications" : "Open analysis"}</Button> : session.role === "business" && index === 0 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to={destinations.get(session.role) ?? `/${session.role}/applications`} variant="outlined" size="small" sx={{ mt: "auto" }}>Open applications</Button></> : session.role === "business" && index === 1 ? <PreparationCard businessIds={session.businessMemberships.filter((value) => value.status === "active" && value.role === "owner").map((value) => value.businessId)} /> : session.role === "business" && index === 2 ? <><Chip label="Available" size="small" sx={{ mb: 2 }} /><Button component={RouterLink} to="/business/preparation-drafts" variant="outlined" size="small" sx={{ mt: "auto" }}>Open AI preparation draft</Button></> : <><Chip label="Preview" size="small" sx={{ mb: 2 }} /><Button disabled variant="outlined" size="small" sx={{ mt: "auto", "&.Mui-disabled": { color: "action.disabled", borderColor: "divider" } }}>Coming later</Button></>}
           </Paper>)}
         </Box>
+        {session.role === "business" && <Paper component="article" variant="outlined" sx={{ p: 3, mt: 3 }}><Typography component="h2" variant="h2">Promotional concepts</Typography><Typography sx={{ my: 2 }}>Create private poster copy, freebie ideas and layout briefs with separately sourced event facts.</Typography><Button component={RouterLink} to="/business/promotional-concepts" variant="outlined">Open promotional concepts</Button></Paper>}
+        {session.role === "business" && <Paper component="article" variant="outlined" sx={{ p: 3, mt: 3 }}><Typography component="h2" variant="h2">Supplier research</Typography><Typography sx={{ my: 2 }}>Compare sourced printing, snack and freebie listings and save a private shortlist.</Typography><Button component={RouterLink} to="/business/supplier-research" variant="outlined">Open supplier research</Button></Paper>}
         <Typography variant="caption" component="p" color="text.secondary" sx={{ mt: 4 }}>EventApp · Made for experiences that bring us together.</Typography>
         </>}
       </Box>

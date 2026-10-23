@@ -13,7 +13,14 @@ from app.attendee_planning import models as planning_models  # noqa: F401 -- reg
 from app.ai import models as ai_models  # noqa: F401 -- register analysis tables
 from app.disruptions import models as disruption_models  # noqa: F401
 from app.attendee_ai import models as attendee_ai_models  # noqa: F401 -- register attendee itinerary job tables
+from app.preparation import models as preparation_models  # noqa: F401 -- register preparation table
+from app.setup import models as setup_models  # noqa: F401 -- register participation setup table
 
+
+from app.preparation_drafts import models as preparation_draft_models
+from app.promotional_concepts import models as promotional_concept_models
+from app.supplier_research import models as supplier_research_models
+from app.external_actions import models as external_action_models
 
 config = context.config
 if config.config_file_name is not None:

@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from app.ai.schemas import AnalysisHistory, AnalysisJob as JobView, AnalysisPayload, AnalysisReport as ReportView
 from app.applications.models import Submission
-from app.auth.models import AuditEvent, Event, EventMembership, PasswordCredential, User, utcnow
+from app.auth.models import AuditEvent, BusinessMembership, Event, EventMembership, PasswordCredential, User, utcnow
 from app.business.models import EventParticipation
 from app.settings import Settings
 
@@ -162,7 +162,13 @@ def create_job(db: Session, owner, event_id: UUID, application_id: UUID, body):
     if not lock_authority(db, owner.id, event_id):
         raise AIError("forbidden")
     previous = db.scalar(select(AnalysisJob).where(
-        AnalysisJob.owner_id == owner.id, AnalysisJob.request_id == body.requestId))
+        AnalysisJob.owner_id == owner.id, AnalysisJob.workflow == "analysis",
+        AnalysisJob.request_id == body.requestId))
+    if previous is None:
+        previous = db.scalar(select(AnalysisJob).where(
+            AnalysisJob.owner_id == owner.id, AnalysisJob.request_id == body.requestId).limit(1))
+        if previous is not None:
+            raise AIError("revision_conflict")
     if previous:
         if previous.kind != "application_analysis" or (previous.event_id, previous.application_id, previous.rubric_revision, previous.source_revision) != (
                 event_id, application_id, body.expectedRubricRevision, body.expectedSubmittedRevision):
@@ -176,10 +182,10 @@ def create_job(db: Session, owner, event_id: UUID, application_id: UUID, body):
     if latest is None or latest.revision != body.expectedRubricRevision or submission.frozen_submitted_content_revision != body.expectedSubmittedRevision:
         raise AIError("revision_conflict")
     settings = Settings()
-    if (not settings.ai_enabled or not settings.ai_synthetic_only
+    if (not settings.ai_enabled or not (settings.ai_synthetic_only or settings.ai_real_data_enabled)
             or settings.environment == "production" or not settings.soclaas_api_key
-            or not settings.soclaas_model or event_id not in settings.synthetic_event_ids
-            or not body.syntheticDataConfirmed):
+            or not settings.soclaas_model or event_id not in settings.allowed_event_ids
+            or (body.syntheticDataConfirmed is not True and body.dataSharingConfirmed is not True)):
         raise AIError("service_unavailable")
     active = db.scalar(select(AnalysisJob.id).where(AnalysisJob.owner_id == owner.id,
         AnalysisJob.state.in_(["pending", "running"])).limit(1))
@@ -218,6 +224,21 @@ def _report_view(db, report):
 
 
 def job_view(db, job):
+    if job.workflow == "preparation":
+        from app.preparation_drafts.schemas import BusinessPreparationJob
+        from app.preparation_drafts.service import get_draft_for_job
+        return BusinessPreparationJob(id=job.id, eventId=job.event_id, participationId=job.business_participation_id, state=job.state, createdAt=job.created_at, updatedAt=job.updated_at, completedAt=job.completed_at, failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run, draft=get_draft_for_job(db, job))
+    if job.workflow == "promotional":
+        from app.promotional_concepts.schemas import BusinessPromotionalConceptJob
+        from app.promotional_concepts.service import get_concept_for_job
+        return BusinessPromotionalConceptJob(id=job.id, eventId=job.event_id,
+            participationId=job.business_participation_id, state=job.state,
+            createdAt=job.created_at, updatedAt=job.updated_at, completedAt=job.completed_at,
+            failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run,
+            concept=get_concept_for_job(db, job))
+    if job.workflow == "supplier_research":
+        from app.supplier_research.service import job_view as supplier_job_view
+        return supplier_job_view(db, job)
     # A newer report must not be paired with an older in-memory running state.
     report = db.scalar(select(AnalysisReport).where(AnalysisReport.job_id == job.id)) if job.state == "completed" else None
     return JobView(id=job.id, eventId=job.event_id, applicationId=job.application_id,
@@ -229,17 +250,37 @@ def job_view(db, job):
 
 
 def get_job(db, owner, job_id):
+    if owner.role == "attendee":
+        raise AIError("forbidden")
     job = db.scalar(select(AnalysisJob).where(AnalysisJob.id == job_id, AnalysisJob.owner_id == owner.id))
     if job is None:
+        raise AIError("not_found")
+    if job.workflow == "preparation":
+        return _business_job(db, owner, job)
+    if job.workflow == "promotional":
+        return _promotional_job(db, owner, job)
+    if job.workflow == "supplier_research":
+        return _supplier_job(db, owner, job)
+    if job.workflow != "analysis" or owner.role != "organiser":
         raise AIError("not_found")
     require_authority(db, owner.id, job.event_id)
     return job_view(db, job)
 
 
 def cancel_job(db, owner, job_id):
+    if owner.role == "attendee":
+        raise AIError("forbidden")
     job = db.scalar(select(AnalysisJob).where(AnalysisJob.id == job_id,
         AnalysisJob.owner_id == owner.id).with_for_update())
     if job is None:
+        raise AIError("not_found")
+    if job.workflow == "preparation":
+        return _cancel_business_job(db, owner, job)
+    if job.workflow == "promotional":
+        return _cancel_promotional_job(db, owner, job)
+    if job.workflow == "supplier_research":
+        return _cancel_supplier_job(db, owner, job)
+    if job.workflow != "analysis" or owner.role != "organiser":
         raise AIError("not_found")
     require_authority(db, owner.id, job.event_id)
     if job.state in {"pending", "running"}:
@@ -251,6 +292,116 @@ def cancel_job(db, owner, job_id):
                           resource_revision=job.source_revision, outcome="success"))
     db.flush()
     return job_view(db, job)
+
+
+def _business_job(db, actor, job):
+    from app.preparation_drafts.service import get_draft_for_job
+    from app.preparation_drafts.schemas import BusinessPreparationJob
+
+    if actor.mustChangePassword:
+        raise AIError("password_change_required")
+    participation = db.get(EventParticipation, job.business_participation_id)
+    if participation is None or participation.event_id != job.event_id:
+        raise AIError("not_found")
+    has_workspace = db.scalar(select(BusinessMembership.id).where(
+        BusinessMembership.user_id == actor.id,
+        BusinessMembership.membership_role == "owner",
+        BusinessMembership.status == "active").limit(1))
+    if not has_workspace:
+        raise AIError("forbidden")
+    membership = db.scalar(select(BusinessMembership.id).where(
+        BusinessMembership.user_id == actor.id,
+        BusinessMembership.business_id == participation.business_id,
+        BusinessMembership.membership_role == "owner",
+        BusinessMembership.status == "active"))
+    if actor.role != "business" or membership is None:
+        raise AIError("not_found")
+    return BusinessPreparationJob(id=job.id, eventId=job.event_id,
+        participationId=participation.id, state=job.state, createdAt=job.created_at,
+        updatedAt=job.updated_at, completedAt=job.completed_at,
+        failureCode=job.failure_code, providerMayHaveRun=job.provider_may_have_run,
+        draft=get_draft_for_job(db, job))
+
+
+def _cancel_business_job(db, actor, job):
+    # The job row is already locked by cancel_job; membership is rechecked in
+    # this transaction before any state or audit mutation.
+    view = _business_job(db, actor, job)
+    if job.state in {"pending", "running"}:
+        now = utcnow()
+        job.state = "cancelled"
+        job.updated_at = now
+        job.completed_at = now
+        job.provider_may_have_run = job.dispatch_at is not None
+        db.add(AuditEvent(user_id=actor.id, action="preparation_job_cancel",
+            resource_id=job.id, resource_revision=None, outcome="success"))
+        db.flush()
+        return _business_job(db, actor, job)
+    return view
+
+
+def _promotional_job(db, actor, job):
+    from app.promotional_concepts.schemas import BusinessPromotionalConceptJob
+    from app.promotional_concepts.service import _actor_and_participation, get_concept_for_job
+    if actor.role != "business":
+        raise AIError("not_found")
+    if actor.mustChangePassword:
+        raise AIError("password_change_required")
+    event, participation, _ = _actor_and_participation(db, actor, job.business_participation_id)
+    if event.id != job.event_id or participation.event_id != event.id:
+        raise AIError("not_found")
+    return BusinessPromotionalConceptJob(id=job.id, eventId=job.event_id,
+        participationId=participation.id, state=job.state, createdAt=job.created_at,
+        updatedAt=job.updated_at, completedAt=job.completed_at, failureCode=job.failure_code,
+        providerMayHaveRun=job.provider_may_have_run, concept=get_concept_for_job(db, job))
+
+
+def _cancel_promotional_job(db, actor, job):
+    view = _promotional_job(db, actor, job)
+    if job.state in {"pending", "running"}:
+        now = utcnow()
+        job.state = "cancelled"
+        job.failure_code = "cancelled"
+        job.updated_at = now
+        job.completed_at = now
+        job.provider_may_have_run = job.dispatch_at is not None
+        db.add(AuditEvent(user_id=actor.id, action="promotional_concept_job_cancel",
+            resource_id=job.id, resource_revision=None, outcome="success"))
+        db.flush()
+        return _promotional_job(db, actor, job)
+    return view
+
+
+def _supplier_job(db, actor, job):
+    from app.supplier_research.service import _authority, job_view as supplier_job_view
+    if actor.role != "business":
+        raise AIError("not_found")
+    participation = db.get(EventParticipation, job.business_participation_id)
+    if participation is None or job.event_id != participation.event_id:
+        raise AIError("not_found")
+    try:
+        _authority(db, actor, job.business_participation_id)
+    except AIError as exc:
+        if exc.code == "not_found":
+            raise AIError("forbidden") from None
+        raise
+    return supplier_job_view(db, job)
+
+
+def _cancel_supplier_job(db, actor, job):
+    from app.supplier_research.service import job_view as supplier_job_view
+    view = _supplier_job(db, actor, job)
+    if job.state in {"pending", "running"}:
+        now = utcnow()
+        job.state = "cancelled"
+        job.failure_code = "cancelled"
+        job.updated_at = job.completed_at = now
+        job.provider_may_have_run = job.dispatch_at is not None
+        db.add(AuditEvent(user_id=actor.id, action="supplier_research_job_cancel",
+            resource_id=job.id, resource_revision=None, outcome="success"))
+        db.flush()
+        return supplier_job_view(db, job)
+    return view
 
 
 def history(db, owner, event_id, application_id, limit=20, offset=0):
@@ -276,18 +427,32 @@ def recovery(db, now=None):
         AnalysisJob.lease_until < now).with_for_update(skip_locked=True)).all()
     for job in jobs:
         job.state = "failed"
-        job.failure_code = "worker_interrupted"
+        job.failure_code = "timed_out" if job.workflow == "promotional" else "worker_interrupted"
         job.updated_at = now
         job.completed_at = now
         job.lease_until = None
+        if job.workflow == "promotional":
+            db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
+        elif job.workflow == "supplier_research":
+            job.failure_code = "timed_out"
+            db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
     overdue = db.scalars(select(AnalysisJob).where(AnalysisJob.state == "pending",
         AnalysisJob.deadline_at < now).with_for_update(skip_locked=True)).all()
     for job in overdue:
         job.state = "failed"
-        job.failure_code = "worker_interrupted"
+        job.failure_code = "timed_out" if job.workflow == "promotional" else "worker_interrupted"
         job.updated_at = now
         job.completed_at = now
         job.lease_until = None
+        if job.workflow == "promotional":
+            db.add(AuditEvent(user_id=job.owner_id, action="promotional_concept_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
+        elif job.workflow == "supplier_research":
+            job.failure_code = "timed_out"
+            db.add(AuditEvent(user_id=job.owner_id, action="supplier_research_job_failure",
+                resource_id=job.id, resource_revision=None, outcome="failure"))
     db.flush()
 
 
@@ -302,11 +467,25 @@ def problem_response(request, code):
     from fastapi.responses import JSONResponse
 
     mapping = {
+        "source_changed": (409, "Source facts changed. Review or regenerate the draft."),
+        "already_adopted": (409, "This draft has already been adopted."),
+        "in_use": (409, "Remove this selection from the shortlist before deleting the snapshot."),
+        "request_conflict": (409, "Request identifier already used for different inputs."),
+        "quota_exceeded": (429, "The daily job limit has been reached."),
         "forbidden": (403, "Access is not permitted."), "not_found": (404, "Resource not found."),
         "revision_conflict": (409, "The analysis inputs changed."), "active_job": (409, "An analysis is already active."),
         "daily_limit": (429, "The daily analysis limit has been reached."),
         "validation_error": (422, "Request validation failed."),
+        "password_change_required": (403, "Password change is required."),
         "service_unavailable": (503, "AI analysis is not available for this event."),
+        "provider_unavailable": (503, "AI generation is not available for this event."),
+        "provider_rate_limited": (503, "AI generation is temporarily rate limited."),
+        "provider_auth_failed": (503, "AI generation is not available for this event."),
+        "timed_out": (503, "AI generation timed out. You can continue editing saved concepts."),
+        "job_timeout": (503, "AI generation timed out. You can continue editing saved concepts."),
+        "invalid_output": (503, "AI returned an unusable result. No concept was saved."),
+        "cancelled": (409, "The job was cancelled."),
+        "access_revoked": (403, "Access is no longer permitted."),
     }
     status, detail = mapping.get(code, mapping["service_unavailable"])
     body = {"type": "about:blank", "title": HTTPStatus(status).phrase, "status": status,

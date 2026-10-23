@@ -24,7 +24,7 @@ Implemented versioned event rubrics, durable analysis jobs, a bounded SoCLaaS ad
 
 No live provider call, manual browser journey, actual process-restart survival, broad multi-process stress, deployed verification or production readiness is claimed. Production real-data processing remains disabled. Separate written-revision approval, teammate review and human session verification remain pending. Temporary Luna/low agent settings are excluded from commits. No API key appears in this log.
 
-Startup, synthetic test data and manual flows: [AI analysis testing guide](../../docs/AIAnalysisTesting.md).
+Startup, synthetic test data and manual flows: [AI analysis testing guide](../../docs/archive/AIAnalysisTesting.md).
 
 See the [run record](../../workflow/agents/runs/2026-10-21-organiser-ai-analysis.md), [analysis Draft](../../specs/applications/analyse-applications-with-ai.md) and [job Draft](../../specs/shared/monitor-and-recover-ai-tasks.md).
 

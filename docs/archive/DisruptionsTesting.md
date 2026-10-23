@@ -2,7 +2,7 @@
 
 ## Start
 
-Use the [developer guide](DeveloperGuide.md) to start PostgreSQL, FastAPI and Vite and provision an organiser/event. Check `docker compose ps`: the development container's published host port must match `DATABASE_URL` in each backend terminal. Committed Compose defaults to 5432; a locally overridden mapping such as 5434 requires that port in the URL. Do not paste secrets or use the test database for retained development data.
+Use the [developer guide](../DeveloperGuide.md) to start PostgreSQL, FastAPI and Vite and provision an organiser/event. Check `docker compose ps`: the development container's published host port must match `DATABASE_URL` in each backend terminal. Committed Compose defaults to 5432; a locally overridden mapping such as 5434 requires that port in the URL. Do not paste secrets or use the test database for retained development data.
 
 From `backend/`, with the correct ignored `.env` or exported database URL:
 

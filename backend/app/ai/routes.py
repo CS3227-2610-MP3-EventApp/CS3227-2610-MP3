@@ -6,7 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.ai import service
 from app.ai.schemas import AnalysisHistory, AnalysisJob, AnalysisProblem, AnalysisRubric, CreateAnalysis, ReplaceAnalysisRubric
-from app.auth.dependencies import require_workspace
+from app.preparation_drafts.schemas import BusinessPreparationJob
+from app.promotional_concepts.schemas import BusinessPromotionalConceptJob
+from app.supplier_research.schemas import BusinessSupplierResearchJob
+from app.auth.dependencies import completed, get_current_actor, require_workspace
 from app.auth.schemas import CurrentActor
 from app.database import get_db
 
@@ -16,6 +19,8 @@ router = APIRouter(prefix="/api/v1", tags=["Organiser AI analysis"], responses={
     for status in (401, 403, 404, 409, 422, 429, 503)})
 DB = Annotated[Session, Depends(get_db)]
 Organiser = Annotated[CurrentActor, Depends(require_workspace("organiser"))]
+JobActor = Annotated[CurrentActor, Depends(get_current_actor)]
+SharedJob = AnalysisJob | BusinessPreparationJob | BusinessPromotionalConceptJob | BusinessSupplierResearchJob
 
 
 def command(db, operation, *args):
@@ -51,11 +56,13 @@ def analysis_history(eventId: UUID, applicationId: UUID, actor: Organiser, db: D
     return service.history(db, actor, eventId, applicationId, limit, offset)
 
 
-@router.get("/ai/jobs/{jobId}", response_model=AnalysisJob)
-def get_job(jobId: UUID, actor: Annotated[CurrentActor, Depends(require_workspace("organiser"))], db: DB):
+@router.get("/ai/jobs/{jobId}", response_model=SharedJob)
+def get_job(jobId: UUID, actor: JobActor, db: DB):
+    completed(actor)
     return service.get_job(db, actor, jobId)
 
 
-@router.post("/ai/jobs/{jobId}/cancel", response_model=AnalysisJob)
-def cancel_job(jobId: UUID, actor: Annotated[CurrentActor, Depends(require_workspace("organiser"))], db: DB):
+@router.post("/ai/jobs/{jobId}/cancel", response_model=SharedJob)
+def cancel_job(jobId: UUID, actor: JobActor, db: DB):
+    completed(actor)
     return command(db, service.cancel_job, actor, jobId)

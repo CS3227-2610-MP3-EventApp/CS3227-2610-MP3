@@ -26,7 +26,7 @@ class SoCLaaSProvider:
     def _enabled(self):
         settings = self.settings
         if (settings.environment == "production" or not settings.ai_enabled
-                or not settings.ai_synthetic_only or not settings.soclaas_api_key):
+                or not (settings.ai_synthetic_only or settings.ai_real_data_enabled) or not settings.soclaas_api_key):
             raise ProviderFailure("configuration")
 
     async def _request(self, path: str, body: dict | None = None, deadline: datetime | None = None):
