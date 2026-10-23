@@ -16,7 +16,7 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
-- [2026-10-23 Isaac F09-US03 implementation](isaac/2026-10-23-f09-us03-implementation.md): procurement proposal UI, test corrections, acceptance/backend/real-response/browser evidence; independent review and human verification pending.
+- [2026-10-23 Isaac F09-US03 implementation](isaac/2026-10-23-f09-us03-implementation.md): whole conversation covering the procurement proposal UI, test corrections, evidence, commits, reviewer model fix and independent-review launch; human verification pending.
 - [2026-10-23 Isaac F09-US03 specification and test handoff](isaac/2026-10-23-f09-us03-start-and-tcr-correction.md): F09-US03 r15 approval, Phase 3 schema-test correction, acceptance-test design/review blockers and takeover steps; human verification pending.
 - [2026-10-23 Isaac F09 Phase 3 approval contract](isaac/2026-10-23-f09-phase3-approval-contract.md): whole visible conversation covering specification review, default/exact revision approval, independent test baseline, sandbox implementation, verification corrections and commit evidence; human verification pending.
 
