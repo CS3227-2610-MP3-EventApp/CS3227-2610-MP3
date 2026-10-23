@@ -71,6 +71,19 @@ current revision `4`. The backend correctly rejected it as `invalid_output`. We 
 required current revision explicit in the prompt and added a regression test. This showed why
 valid JSON is not sufficient: AI output must also be grounded in the current server facts.
 
+**Isaac on security versus useful uncertainty.** Supplier research taught me that stricter
+validation can make an AI feature less useful without resolving its underlying uncertainty.
+Review repeatedly found delivery statements attributed to the wrong product through
+parentheses, slashes and other qualifiers. Adding delimiter rules caught those examples,
+but could not establish general semantic understanding. My more useful product decision
+was to allow source-backed supplier/product listings with unknown prices or delivery, and
+reject defective offers individually. Forged source IDs and malformed output still failed
+the whole extraction. The lesson was to specify which uncertainty users can safely see,
+and which failures invalidate trust in the result. After the approved changes, the log
+records 9 successful live runs out of 12; this small sample supports practical improvement,
+not a reliability guarantee. [Sources: grounding review](../logs/isaac/2026-10-23-f09-phase2-delivery-grounding-review.md)
+and [approved revisions and live results](../logs/isaac/2026-10-23-f09-phase2-completion-and-handoff.md).
+
 ### Limits and human oversight
 
 AI requests are bounded by input size, output size, timeouts, daily quotas, active-job limits,
@@ -87,6 +100,16 @@ The remaining limitation is that local synthetic-data and provider checks do not
 production readiness. The application now has a hosted entry point, but production real-data
 processing, deployed provider configuration, online isolation, and a full production
 cross-role smoke test still require team verification.
+
+**Isaac on approval when an outcome is uncertain.** A procurement specification needs to
+explain what happens when the user clicks Execute but never receives a response. A timeout
+does not establish that nothing happened. For the sandbox procurement UI, I chose no
+automatic execute retry and a minimal cross-tab/reload marker containing identifiers only.
+Approval also binds the exact server-derived proposal revision and payload; changed
+quotation text needs a new revision and approval. This made me see approval as a lifecycle
+contract covering edits, interrupted requests and recovery, rather than simply a confirmation
+button. The recorded scope was simulation: it does not establish safe real purchasing or
+payment execution. [Source: procurement decisions and handoff](../logs/isaac/2026-10-23-f09-us03-start-and-tcr-correction.md).
 
 ## 3. Spec-Driven Development
 
@@ -169,6 +192,15 @@ reported published-announcement edit vulnerability was checked against the exist
 draft-state guard and withdrawn when it was disproved. This was a useful reminder that a
 review finding must be reproduced against the actual code before changing the product.
 
+**Isaac on testing the tests before trusting a baseline.** The first procurement UI suite
+reported 143 failures and three passes before the feature existed. Independent reviewers
+found that the three role checks passed vacuously, and that some other assertions could pass
+without loading a proposal. Even a large red suite therefore did not establish that every
+scenario would detect its intended defect. I would ask the test designer to state the
+precondition each assertion reaches and the wrong behaviour it distinguishes. Protecting a
+baseline is valuable only after reviewing whether its assertions discriminate between a
+working feature and an absent or broken one. [Source: pre-implementation test review](../logs/isaac/2026-10-23-f09-us03-start-and-tcr-correction.md).
+
 ### Where SDD was excessive
 
 My main criticism is that the SDD process was disproportionate for a small project completed
@@ -242,6 +274,16 @@ Examples from the logs include independent review of the F05 disruption workflow
 coverage for authority revocation and history pagination, security review of AI boundaries,
 and merge review preserving both F02 and F05 routes.
 
+**Isaac on the limits of parallel agent work.** During merge verification, four stale test
+processes competed over one resettable database, producing deadlocks, unexpected records
+and missing tables. Assigning different files to agents had not isolated their shared
+execution resource. The useful distinction is between parallel reasoning and parallel
+mutation: reviewers can inspect the same frozen change concurrently, but database-reset
+suites need exclusive ownership or separate databases. A handoff should therefore include
+running process IDs, database ownership and cleanup state alongside code and spec revisions.
+Otherwise, more agents can reduce the credibility of the test evidence they produce.
+[Source: merge execution failures and recovery](../logs/isaac/2026-10-21-merge-conversation.md).
+
 ### Handoffs and evidence
 
 A useful handoff included the specification revision, permitted files, dependencies, expected
@@ -255,6 +297,16 @@ meanings, a developer became unavailable, and some reviewers produced findings t
 reproduction before acceptance. The orchestrator had to correct and integrate work directly.
 The migration merge and F02/F05 integration also showed that separate agents can each be
 locally correct while their assumptions about shared revision history conflict.
+
+**Isaac on reviewing the reviewer's evidence.** In the external-action phase, a behaviour
+reviewer reported a migration downgrade/upgrade roundtrip, but inspection showed the helper
+always ran upgrade. Calling it with an older target had not performed the claimed downgrade.
+The reviewer withdrew the claim; the corrected explicit procedure remained unexecuted at
+that checkpoint. This exposed a different failure from an implementation bug: independent
+agents can supply convincing evidence descriptions with misunderstood tool semantics.
+Future handoffs should retain the actual procedure and assert the intermediate state,
+such as the database revision after downgrade, so a person can verify what happened.
+[Source: migration evidence correction](../logs/isaac/2026-10-23-f09-phase3-approval-contract.md).
 
 ### Where errors or malicious instructions could enter
 

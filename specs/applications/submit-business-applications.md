@@ -1,11 +1,14 @@
 # Submit business applications
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 6; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 > Current revision 6: the **Approved current revision 6 amendment - 2026-10-22** section below (renumbered from the business branch's revision 5 during the 2026-10-23 master merge) and master's revision 5 silent-revalidation change govern changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | submit-business-applications |
 | Covered stories | [F06-US01](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 6 / In review |
+| Specification revision / status | 6 / Completed |
 | Product roles / roadmap | Active business owners and assigned event organisers; [manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Historical exact r2 backend and r3 frontend approval by Isaac on 2026-10-20/21 remains bound to those revisions and recorded below. On 2026-10-21 the user approved replacing known-ID eligibility with one application/participation request and organiser-controlled open applications. Current r4 checks are recorded below; human verification remains pending. |
 | Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |

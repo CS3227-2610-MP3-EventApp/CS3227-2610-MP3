@@ -1,10 +1,13 @@
 # Review procurement proposals
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 15; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 | Field | Value |
 | --- | --- |
 | Stable capability ID | review-procurement-proposals |
 | Covered stories | F09-US03; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 15 / In review |
+| Specification revision / status | 15 / Completed |
 | Product roles / roadmap reference | Active business owners; proposal access is creator-private and requires current active ownership. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved exact revisions 12 and 15 on 2026-10-23. Later decisions on route, active-owner access, guard precedence, DTO, eligibility, list filtering, no-retry behavior, approval selection, cross-tab marker and one-snapshot selection are recorded in r15. Dependent sandbox contract is [approve-external-actions revision 2](../shared/approve-external-actions.md), approved 2026-10-23 |
 | Review / run record | Independent behavior/security reviews and targeted follow-ups of r15 identified and resolved specification gaps, including snapshot selection, DTO/source consistency, marker recovery and approval-versus-receipt wording. Implemented on 2026-10-23 against the unfrozen [F09-US03 test plan](../../workflow/agents/test-plans/2026-10-23-f09-us03.md); see Verification and the [session log](../../logs/isaac/2026-10-23-f09-us03-implementation.md). Independent post-implementation review, a frozen protected baseline and human verification remain pending |

@@ -1,11 +1,14 @@
 # Generate preparation drafts
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 5; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 > Current revision 5: the **Approved current revision 4 amendment - 2026-10-22** section and the **Revision 5 amendment - automatic job status - 2026-10-23** section below govern changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | generate-preparation-drafts |
 | Covered stories | [F06-US04](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 5 / In review |
+| Specification revision / status | 5 / Completed |
 | Product roles / roadmap | Active business owners; AI for every role |
 | Product and contract approval | Isaac approved provider/data/estimate/adoption defaults3/5 and related specification/implementation amendments6 on2026-10-21; limits approved with30 dispatches/min. This revision records that direction. |
 | Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); [Phase 5 implementation and evidence](../../workflow/agents/runs/2026-10-22-preparation-drafts-implementation.md); independent implementation/human review pending |

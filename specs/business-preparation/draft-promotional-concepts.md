@@ -1,10 +1,13 @@
 # Draft promotional concepts
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 4; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 | Field | Value |
 | --- | --- |
 | Stable capability ID | draft-promotional-concepts |
 | Covered stories | F09-US01; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 4 / In review |
+| Specification revision / status | 4 / Completed |
 | Product roles / roadmap reference | Authenticated business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved the three F09 default bundles on 2026-10-22 in response to the original phased implementation request. Revision 3 records the bounded contract derived from that authorization; no approval of unrelated policy is implied. Shared job extension is documented in monitor-and-recover-ai-tasks r5. |
 | Review / run record | [Phase 1 run](../../workflow/agents/runs/2026-10-22-f09-phase1.md); [scenario record PC01-PC20](../../workflow/agents/runs/2026-10-22-f09-promotional-draft-scenarios.md); independent behaviour/security review findings incorporated, final executable-test review pending |

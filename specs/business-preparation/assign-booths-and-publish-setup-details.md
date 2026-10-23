@@ -1,11 +1,14 @@
 # Assign booths and publish setup details
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 2; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 > Current revision 2: the **Approved current revision 2 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | assign-booths-and-publish-setup-details |
 | Covered stories | [F06-US02](../../docs/UserStoriesAndFeatures.md), booth/setup portion only; status/reason stays in decision r2 |
-| Specification revision / status | 2 / In review |
+| Specification revision / status | 2 / Completed |
 | Product roles / roadmap | Assigned organisers and active business owners; manual journeys |
 | Product and contract approval | Isaac approved booth/setup default 2 and implementation/specification-amendment authority default 6 on 2026-10-21. This contract records those choices; human teammate review is separate. |
 | Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); test baseline and implementation pending |

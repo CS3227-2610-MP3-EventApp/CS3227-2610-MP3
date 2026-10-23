@@ -1,11 +1,14 @@
 # Manage preparation tasks and budgets
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 5; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 > Current revision 5: the **Approved current revision 5 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | manage-preparation-tasks-and-budgets |
 | Covered stories | F06-US03; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 5 / In review |
+| Specification revision / status | 5 / Completed |
 | Product roles / roadmap reference | Active members of a participating business. [2 - Manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved r2 with quantity/price amendments and authorised implementing related specification amendments on 2026-10-21; r3 records that approved direction. Independent test/baseline gates remain separate. |
 | Review / run record | [Implementation, independent reviews and protected baselines](../../workflow/agents/runs/2026-10-21-f06-implementation.md); human gates pending |

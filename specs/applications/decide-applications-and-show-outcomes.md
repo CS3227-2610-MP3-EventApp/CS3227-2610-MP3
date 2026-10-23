@@ -1,10 +1,13 @@
 # Decide applications and show outcomes
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 2; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 | Field | Value |
 | --- | --- |
 | Stable capability ID | decide-applications-and-show-outcomes |
 | Covered stories | F04-US01; F06-US02 own status/reason portion; booth/setup portion explicitly deferred |
-| Specification revision / status | 2 / In review |
+| Specification revision / status | 2 / Completed |
 | Product roles / roadmap | Assigned organisers deciding frozen submitted applications; active business owners viewing own outcomes; [manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | User approved one irreversible accepted/rejected decision, applicant-visible reason and no booth/setup assignment on2026-10-21. Exact revision/readiness metadata and pre-implementation gates owned by orchestrator; Draft not promoted by analyst. |
 | Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |

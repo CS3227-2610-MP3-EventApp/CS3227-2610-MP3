@@ -1,10 +1,13 @@
 # Compare suppliers for event materials
 
+> **Completion decision — 2026-10-23:** Isaac states that he has personally reviewed the F06/F09 specifications and explicitly requests marking them Completed. This records his human review and completion acceptance of revision 6; it changes lifecycle metadata only, not requirements or acceptance criteria. Earlier pending-status statements below are historical and superseded by this decision. Previously unexecuted checks, independent-review/baseline gaps and project-wide release obligations remain disclosed; this status change does not claim fresh test execution, verification of session summaries, production readiness, or merge/deployment authorization.
+
+
 | Field | Value |
 | --- | --- |
 | Stable capability ID | compare-suppliers |
 | Covered stories | F09-US02; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 6 / In review; r6 automatic job status requested by Isaac 2026-10-23; r4 and r5 text approved by Isaac 2026-10-23 (r5 adds D07 per-offer rejection and deterministic repair; r4 amends r3 per D06) |
+| Specification revision / status | 6 / Completed |
 | Product roles / roadmap reference | Active business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved exact revisions 4 and 5 on 2026-10-23. Isaac approved exact revision 3 and shared AI-task revision 6 on 2026-10-22; independent preimplementation reviews approved the bounded test suite. |
 | Review / run record | [Phase 2 run](../../workflow/agents/runs/2026-10-22-f09-phase2.md); r4/r5 implementation, live/browser/restart evidence and independent (general-purpose fallback) reviews recorded in [the Phase 2 completion log](../../logs/isaac/2026-10-23-f09-phase2-completion-and-handoff.md); human teammate review and verification pending |
