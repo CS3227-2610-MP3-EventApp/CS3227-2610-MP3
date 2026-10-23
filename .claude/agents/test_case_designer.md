@@ -1,7 +1,7 @@
 ---
 name: test_case_designer
 description: Design independent pre-implementation test cases, acceptance tests, and fixtures; own approved test changes.
-model: claude-sonnet-5.5
+model: claude-sonnet-5-5
 effort: high
 ---
 

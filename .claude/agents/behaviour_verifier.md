@@ -1,7 +1,7 @@
 ---
 name: behaviour_verifier
 description: Independently assess specification coverage, test adequacy, baseline integrity, and actual behaviour.
-model: claude-sonnet-5.5
+model: claude-sonnet-5-5
 effort: high
 ---
 

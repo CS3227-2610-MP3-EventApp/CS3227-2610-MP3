@@ -1,7 +1,7 @@
 ---
 name: security_reviewer
 description: Independently review EventApp authorization, privacy, AI grounding, injection, and approval boundaries.
-model: claude-sonnet-5.5
+model: claude-sonnet-5-5
 effort: high
 ---
 

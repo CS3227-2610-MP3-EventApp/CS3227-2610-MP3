@@ -46,10 +46,10 @@ Approved by Yik Bing on 2026-10-19 as an initial usage-conscious configuration, 
 | --- | --- | --- | --- |
 | orchestrator (main chat) | `claude-sonnet-5-5` | `medium` | `claude-opus-5-5`, `medium` |
 | specification_analyst | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` |
-| test_case_designer | `claude-sonnet-5.5` | `high` | `claude-opus-5-5`, `medium` (`high` for authentication, persistence, concurrency or AI) |
+| test_case_designer | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` (`high` for authentication, persistence, concurrency or AI) |
 | developer | `claude-sonnet-5-5` | `medium` | `claude-sonnet-5-5`, `high` for repair; then `claude-opus-5-5`, `medium` |
-| behaviour_verifier | `claude-sonnet-5.5` | `high` | `claude-opus-5-5`, `medium` |
-| security_reviewer | `claude-sonnet-5.5` | `high` | `claude-opus-5-5`, `medium` |
+| behaviour_verifier | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` |
+| security_reviewer | `claude-sonnet-5-5` | `high` | `claude-opus-5-5`, `medium` |
 
 The values are set in each `.claude/agents/*.md` file using the `model` and `effort` frontmatter fields, with full model IDs for reproducible run records.
 

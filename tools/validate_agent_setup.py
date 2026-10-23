@@ -8,7 +8,7 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = {'orchestrator', 'specification_analyst', 'test_case_designer', 'developer', 'behaviour_verifier', 'security_reviewer'}
 CLAUDE_FIELDS = {'name', 'description', 'model', 'effort'}
-CLAUDE_MODELS = {'claude-fable-5-1', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-sonnet-5.5', 'claude-haiku-5-5'}
+CLAUDE_MODELS = {'claude-fable-5-1', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'}
 CLAUDE_EFFORTS = {'low', 'medium', 'high', 'xhigh', 'max'}
 
 
