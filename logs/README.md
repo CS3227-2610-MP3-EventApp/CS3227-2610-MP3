@@ -16,6 +16,8 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-23 Isaac partial supplier research saving](isaac/2026-10-23-partial-research-save.md): save control beside available offers, partial-result guidance, focused test evidence and specification/documentation synchronization; human verification pending.
+
 - [2026-10-23 Isaac master merge](isaac/2026-10-23-master-merge.md): resolved the master merge preferring master, shared `ai_jobs` kind/workflow split, business migrations renumbered 0020–0029, approved merge test changes MERGE-TCR-01/02/03, specs synchronized, full backend/frontend runs; follow-ups added the Business smoke test guide and fixed the false unsaved-preparation warning, automatic AI job status and a worker startup crash; human verification pending.
 - [2026-10-23 Isaac F09-US03 implementation](isaac/2026-10-23-f09-us03-implementation.md): whole conversation covering the procurement proposal UI, test corrections, evidence, commits, reviewer model fix and independent-review launch; human verification pending.
 - [2026-10-23 Isaac F09-US03 specification and test handoff](isaac/2026-10-23-f09-us03-start-and-tcr-correction.md): F09-US03 r15 approval, Phase 3 schema-test correction, acceptance-test design/review blockers and takeover steps; human verification pending.

@@ -244,7 +244,7 @@ This step switches between the two windows; each item says which to use.
    - Needed by: leave empty
 
    Then **Research suppliers** → **Refresh status**.
-2. **Expect:** 1–3 offers with source host, retrieval time, field quotes and *unknown* where a value isn't sourced; subtotals are estimates. Select the first offer → **Save shortlist** → reload. **Expect:** the selection persists.
+2. **Expect:** 1–3 offers with source host, retrieval time, field quotes and *unknown* where a value isn't sourced; subtotals are estimates. If the partial-research warning appears, available offers can still be saved. Use **Save selected offers** beneath the offers, or **Save shortlist** above the comparisons. Select the first offer → **Save selected offers** below the offers → reload. **Expect:** the selection persists, including for partial research.
 3. Try deleting that comparison. **Expect:** blocked until you clear the selection and save.
 4. Reselect the offer and save, then click **Procurement proposals from this shortlist**.
 5. Choose **Quotation request**, select the entry, and enter:

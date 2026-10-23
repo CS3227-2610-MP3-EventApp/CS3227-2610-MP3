@@ -1,6 +1,6 @@
 # Supplier research
 
-Phase 2 implements F09-US02 under [compare-suppliers revision 3](../specs/business-preparation/compare-suppliers.md) and shared AI-task revision 6. Actual checks, review findings and remaining gates belong in the [run record](../workflow/agents/runs/2026-10-22-f09-phase2.md).
+Phase 2 implements F09-US02 under [compare-suppliers](../specs/business-preparation/compare-suppliers.md) and shared AI-task revision 6. Actual checks, review findings and remaining gates belong in the [run record](../workflow/agents/runs/2026-10-22-f09-phase2.md).
 
 Apply backend migrations and start the API, frontend and existing AI worker (`uv run python -m app.ai.worker`). Open **Supplier research** in the Business workspace and select an owned participation. Application acceptance is not required. Comparisons, jobs and shortlist belong only to their creator, including within the same business.
 
@@ -10,9 +10,18 @@ Read the disclosure, choose printing, snacks or freebies, and enter a brief, qua
 
 Inspect field quotes, source host, retrieval time, listed currency/quantity basis, unknowns and qualifications. Prices and exact SGD item subtotals are estimates, not quotations. Shipping, tax and fees are excluded from subtotals. Unsupported currency precision or ambiguous product/price association remains unknown; no FX conversion occurs. Sources older than 24 hours are marked stale. A source link does not establish seller identity, safety, suitability, inventory or reliability.
 
-Select offers and **Save shortlist**. Saved revisions prevent lost updates; reload saved state to resolve a conflict. Refreshing research creates a new immutable comparison and preserves prior selections. Clear a comparison's selections and save before deleting it. Deletion requires confirmation; old jobs cannot resurrect deleted comparisons. Saved evidence and shortlist remain until deleted, while jobs expire after 30 days. Local deletion does not promise provider-side deletion. No supplier contact, email, cart, order, approval or payment occurs in Phase 2.
+Select offers and choose **Save selected offers** beneath a comparison's offers or **Save shortlist** above the comparisons. Both buttons save all current selections for the participation. A **Partial research: some sources could not be used.** warning does not block selection or saving: surviving validated offers, including listing-only offers with unknown price or delivery, remain usable. Comparisons are saved automatically when research completes; the save buttons persist your shortlist selections. Saved revisions prevent lost updates; reload saved state to resolve a conflict. Refreshing research creates a new immutable comparison and preserves prior selections. Clear a comparison's selections and save before deleting it. Deletion requires confirmation; old jobs cannot resurrect deleted comparisons. Saved evidence and shortlist remain until deleted, while jobs expire after 30 days. Local deletion does not promise provider-side deletion. No supplier contact, email, cart, order, approval or payment occurs in Phase 2.
 
 Uncertain writes are reconciled with saved server state rather than automatically replayed. Existing evidence and manual preparation remain available after source/provider failures. Access loss clears private UI state. Use **Reload saved state** after uncertainty or a stale/deleted resource.
+
+## Manual partial-result save check
+
+1. Open a completed partial comparison with at least one available offer. Confirm the warning explains that available offers can still be selected and saved.
+2. Tick an offer and click **Save selected offers** directly beneath the offers. Expect **Private shortlist saved.** Reload and confirm the offer remains selected.
+3. Change the selection and use **Save shortlist** above the comparisons. Reload and confirm the same persistence behavior. Both controls save the full selection across comparisons, rather than only the comparison beside the button.
+4. Confirm missing prices/delivery remain unknown and source-failure warnings remain visible after saving. Clear selections and save before deleting a referenced comparison.
+
+These are manual verification instructions, not a claim that this session exercised a live partial result. A job with zero validated offers still fails without a new comparison; existing saved comparisons remain available.
 
 ## Checks
 

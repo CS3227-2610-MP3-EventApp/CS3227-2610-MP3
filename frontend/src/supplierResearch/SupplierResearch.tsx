@@ -83,7 +83,7 @@ export function SupplierResearch(){
    {items.map(s=><Paper key={s.id} variant="outlined" sx={{p:3}}><Stack spacing={2}>
     <Typography component="h3" variant="h6">{s.request.category}: {s.request.quantity} units — {new Date(s.createdAt).toLocaleString()}</Typography>
     <Typography>{s.request.brief} · {s.request.deliveryArea}{s.request.neededBy?` · Needed by ${s.request.neededBy}`:""}</Typography>
-    {s.status==="partial"&&<Alert severity="warning">Partial research: some sources could not be used.</Alert>}{s.isStale&&<Alert severity="warning">Stale evidence: a source is older than 24 hours. Research again for a separate fresh comparison.</Alert>}
+    {s.status==="partial"&&<Alert severity="warning">Partial research: some sources could not be used. You can still select and save the available offers below.</Alert>}{s.isStale&&<Alert severity="warning">Stale evidence: a source is older than 24 hours. Research again for a separate fresh comparison.</Alert>}
     {s.sourceFailures.map(f=><Alert key={f.sourceId} severity="warning">{f.displayMessage}</Alert>)}
     {s.offers.map(o=><Paper key={o.id} variant="outlined" sx={{p:2}}><Stack spacing={1}>
      <Typography component="h4" variant="h6">{o.supplierName}</Typography><Typography>{o.productDescription}</Typography>
@@ -94,6 +94,7 @@ export function SupplierResearch(){
      {o.unknownFields.map((u,i)=><Typography key={i} variant="body2">{u.field}: unknown — {u.reason}</Typography>)}{o.qualifications.map((q,i)=><Typography key={i} variant="body2">{q}</Typography>)}
      <Typography component="h5" variant="subtitle1">Field evidence</Typography>{o.evidenceByField.map((e,i)=>{const source=s.sources.find(src=>src.sourceId===e.sourceId)!;return <Typography key={i} variant="body2">{e.field}: “{e.evidenceQuote}” · <Link href={source.finalUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">{new URL(source.finalUrl).hostname}</Link> · {source.provider} · Retrieved {new Date(source.retrievedAt).toLocaleString()}{source.isStale?" (stale)":""}</Typography>;})}
     </Stack></Paper>)}
+    <Button variant="contained" disabled={busy||uncertain||conflict||selected.length>100} onClick={save}>Save selected offers</Button>
     <Typography component="h4" variant="subtitle1">Retrieved sources</Typography>
     {s.sources.map(source=><Box key={source.sourceId} component="details"><Typography component="summary" sx={{cursor:"pointer"}}>{new URL(source.finalUrl).hostname} · Retrieved {new Date(source.retrievedAt).toLocaleString()}{source.isStale?" · Stale":""}</Typography><Stack spacing={1} sx={{mt:1}}><Typography variant="body2">Discovery URL: <Link href={source.searchResultUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">{source.searchResultUrl}</Link></Typography><Typography variant="body2">Requested URL: {source.requestedUrl}</Typography><Typography variant="body2">Final source: <Link href={source.finalUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">{source.finalUrl}</Link> · {source.provider}</Typography><Typography variant="body2">Captured untrusted excerpt: {source.excerpt}</Typography></Stack></Box>)}
     <Button color="error" disabled={busy||uncertain} onClick={()=>remove(s)}>Delete comparison</Button>
