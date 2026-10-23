@@ -27,3 +27,5 @@ services:
         value: "true"
       - key: AI_SYNTHETIC_EVENT_IDS
         sync: false # JSON list of the demo event UUIDs
+      - key: TAVILY_API_KEY
+        sync: false # supplier research; set the secret in the Render dashboard
