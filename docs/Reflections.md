@@ -127,6 +127,25 @@ test-change request, selected a supported rollback point, updated the expected b
 revisions, and reran the migration and full backend suite. This was a concrete example of a
 requirement/test contract needing to evolve with an approved architecture change.
 
+**Yik Bing's account of the migration test.** After merging my F02 branch with the organiser AI
+work, CI failed because a protected test assumed the Alembic head had one parent. My first
+response was to avoid editing the test: I instructed the orchestrator to skip the full workflow,
+stopped the test-owner agent before it changed anything, and added a no-op migration so the graph
+had a single head again (`6023e2a`). I judged this proportionate because the cause was
+understood, the change was small and no product behaviour was involved. The cost was that the
+test no longer exercised a downgrade of real schema changes, which I accepted because F02
+rollback is intentionally unsupported. A teammate later updated the test itself (`e78ba84`), so
+the final resolution combined a source-side fix with a test change.
+
+**Yik Bing on approved test changes.** The rule that the developer must not edit protected tests
+held, but tests still changed three times in my own work, and each time through a controlled
+route. An old prototype test expected all attendee actions to be disabled, and a behaviour
+reviewer assessed it before the test owner corrected it. F02 received a replacement protected
+baseline instead of in-place edits. For the silent session re-check, the spec decision was
+recorded first, a verifier reviewed the proposal, and the test owner rewrote four protected tests
+and added six under `SILENT-TCR-01`. What made these changes safe was the order: decision,
+independent review, then test edit by the owner, never an edit by the implementer.
+
 ### How tests showed intent
 
 The strongest tests were not just schema checks. They exercised:
@@ -175,6 +194,17 @@ than an established platform fact. Regardless of the cause, the project's extens
 multi-agent and SDD conversations consumed enough tokens that the team experienced
 insufficient remaining capacity. This made the process itself compete with implementation,
 testing, and deployment work.
+
+**Yik Bing's workflow adjustment.** In response, I reduced the workflow for my own work rather
+than for the team. I replaced up to six role agents with two subagents: one test designer and one behaviour verifier, with security
+checked through an explicit checklist in the behaviour review instead of a dedicated pass. I
+kept the parts I judged most valuable: tests written independently of the implementation, a
+protected baseline, and an independent review of a frozen snapshot. The trade-off is that
+security received less dedicated attention, so I recorded this limitation in my session log and
+did not claim a separate security review. This was a personal adjustment agreed locally, not a
+change to the team's process, and I have not measured its cost saving. It did make the
+proportionality argument concrete: I kept the safeguards that independently caught errors and
+dropped the ceremony around them.
 
 My conclusion is not that SDD has no value. It is that SDD should be proportional to risk and
 project size. For a short three-person student project, I would use:
@@ -244,6 +274,13 @@ verification. A model can return valid JSON with the wrong revision; an agent ca
 plausible specification with the wrong route; a test can pass while an integration boundary
 is still incomplete. Grounding, protected tests, focused reviews, and human approval caught
 several of these issues.
+
+**Yik Bing on human judgment.** The process supplied gates, but I still chose when to scale it
+back. I stopped further AI testing to save credits and tested by hand instead, and I skipped the
+full workflow for the migration fix because the cause was understood and the change was small.
+These choices worked because I understood each problem and its risks, and I recorded the
+trade-offs in my session log rather than claiming the checks had been done. I would be wary of
+using the same shortcuts when the cause was unclear or the risk was higher.
 
 The most important process improvement would be proportionality. For a similar short project,
 I would agree the security boundaries and acceptance tests early, use a compact shared
