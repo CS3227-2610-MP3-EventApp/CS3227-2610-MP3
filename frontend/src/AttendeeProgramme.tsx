@@ -122,11 +122,11 @@ export function AttendeeProgramme() {
     </Stack>
     <Stack direction="row" sx={{gap: 2, flexWrap: "wrap", mb: 2}}><Button component={Link} to="/attendee/notifications">Notifications</Button>{eventId && <Button component={Link} to={`/attendee/events/${eventId}/announcements`}>Event announcements</Button>}</Stack>
     {view === "items" && selectedEvent && <Typography color="text.secondary" sx={{ mb: 2 }}>{selectedEvent.timezone} · {localTime(selectedEvent.startsAt, selectedEvent.timezone)} – {localTime(selectedEvent.endsAt, selectedEvent.timezone)}</Typography>}
-    {view === "items" && <Box component="form" onSubmit={(event) => { event.preventDefault(); applyFilters(); }} sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 1fr 1fr auto" }, gap: 1.5, mb: 2.5, alignItems: "center" }}>
+    {view === "items" && <Box component="form" onSubmit={(event) => { event.preventDefault(); applyFilters(); }} sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 1fr 1fr auto" }, gap: 1.5, mb: 2.5, alignItems: "start" }}>
       <TextField label="Search activity titles" value={titleDraft} onChange={(event) => setTitleDraft(event.target.value)} />
       <FormControl fullWidth><InputLabel id="programme-type-label">Type</InputLabel><Select labelId="programme-type-label" label="Type" value={typeDraft} onChange={(event) => setTypeDraft(event.target.value)}><MenuItem value="">All types</MenuItem>{types.map(([label, token]) => <MenuItem key={token} value={token}>{label}</MenuItem>)}</Select></FormControl>
       <TextField label="Date" type="date" value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} InputLabelProps={{ shrink: true }} helperText="Matches the activity start date in the event timezone." />
-      <Button type="submit" variant="contained">Apply filters</Button>
+      <Button type="submit" variant="contained" sx={{ height: 56 }}>Apply filters</Button>
     </Box>}
     {view === "items" && eventId && <EventQuestions eventId={eventId} timezone={selectedEvent?.timezone ?? items[0]?.event.timezone ?? "UTC"} formatTime={localTime} formatPrice={price} />}
     {loading && <Typography role="status" sx={{ my: 2 }}>Loading programme…</Typography>}

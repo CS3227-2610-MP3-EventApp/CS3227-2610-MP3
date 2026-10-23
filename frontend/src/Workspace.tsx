@@ -90,7 +90,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
     <Box sx={{ minWidth: 0 }}>
       <Stack component="header" direction="row" alignItems="center" justifyContent="space-between" sx={{ px: { xs: 2.5, lg: 5 }, py: 2, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", flexWrap: "wrap", gap: 2 }}>
         <Typography variant="body2" fontWeight={650}>{roleNames[session.role]} <Box component="span" sx={{ color: "text.secondary", mx: 1 }}>/</Box> Overview</Typography>
-        <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1.5 }}><AppearanceControl /><Button size="small" onClick={() => navigate("/change-password")}>Change password</Button><Button disabled={pending || unknown} size="small" onClick={signOut}>Sign out <Box component="span" aria-hidden="true" sx={{ ml: 1 }}>↗</Box></Button></Stack>
+        <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1.5 }}>{location.pathname !== `/${session.role}` && <Button size="small" onClick={() => navigate(`/${session.role}`)}>Dashboard</Button>}<AppearanceControl /><Button size="small" onClick={() => navigate("/change-password")}>Change password</Button><Button disabled={pending || unknown} size="small" onClick={signOut}>Sign out <Box component="span" aria-hidden="true" sx={{ ml: 1 }}>↗</Box></Button></Stack>
       </Stack>
       <Box component="main" sx={{ p: { xs: 2.5, md: 4, lg: 5 }, maxWidth: 1500, mx: "auto" }}>
         {pending && <Alert role="status" severity="info">{progress.status}</Alert>}
