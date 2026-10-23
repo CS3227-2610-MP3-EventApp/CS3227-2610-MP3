@@ -829,8 +829,9 @@ def test_additive_ai_migration_preserves_existing_auth_and_application_records(a
     script = ScriptDirectory.from_config(Config(str(BACKEND / "alembic.ini")))
     head = script.get_current_head()
     assert head != BASE_REVISION, "Expected an additive AI-analysis migration before testing preservation."
-    previous = script.get_revision(head).down_revision
-    assert isinstance(previous, str), "Expected a single linear predecessor for the additive feature migration."
+    # F02 is a forward-only branch, so preserve it while rolling back the
+    # post-AI merged migrations before upgrading the complete graph again.
+    previous = "20261021_0005"
 
     environment = {**os.environ, "DATABASE_URL": os.environ["TEST_DATABASE_URL"]}
     downgraded = subprocess.run(

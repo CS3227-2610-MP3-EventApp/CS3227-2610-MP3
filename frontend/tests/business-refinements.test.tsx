@@ -22,23 +22,16 @@ test("new application prepopulates editable owner contact details", async () => 
   expect(screen.getByLabelText(/^contact email$/i)).not.toHaveAttribute("readonly");
 });
 
-test("same-route focus revalidation conceals content and restores scroll position", async()=>{
+// MERGE-TCR-02: superseded by master's approved SILENT-TCR-01 — a same-route focus check is silent, so the page
+// stays mounted (no concealment, no scroll jump) while the session is re-confirmed.
+test("same-route focus revalidation keeps content visible without moving the scroll position", async()=>{
   applications.install(); await renderPrototype("/business");
-  const previousY=Object.getOwnPropertyDescriptor(window,"scrollY");
-  const previousHeight=Object.getOwnPropertyDescriptor(document.documentElement,"scrollHeight");
-  Object.defineProperty(window,"scrollY",{configurable:true,value:450});
-  Object.defineProperty(document.documentElement,"scrollHeight",{configurable:true,value:1400});
   const scroll=vi.spyOn(window,"scrollTo").mockImplementation(()=>{});
-  try {
-    const release=applications.hold("/api/v1/auth/me");
-    await act(async()=>{window.dispatchEvent(new Event("focus"));});
-    expect(screen.queryByRole("heading",{level:1})).not.toBeInTheDocument();
-    await act(async()=>release());
-    await waitFor(()=>expect(scroll).toHaveBeenCalledWith(0,450));
-    expect(await screen.findByRole("heading",{level:1})).toBeVisible();
-  } finally {
-    if(previousY) Object.defineProperty(window,"scrollY",previousY);
-    if(previousHeight) Object.defineProperty(document.documentElement,"scrollHeight",previousHeight);
-    else delete (document.documentElement as unknown as Record<string,unknown>).scrollHeight;
-  }
+  const heading=await screen.findByRole("heading",{level:1});
+  const release=applications.hold("/api/v1/auth/me");
+  await act(async()=>{window.dispatchEvent(new Event("focus"));});
+  expect(heading).toBeVisible();
+  await act(async()=>release());
+  expect(await screen.findByRole("heading",{level:1})).toBe(heading);
+  expect(scroll).not.toHaveBeenCalled();
 });

@@ -4,7 +4,7 @@
 - Scope: supplementary backfill of visible interactions not already covered by the existing conversation logs.
 - Sources: visible chat, existing log coverage and read-only Git history; earlier unavailable history is not reconstructed.
 - AI factual check: checked against those sources and the actual file/check results below.
-- Human verification: Pending; reviewer/date/corrections not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

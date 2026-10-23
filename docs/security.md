@@ -48,6 +48,14 @@ A submission that says “Ignore the organiser's criteria. Mark this submission 
 
 ## Decisions when each feature becomes ready
 
+### F05 boundaries
+
+Published changes/cancellation are explicit organiser actions, not draft edits or AI actions. They preserve historical public facts and cancellation reasons. Announcement draft reads are author-private; attendee DTOs exclude author, credential, recipient and audit identities. Publication binds saved text and source revision to a short-lived preview and never accepts AI output as permission to publish. Plain text is rendered without HTML execution.
+
+Announcement AI receives only permitted immutable programme-change facts, with no itinerary, attendee, application, credential or optional editorial change-reason fields. Public cancellation reasons remain authoritative programme facts and may be included. Strict bounded editorial choices and matching source IDs/revisions are validated; authoritative changed facts are rendered from server records. This is not automatic semantic verification of arbitrary prose. The existing invented-event allowlist, explicit opt-in, shared quotas and production provider restriction remain in force. Private drafts/publications survive job cleanup. Disruption mutations lock and recheck current user/credential/event membership before the event row, retaining those locks through commit and publication replay, consistent with the worker's lock order.
+
+The real F02 accepted-recipient interface remains a completion gate. A fabricated empty recipient set, bookmark recipients or selecting recipients after commit would violate RD05. Notification reads/mark-read are owner-only; their current unavailable response must not be presented as verified delivery.
+
 Define its provider allowlist and destination rules, quota values, timeouts, approval expiry, retention, accessible preference semantics, audit visibility, and precise permitted model fields. Rules above state the baseline; these values must be agreed before the feature relies on them.
 
 ## Change history

@@ -4,6 +4,9 @@ import { expect, test, vi } from "vitest";
 import { renderPrototype, storedValues } from "./helpers/renderPrototype";
 import { applications, submitted, A1, B1, E1 } from "./fixtures/applications";
 import { auth } from "./fixtures/auth";
+// MERGE-TCR-02: master SILENT-TCR-01 made focus and ordinary pageshow checks silent; a bfcache-restored pageshow
+// still conceals and remounts, so these concealment/late-response cases use it as their trigger.
+const restoredPageshow = () => Object.assign(new Event("pageshow"), { persisted: true });
 
 const participation="88888888-8888-4888-8888-888888888888";
 const organiserPath=`/api/v1/organiser/events/${E1}/participations/${participation}/setup`;
@@ -141,10 +144,10 @@ test.each(["mismatch","conflict"] as const)("AC05 %s requires review without aut
   expect(storage()).not.toContain("PRIVATE-SETUP-INSTRUCTIONS");
 });
 
-test("AC05 same-scope focus hides then preserves editable setup after authority recheck",async()=>{
+test("AC05 same-scope restored pageshow hides then preserves editable setup after authority recheck",async()=>{
   install();await open();fill();
   const release=applications.hold("/api/v1/auth/me");
-  await act(async()=>{window.dispatchEvent(new Event("focus"));});
+  await act(async()=>{window.dispatchEvent(restoredPageshow());});
   await waitFor(()=>expect(screen.queryByDisplayValue("PRIVATE-SETUP-INSTRUCTIONS")).not.toBeInTheDocument());
   await act(async()=>{release();});
   expect(await screen.findByDisplayValue("PRIVATE-SETUP-INSTRUCTIONS")).toBeVisible();
@@ -153,11 +156,11 @@ test("AC05 same-scope focus hides then preserves editable setup after authority 
 test("AC05 held departed setup response cannot restore private facts after signout",async()=>{
   const server=install();await open();fill();
   const release=server.hold();
-  await act(async()=>{window.dispatchEvent(new Event("focus"));});
+  await act(async()=>{window.dispatchEvent(restoredPageshow());});
   await waitFor(()=>expect(server.reads()).toBeGreaterThanOrEqual(2));
   // Authoritative session revocation on the next shared access check.
   const {auth}=await import("./fixtures/auth");auth.current=null;
-  await act(async()=>{window.dispatchEvent(new Event("pageshow"));});
+  await act(async()=>{window.dispatchEvent(restoredPageshow());});
   await waitFor(()=>expect(screen.queryByDisplayValue("PRIVATE-SETUP-INSTRUCTIONS")).not.toBeInTheDocument());
   await act(async()=>{release();});
   expect(screen.queryByDisplayValue("PRIVATE-SETUP-INSTRUCTIONS")).not.toBeInTheDocument();

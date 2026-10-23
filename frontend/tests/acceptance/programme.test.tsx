@@ -123,15 +123,14 @@ function setLocalTime(label: RegExp, value: string) {
   const [year, month, day] = date.split("-");
   const [hours, minutes, seconds = "00"] = time.split(":");
   const meridiem = within(field).queryByRole("spinbutton", { name: /^Meridiem$/i });
-  const sections = { Day: day, Month: month, Year: year, Hours: meridiem ? String(Number(hours) % 12 || 12) : hours, Minutes: minutes, Seconds: seconds, ...(meridiem ? { Meridiem: Number(hours) < 12 ? "AM" : "PM" } : {}) };
+  const sections = { Year: year, Month: month, Day: day, Hours: meridiem ? String(Number(hours) % 12 || 12) : hours, Minutes: minutes, Seconds: seconds, ...(meridiem ? { Meridiem: Number(hours) < 12 ? "AM" : "PM" } : {}) };
   // Paste through MUI's public accessible sections; no hidden-input mutation.
   for (const [name, content] of Object.entries(sections)) {
     const section = within(field).queryByRole("spinbutton", { name: new RegExp(`^${name}$`, "i") });
     if (!section && name === "Seconds") continue;
     expect(section).not.toBeNull();
     fireEvent.focus(section!);
-    const pasted = name === "Month" && /[a-z]/i.test(section!.textContent ?? "") ? new Intl.DateTimeFormat("en-GB", {month:"short",timeZone:"UTC"}).format(new Date(Date.UTC(2027,Number(content)-1,1))) : content;
-    fireEvent.paste(section!, { clipboardData: { getData: () => pasted } });
+    fireEvent.paste(section!, { clipboardData: { getData: () => content } });
   }
   fireEvent.blur(field);
 }
@@ -340,7 +339,7 @@ describe("approved programme UI refinements (mocked HTTP integration)", () => {
     const changed = vi.fn();
     function PickerHarness() {
       const [value, setValue] = useState<Dayjs | null>(dayjs("2027-01-01T09:00:00"));
-      return <LocalizationProvider dateAdapter={AdapterDayjs}><DateTimePicker label="Starts at" value={value} onChange={(next) => { setValue(next); changed(next?.format("YYYY-MM-DDTHH:mm:ss")); }} format="DD MMM YYYY HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} /></LocalizationProvider>;
+      return <LocalizationProvider dateAdapter={AdapterDayjs}><DateTimePicker label="Starts at" value={value} onChange={(next) => { setValue(next); changed(next?.format("YYYY-MM-DDTHH:mm:ss")); }} format="YYYY-MM-DD HH:mm:ss" ampm={false} views={["year", "month", "day", "hours", "minutes", "seconds"]} /></LocalizationProvider>;
     }
     const user = userEvent.setup(); render(<PickerHarness />);
     setLocalTime(/^Starts at$/i, "2027-01-02T10:35:14");

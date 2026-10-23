@@ -1,0 +1,109 @@
+from datetime import datetime
+from typing import Annotated, Literal
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
+
+Constraint = Literal["overlap", "budget", "accessibility"]
+
+
+class GenerateItinerary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    requestId: UUID
+    preferenceRevision: Annotated[StrictInt, Field(ge=0)]
+
+
+class ItineraryJobView(BaseModel):
+    id: UUID
+    eventId: UUID
+    state: Literal["pending", "running", "completed", "failed", "cancelled"]
+    createdAt: datetime
+    updatedAt: datetime
+    completedAt: datetime | None
+    failureCode: str | None
+    providerMayHaveRun: bool
+    result: dict | None
+
+
+class ModelItem(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    itemId: UUID
+    itemRevision: StrictInt
+    startsAt: datetime
+    endsAt: datetime
+    reason: StrictStr = Field(max_length=500)
+
+
+class ModelBlocking(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    constraint: Constraint
+    detail: StrictStr = Field(max_length=500)
+
+
+class ModelFeasible(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    outcome: Literal["feasible"]
+    items: Annotated[list[ModelItem], Field(min_length=1, max_length=100)]
+
+
+class ModelInfeasible(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    outcome: Literal["infeasible"]
+    blockingConstraints: Annotated[list[ModelBlocking], Field(min_length=1, max_length=10)]
+
+
+QuestionField = Literal["title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price",
+                        "capacity", "accessibility", "state", "cancellationReason"]
+# Names a model may use for a claim field besides the contract names. Each maps to a real field and a way to check
+# the value: "same" compares like the real field, "time" also accepts the event-local text, "text" is price text.
+FIELD_ALIASES = {
+    "startsAtLocal": ("startsAt", "time"), "endsAtLocal": ("endsAt", "time"), "startTime": ("startsAt", "time"),
+    "endTime": ("endsAt", "time"), "start": ("startsAt", "time"), "end": ("endsAt", "time"),
+    "priceMinorUnits": ("price", "same"), "priceText": ("price", "text"),
+    "accessibilityDetails": ("accessibility", "same"), "roomName": ("room", "same"), "venue": ("venueName", "same"),
+    "address": ("venueAddress", "same"),
+}
+RawField = Literal[("title", "type", "startsAt", "endsAt", "room", "venueName", "venueAddress", "price", "capacity",
+                    "accessibility", "state", "cancellationReason", *FIELD_ALIASES)]
+UnknownReason = Literal["insufficient_evidence", "conflicting_evidence", "out_of_scope"]
+
+
+class AskQuestion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    requestId: UUID
+    question: Annotated[StrictStr, Field(max_length=2000)]
+
+
+class QuestionJobView(BaseModel):
+    id: UUID
+    eventId: UUID
+    state: Literal["pending", "running", "completed", "failed", "cancelled"]
+    createdAt: datetime
+    updatedAt: datetime
+    completedAt: datetime | None
+    failureCode: str | None
+    providerMayHaveRun: bool
+    question: str
+    stale: bool
+    result: dict | None
+
+
+class RawClaim(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    itemId: UUID
+    itemRevision: StrictInt
+    field: RawField
+    value: StrictStr | StrictInt | None
+
+
+class RawAnswered(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    outcome: Literal["answered"]
+    summary: StrictStr | None
+    claims: Annotated[list[RawClaim], Field(min_length=1, max_length=20)]
+
+
+class RawUnknown(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    outcome: Literal["unknown"]
+    reason: UnknownReason

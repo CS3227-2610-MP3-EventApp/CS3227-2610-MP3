@@ -1,11 +1,11 @@
 # Submit business applications
 
-> Current revision 5: the **Approved current revision 5 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
+> Current revision 6: the **Approved current revision 6 amendment - 2026-10-22** section below (renumbered from the business branch's revision 5 during the 2026-10-23 master merge) and master's revision 5 silent-revalidation change govern changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | submit-business-applications |
 | Covered stories | [F06-US01](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 5 / In review |
+| Specification revision / status | 6 / In review |
 | Product roles / roadmap | Active business owners and assigned event organisers; [manual journeys](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Historical exact r2 backend and r3 frontend approval by Isaac on 2026-10-20/21 remains bound to those revisions and recorded below. On 2026-10-21 the user approved replacing known-ID eligibility with one application/participation request and organiser-controlled open applications. Current r4 checks are recorded below; human verification remains pending. |
 | Review / run record | [Current approved amendment and evidence](../../workflow/agents/runs/2026-10-21-open-participation-requests.md); prior records remain historical; human review pending |
@@ -97,9 +97,9 @@ Success audit and domain writes commit atomically. Actions `application_create`,
 | submit-business-applications-AC10 | Authoritative GET populates an own draft; full replacement uses loaded revision even while closed; conflicts preserve input and offer explicit refresh. | F06-US01; RD02; SEC13 | Closed edit and second-session stale save |
 | submit-business-applications-AC11 | Review displays saved content/revision; separate confirm submits that revision only while open; cancel writes nothing and authoritative success alone shows frozen awaiting-decision state. | F06-US01; RD02; SEC06/13 | Review/cancel/confirm/close race |
 | submit-business-applications-AC12 | Retired r4: organiser known-ID grant UI replaced by AC19 named-event controls and submitted review; no legacy eligibility UI remains. | F06-US01 | Replacement scope below |
-| submit-business-applications-AC13 | Direct/history/refresh/focus/context changes revalidate identity; conceal private data while revalidating, purge on confirmed scope/access loss, and ignore departed-context responses. | F06-US01; SEC01/02; shared UI AC08 | Revocation, actor change and A -> B -> A races |
+| submit-business-applications-AC13 | Direct/history/refresh/focus/context changes revalidate identity; revalidate silently on window focus and non-restored page show (the page stays visible; revalidation runs in the background), but conceal private data while revalidating for navigation, history, refresh, restored-page (bfcache) and recovery revalidation; in every case purge on confirmed scope/access loss or actor change, fail closed with the error screen when identity cannot be confirmed, and ignore departed-context responses. | F06-US01; SEC01/02; shared UI AC08 | Revocation, actor change and A -> B -> A races |
 | submit-business-applications-AC14 | Async categories include safe specific reason and next action under shared UI r4; ambiguous writes reconcile list/detail/settings GET before supported retry, never blind replay or assume success. | F06-US01; SEC02/08/10/13 | Lost responses after commit and static error mapping |
-| submit-business-applications-AC15 | Unsaved input is exact-scope memory-only, preserved through same-scope navigation/failure with warnings and concealed revalidation; reload restores saved server data only; confirmed loss purges it. | F06-US01; SEC01/02/08 | Navigation/reload/storage/late responses |
+| submit-business-applications-AC15 | Unsaved input is exact-scope memory-only, preserved through same-scope navigation/failure with warnings, silent focus revalidation and concealed revalidation for navigation/restored pages; reload restores saved server data only; confirmed loss purges it. | F06-US01; SEC01/02/08 | Navigation/reload/storage/late responses |
 | submit-business-applications-AC16 | Pages meet approved shared UI r4 keyboard/Chrome+NVDA, WCAG2.2AA,320 CSSpx/400% zoom, reduced-motion and200ms/10s presentation feedback criteria. | F06-US01; shared UI AC01-08/11-12 | Required browser/accessibility checks, no conformance inferred from unit tests |
 | submit-business-applications-AC17 | Business Applications and organiser Application Reviews cards reach live guarded journeys; each home truthfully shows one live feature and two previews. | F06-US01; F10-US01 | Cards/direct entry/current membership |
 | submit-business-applications-AC18 | Assigned organiser settings default closed; strict boolean/CAS updates persist independently from event metadata; business create/submit require open, existing own draft read/edit and submitted review work closed; old grants neither gate nor accept and retired routes return410 without changes. | F06-US01; RD01/02; SEC01/11/13 | Two organisers, settings races, virtual default/upgrade, grants preserved |
@@ -143,6 +143,8 @@ Root owns the run and [session summary](../../logs/isaac/2026-10-20-foundation-f
 
 
 | 4 / 2026-10-21 | Replaced eligibility gate with open applications/single participation request, added scoped event names/settings CAS and BusinessApplication v2; retired AC06 -> AC18 and AC12 -> AC19; retained all other IDs | User approved changed product direction; earlier exact approvals/evidence remain historical; new test baseline and verification required |
+| 5 / 2026-10-22 | Yik Bing and the group changed AC13/AC15: window focus and non-restored page-show revalidation is now silent (no concealment while the identity check is in flight). Exposure window: until the check returns, stale or other-actor content stays visible and a write could be submitted; the server still authorises every read and write. Purge on 401/403, actor change or membership loss, and fail-closed on other failures, are unchanged. Protected tests REQ-REG-C1, REQ-REG-C2 and two AC13/15 focus tests are changed by the test owner under test-change record SILENT-TCR-01 | Exact text approved by Yik Bing in chat 2026-10-22 on behalf of the group; automated checks and teammate review pending |
+| 6 / 2026-10-22 (renumbered 2026-10-23) | Business-branch refinement amendment AC20-21 (contact defaults, readable event dates), written in parallel as revision 5 and renumbered during the master merge; master's r5 silent focus revalidation is retained and the branch's conceal-and-restore-scroll focus behaviour is withdrawn | Isaac's 2026-10-22 approval of the amendment is unchanged; merge test changes MERGE-TCR-02 recorded in the merge session log; independent review pending |
 
 ## Historical verification and evidence (revision 3, 2026-10-21)
 
@@ -162,13 +164,13 @@ Active protected baseline: `254bc0507788c0ef1c255ad2238e3894eb4e798b`, all17 pat
 
 Use the [Git Bash website/API guide](../../docs/BusinessApplicationsTesting.md) for manual review. Actual identities, defects, protected-test correction history and residual checks are in the [frontend run](../../workflow/agents/runs/2026-10-21-complete-business-applications.md) and [session log](../../logs/isaac/2026-10-21-complete-business-applications.md). No push, merge or deployment.
 
-## Approved current revision 5 amendment - 2026-10-22
+## Approved current revision 6 amendment - 2026-10-22
 
 Status: proposed exact contract for the user-requested refinement; earlier approved revision/evidence above remains historical and is not reapproved by this appendix. User direction authorises the requested product changes; independent test adequacy/baseline and exact amendment review are pending. No independent agents are used, per Isaac.
 
 New application contactName/contactEmail default to the signed-in Business owner's displayName/email, fetched through own ContactProfile v1. Defaults are editable and never replace existing saved or dirty inputs. A failed profile lookup leaves manual entry usable; account departure suppresses late profile results. Visible dates obey shared UI date presentation; event metadata/ISO API values stay unchanged. Realistic development event names replace only known generated smoke titles through an explicit rename tool; never silently delete events/applications or alter frozen submissions. AC20 contact defaults/current-actor/typing preservation; AC21 readable event date presentation (shared UI authority).
 
-## Approved current revision 5 amendment - 2026-10-22
+## Approved current revision 6 amendment - 2026-10-22
 
 Isaac explicitly approved these amendments and the refinement acceptance plan on2026-10-22. This current amendment supersedes conflicting wording/criteria in the retained previous revision below; unchanged requirements remain authoritative. Historical approvals/evidence are not transferred to new behavior. New executable tests are written by root against the human-reviewed scenarios; independent executable-delta/implementation review remains pending. No subagents or commits.
 

@@ -170,7 +170,7 @@ def create_job(db: Session, owner, event_id: UUID, application_id: UUID, body):
         if previous is not None:
             raise AIError("revision_conflict")
     if previous:
-        if (previous.event_id, previous.application_id, previous.rubric_revision, previous.source_revision) != (
+        if previous.kind != "application_analysis" or (previous.event_id, previous.application_id, previous.rubric_revision, previous.source_revision) != (
                 event_id, application_id, body.expectedRubricRevision, body.expectedSubmittedRevision):
             raise AIError("revision_conflict")
         return previous
@@ -242,6 +242,7 @@ def job_view(db, job):
     # A newer report must not be paired with an older in-memory running state.
     report = db.scalar(select(AnalysisReport).where(AnalysisReport.job_id == job.id)) if job.state == "completed" else None
     return JobView(id=job.id, eventId=job.event_id, applicationId=job.application_id,
+        kind=job.kind, sourceChangeId=job.source_change_id, announcementDraftId=job.announcement_draft_id,
         state=job.state, createdAt=job.created_at, updatedAt=job.updated_at,
         completedAt=job.completed_at, failureCode=job.failure_code,
         providerMayHaveRun=job.provider_may_have_run,

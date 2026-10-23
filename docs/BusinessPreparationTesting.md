@@ -204,5 +204,5 @@ Record date, specification revision3, staged diff/commit under test, commands, a
 - Setup draft saves remain organiser-only; publication is a separate explicit action. AI sees only published setup.
 - Overall spending limit and optional categorized cost items persist; adopting AI items preserves the limit and existing items.
 - Twenty checklist tasks use compact desktop rows and reflow on narrow screens, including long titles/dates. Each manual-context checkbox occupies its own row.
-- Scroll down, leave the window and return: authority still revalidates, but the page retains its vertical position and same-scope unsaved input. Revoked access must still purge private content.
+- Scroll down, leave the window and return: authority revalidates silently in the background (master SILENT-TCR-01), so the page stays visible at the same position with same-scope unsaved input intact. Revoked access must still purge private content once the check answers.
 - Known local helper-event titles were renamed without deleting records. Future helpers use realistic event titles. `tools/rename_demo_events.py` dry-runs exact-name matches; `--apply` updates only those matches and advances metadata revisions.

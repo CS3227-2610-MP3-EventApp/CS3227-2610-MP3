@@ -4,6 +4,9 @@ import { expect, test, vi } from "vitest";
 import { renderPrototype, storedValues } from "./helpers/renderPrototype";
 import { applications, draft, B1, E1, E2, A2 } from "./fixtures/applications";
 import { auth } from "./fixtures/auth";
+// MERGE-TCR-02: master SILENT-TCR-01 made focus and ordinary pageshow checks silent; a bfcache-restored pageshow
+// still conceals and remounts, so these concealment/late-response cases use it as their trigger.
+const restoredPageshow = () => Object.assign(new Event("pageshow"), { persisted: true });
 
 const participation = draft().participationId;
 const route = `/business/preparation?businessId=${B1}&eventId=${E1}&participationId=${participation}`;
@@ -122,10 +125,10 @@ test("AC09 confirmed identity loss purges draft and ignores late private respons
   const server=install(); await open();
   fireEvent.change(screen.getByLabelText(/^task title$/i),{target:{value:"PRIVATE-DEPARTED-DRAFT"}});
   const release=server.hold();
-  await act(async () => {window.dispatchEvent(new Event("focus"));});
+  await act(async () => {window.dispatchEvent(restoredPageshow());});
   await waitFor(() => expect(server.reads()).toBeGreaterThanOrEqual(2));
   auth.current=null;
-  await act(async () => {window.dispatchEvent(new Event("pageshow"));});
+  await act(async () => {window.dispatchEvent(restoredPageshow());});
   await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-DEPARTED-DRAFT")).not.toBeInTheDocument());
   await act(async () => {release();});
   expect(screen.queryByDisplayValue("PRIVATE-PREPARATION-MARKER")).not.toBeInTheDocument();
@@ -138,7 +141,7 @@ test("AC09 switching participation ignores an earlier held private response", as
   applications.records.push(draft({id:A2,eventId:E2,eventTitle:"Synthetic Winter Market",participationId:otherParticipation}));
   await open();
   const release=server.hold();
-  await act(async () => {window.dispatchEvent(new Event("focus"));});
+  await act(async () => {window.dispatchEvent(restoredPageshow());});
   await waitFor(() => expect(server.reads()).toBeGreaterThanOrEqual(2));
   await act(async () => {
     history.pushState({},"",`/business/preparation?businessId=${B1}&eventId=${E2}&participationId=${otherParticipation}`);
@@ -160,11 +163,11 @@ test("AC09 recoverable validation retains editable input and hides arbitrary ser
   expect(document.body).not.toHaveTextContent("PRIVATE-SERVER-EXCEPTION");
 });
 
-test.each(["focus","pageshow"])("AC09 same-scope %s authority remount preserves unsaved draft in memory", async (event) => {
+test.each(["restored pageshow"])("AC09 same-scope %s authority remount preserves unsaved draft in memory", async (event) => {
   install(); await open();
   fireEvent.change(screen.getByLabelText(/^task title$/i),{target:{value:"PRIVATE-SAME-SCOPE-DRAFT"}});
   const release=applications.hold("/api/v1/auth/me");
-  await act(async () => {window.dispatchEvent(new Event(event));});
+  await act(async () => {window.dispatchEvent(restoredPageshow());});
   await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-SAME-SCOPE-DRAFT")).not.toBeInTheDocument());
   await act(async () => {release();});
   expect(await screen.findByDisplayValue("PRIVATE-SAME-SCOPE-DRAFT")).toBeVisible();

@@ -11,11 +11,16 @@ from starlette.exceptions import HTTPException
 from app.auth.problems import AuthProblem, problem_response
 from app.auth.routes import router
 from app.ai.routes import router as ai_router
+from app.attendee_ai.routes import router as attendee_ai_router
 from app.ai.service import AIError, problem_response as ai_problem_response
 from app.applications.routes import router as application_router
 from app.applications.problems import ApplicationError, is_application_path, problem_response as application_problem_response
 from app.programme.problems import ProgrammeProblem, field_errors, invalid, problem_response as programme_problem_response
 from app.programme.routes import router as programme_router
+from app.disruptions.routes import router as disruption_router
+from app.disruptions.ai import router as announcement_ai_router
+from app.attendee_planning.routes import router as planning_router
+from app.attendee_planning.problems import PlanningProblem, validation_problem, problem_response as planning_problem_response
 from app.preparation.problems import PreparationError, is_preparation_path, problem_response as preparation_problem_response
 from app.preparation.routes import router as preparation_router
 from app.setup.problems import SetupError, is_setup_path, problem_response as setup_problem_response
@@ -35,7 +40,11 @@ settings = Settings()
 app.include_router(router)
 app.include_router(application_router)
 app.include_router(programme_router)
+app.include_router(announcement_ai_router)
+app.include_router(disruption_router)
+app.include_router(planning_router)
 app.include_router(ai_router)
+app.include_router(attendee_ai_router)
 app.include_router(preparation_router)
 app.include_router(setup_router)
 app.include_router(draft_router)
@@ -45,6 +54,10 @@ app.include_router(external_actions_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
+
+@app.exception_handler(PlanningProblem)
+async def planning_problem(request: Request, exc: PlanningProblem):
+    return planning_problem_response(request, exc)
 
 @app.exception_handler(ApplicationError)
 async def application_problem(request: Request, exc: ApplicationError):
@@ -93,6 +106,10 @@ async def auth_problem(request: Request, exc: AuthProblem):
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith("/api/v1/attendee/events/") and "/planning" in request.url.path:
+        return planning_problem_response(request, validation_problem(exc.errors()))
+    if "itinerary-generations" in request.url.path:
+        return ai_problem_response(request, "validation_error")
     if request.url.path.startswith(("/api/v1/business/action-proposals", "/api/v1/business/action-approvals")):
         return action_problem_response(request, "validation_error")
     if "preparation-drafts" in request.url.path or "promotional-concepts" in request.url.path or "supplier-research" in request.url.path or "supplier-shortlist" in request.url.path:
@@ -101,7 +118,7 @@ async def invalid_request(request: Request, exc: RequestValidationError):
         return setup_problem_response(request, "validation_error", exc.errors())
     if is_preparation_path(request.url.path):
         return preparation_problem_response(request, "validation_error", exc.errors())
-    if "/analysis" in request.url.path or request.url.path.endswith("analysis-rubric"):
+    if "/analysis" in request.url.path or request.url.path.endswith(("analysis-rubric", "/announcements/generate")):
         return ai_problem_response(request, "validation_error")
     if is_application_path(request.url.path):
         return application_problem_response(request, "validation_error", exc.errors())

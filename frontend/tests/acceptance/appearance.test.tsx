@@ -415,7 +415,7 @@ describe("revision 2 AC09 representative typography and palette", () => {
     if (role === "organiser") {
       expect(screen.queryByText("03 / AVAILABLE · 00 / PREVIEWS")).not.toBeInTheDocument();
     } else {
-      expectMinimumTextSize(screen.getByText(role === "business" ? "03 / AVAILABLE · 00 / PREVIEWS" : "03 / PREVIEWS"), 18);
+      expectMinimumTextSize(screen.getByText(role === "business" ? "03 / AVAILABLE · 00 / PREVIEWS" : "02 / AVAILABLE · 01 / PREVIEW"), 18);
     }
     expectMinimumTextSize(role === "organiser" ? screen.getByRole("link", { name: /analysis/i }) : role === "business" ? screen.getByRole("link", { name: /AI preparation draft/i }) : screen.getAllByRole("button", { name: /coming later/i })[0], 21);
     if (role === "business") {

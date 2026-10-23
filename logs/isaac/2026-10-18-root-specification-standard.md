@@ -4,7 +4,7 @@
 - Base revision: `ae0616d68c3245b1e89f7883d1e7968e88395fc8`; initial working tree clean.
 - Source: visible user request, repository reads and actual agent/tool evidence. Earlier unavailable conversations are not reconstructed.
 - AI factual check: against the stated evidence; final checks recorded below.
-- Human verification: Pending; reviewer/date/corrections not supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Request and approach
 

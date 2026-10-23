@@ -4,7 +4,7 @@
 - Scope: EventApp specification boundary, approved folder layout and 26 domain Drafts; uncommitted working tree.
 - Sources: This visible conversation, repository guidance and catalogue, agent messages and actual checks; unavailable earlier conversations are not reconstructed.
 - AI factual check: Checked against the visible requests, repository files, agent handoffs and command results below.
-- Human verification: Pending; reviewer/date/corrections not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

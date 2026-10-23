@@ -275,5 +275,8 @@ def test_legacy_analysis_insert_without_workflow_defaults_to_analysis(world,part
             (job,world.oa_id,world.a,frozen["id"],str(uuid4()),frozen["frozenSubmittedContentRevision"],Jsonb([]),now,now,now+timedelta(seconds=180)))
     assert stored(job)["workflow"] == "analysis" and stored(job)["business_participation_id"] is None
     value=success(world.oa.get(path(job)))
-    assert set(value) == {"id","eventId","applicationId","state","createdAt","updatedAt","completedAt","failureCode","providerMayHaveRun","report"}
+    # MERGE-TCR-03: master's F05 organiser envelope (monitor-and-recover-ai-tasks AC08) adds kind and announcement links.
+    assert set(value) == {"id","eventId","applicationId","state","createdAt","updatedAt","completedAt","failureCode","providerMayHaveRun","report",
+        "kind","sourceChangeId","announcementDraftId"}
+    assert value["kind"] == "application_analysis" and value["sourceChangeId"] is None and value["announcementDraftId"] is None
     assert value["applicationId"] == frozen["id"] and value["report"] is None

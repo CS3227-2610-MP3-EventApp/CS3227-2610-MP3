@@ -16,6 +16,7 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-23 Isaac master merge](isaac/2026-10-23-master-merge.md): resolved the master merge preferring master, shared `ai_jobs` kind/workflow split, business migrations renumbered 0020–0029, approved merge test changes MERGE-TCR-01/02/03, specs synchronized, full backend/frontend runs; human verification pending.
 - [2026-10-23 Isaac F09-US03 implementation](isaac/2026-10-23-f09-us03-implementation.md): whole conversation covering the procurement proposal UI, test corrections, evidence, commits, reviewer model fix and independent-review launch; human verification pending.
 - [2026-10-23 Isaac F09-US03 specification and test handoff](isaac/2026-10-23-f09-us03-start-and-tcr-correction.md): F09-US03 r15 approval, Phase 3 schema-test correction, acceptance-test design/review blockers and takeover steps; human verification pending.
 - [2026-10-23 Isaac F09 Phase 3 approval contract](isaac/2026-10-23-f09-phase3-approval-contract.md): whole visible conversation covering specification review, default/exact revision approval, independent test baseline, sandbox implementation, verification corrections and commit evidence; human verification pending.
@@ -35,7 +36,11 @@ The AI checks factual statements against the visible interaction/tool evidence a
 - [2026-10-21 Isaac F06 phase2](isaac/2026-10-21-f06-phase-2-implementation.md): approved manual preparation bounds, actual independent test/developer/reviewer handoffs, repairs, local integration/restart evidence and commit; human verification pending.
 - [2026-10-21 Isaac F06 phase3](isaac/2026-10-21-f06-phase-3-setup.md): approved booth/setup scope and ongoing independent test-first pipeline; results recorded as observed, human verification pending.
 
-- [2026-10-21 Dylan organiser AI analysis](dylan/2026-10-21-organiser-ai-analysis.md): approved-plan implementation, SoCLaaS synthetic-data boundary, actual specialist handoffs, protected tests and verification status; human verification pending.
+- [2026-10-21 Dylan organiser disruptions](dylan/2026-10-21-organiser-disruptions.md): F05 staged changes/announcements, actual specialist handoffs, protected regressions, corrected review findings, invented-data provider check and pending F02 integration; human verification approved by the team on 2026-10-22.
+
+- [2026-10-21 Dylan organiser AI analysis](dylan/2026-10-21-organiser-ai-analysis.md): approved-plan implementation, SoCLaaS synthetic-data boundary, actual specialist handoffs, protected tests and verification status; human verification approved by the team on 2026-10-22.
+
+- [2026-10-22 Yik Bing F03-US02 attendee event questions](yikbing/2026-10-22-f03-us02-answer-event-questions.md): scoping, user-approved decisions, spec revision 2 with LLM threat model, reduced-agent test design and combined review, review fixes, accepted limitations; human verification pending.
 
 - [2026-10-15–16 coordination discussion and repository sync](yikbing/2026-10-16-yik-bing-coordination-history.md): retrospective from the visible chat and Git evidence; earlier project-planning conversations are unavailable, and no claim of their complete coverage is made.
 - [2026-10-16 workflow implementation](yikbing/2026-10-16-yik-bing-agent-workflow.md): branch setup, agent definitions, protected-test procedure, log requirement, validation and review evidence.
@@ -46,20 +51,26 @@ The AI checks factual statements against the visible interaction/tool evidence a
 - [2026-10-18 shared UI specification](isaac/2026-10-18-shared-ui-spec.md): user-requested visual and interaction direction, prior project/catalogue updates, UI Draft, scenario handoff and log organization.
 - [2026-10-20 cross-platform run guide](isaac/2026-10-20-cross-platform-run-guide.md): ordered local startup, backend/frontend test commands, PowerShell and bash/zsh equivalents, and troubleshooting clarifications.
 - [2026-10-18 Dylan project/authentication UI planning](dylan/2026-10-18-project-understanding-auth-ui-planning.md): repository review, account/provisioning decisions, bounded prototype specification, independent analysis/test/security handoffs and pre-implementation gates.
-- [2026-10-19 Dylan shared authentication](dylan/2026-10-19-shared-authentication.md): revision 3 application-owned auth contracts, exact peer handoffs and corrected provisioning/session choices; implementation and human verification pending.
+- [2026-10-19 Dylan shared authentication](dylan/2026-10-19-shared-authentication.md): revision 3 application-owned auth contracts, exact peer handoffs and corrected provisioning/session choices; implementation remains pending; human verification was approved by the team on 2026-10-22.
 
 - [2026-10-20 foundation follow-through and backend applications](isaac/2026-10-20-foundation-follow-through.md): original Business multi-agent request, prerequisite evidence, approval gates, backend delivery, agent performance and corrected test-contract mismatch.
 
-- [2026-10-21 complete Business application journey](isaac/2026-10-21-complete-business-applications.md): frontend scope/spec ownership and delivery questions, approved F06 revision 3, actual agent performance/corrections, 127 passing frontend checks and real browser/restart evidence; human review pending.
+- [2026-10-21 complete Business application journey](isaac/2026-10-21-complete-business-applications.md): frontend scope/spec ownership and delivery questions, approved F06 revision 3, actual agent performance/corrections, 127 passing frontend checks and real browser/restart evidence; human verification approved by the team on 2026-10-22.
 
-- [2026-10-21 open participation requests](isaac/2026-10-21-open-participation-requests.md): user-approved spec amendments, request/decision journey, agent performance and missed-coverage fixes, 195/173 passing suites, testing-guide and conversation-logging follow-ups; human verification pending.
+- [2026-10-21 open participation requests](isaac/2026-10-21-open-participation-requests.md): user-approved spec amendments, request/decision journey, agent performance and missed-coverage fixes, 195/173 passing suites, testing-guide and conversation-logging follow-ups; human verification approved by the team on 2026-10-22.
 
 Each teammate must add summaries for their own earlier sessions and verify the historical coverage. Existing SDD revision records can support backfills but are not original prompt transcripts.
 
-- [2026-10-21 Isaac merge-conflict and verification conversation](isaac/2026-10-21-merge-conversation.md): whole-conversation summary covering preservation of both features, Node compatibility, CI/verifier setup, PowerShell safety, incomplete-run corrections, actual reviewer/test-owner handoffs, specification synchronization and final 452/452 verified cases. Human verification pending; [repair evidence](isaac/2026-10-21-merge-error-repair.md) retains the narrower execution record.
+- [2026-10-21 Isaac merge-conflict and verification conversation](isaac/2026-10-21-merge-conversation.md): whole-conversation summary covering preservation of both features, Node compatibility, CI/verifier setup, PowerShell safety, incomplete-run corrections, actual reviewer/test-owner handoffs, specification synchronization and final 452/452 verified cases. Human verification approved by the team on 2026-10-22; [repair evidence](isaac/2026-10-21-merge-error-repair.md) retains the narrower execution record.
 
-- [2026-10-21 frontend CI repair](isaac/2026-10-21-frontend-ci-repair.md): whole-conversation summary covering CI timeout and asynchronous selection diagnosis, independently reviewed test-owner corrections, 217 passing frontend tests/build, specification traceability, proposed commit message and logging follow-up; GitHub rerun and human verification pending.
+- [2026-10-21 frontend CI repair](isaac/2026-10-21-frontend-ci-repair.md): whole-conversation summary covering CI timeout and asynchronous selection diagnosis, independently reviewed test-owner corrections, 217 passing frontend tests/build, specification traceability, proposed commit message and logging follow-up; human verification approved by the team on 2026-10-22.
 
-- [2026-10-21 Yik Bing attendee F01 integration](yikbing/2026-10-21-attendee-integration.md): approved start-date contract alignment, independent test baseline/review, generated consumer integration, real HTTP/Chrome/PostgreSQL restart evidence and explicit remaining gates. Human verification pending.
+- [2026-10-21 Yik Bing attendee F01 integration](yikbing/2026-10-21-attendee-integration.md): approved start-date contract alignment, independent test baseline/review, generated consumer integration, real HTTP/Chrome/PostgreSQL restart evidence and explicit remaining gates. Human verification approved by the team on 2026-10-22.
+
+- [2026-10-21 Yik Bing F02 attendee planning](yikbing/2026-10-21-attendee-planning-start.md): approved scope, branch coordination, protected baseline, implementation/review handoffs, frontend/backend/migration/restart evidence and remaining release gates; human verification approved by the team on 2026-10-22.
+- [2026-10-22 Yik Bing F02 and organiser AI integration](yikbing/2026-10-22-f02-ai-integration.md): merge of master into the F02 feature branch, conflict resolutions preserving both features, schema/migration checks, focused frontend and provider verification, and remaining full-suite/database limitations; human verification approved by the team on 2026-10-22.
+- [2026-10-22 Dylan manual issue fixes](dylan/2026-10-22-manual-issues.md): accessibility snapshot diagnosis, organiser activity selection persistence, AI JSON-fence parsing, and focused verification; human verification approved by the team on 2026-10-22.
+- [2026-10-22 Dylan master merge](dylan/2026-10-22-master-merge.md): resolved the latest master merge, regenerated API contracts, synchronized attendee-AI documentation, and verified the merged backend/frontend changes; human verification pending.
+- [2026-10-22 Dylan GitHub Pages deployment](dylan/2026-10-22-github-pages-deployment.md): created and published the static EventApp product website with GitHub Pages; human verification approved after the public URL and successful Actions run were checked.
 
 - [2026-10-22 Isaac Business refinements](isaac/2026-10-22-business-refinements.md): user-approved account/setup/budget/date/AI/UI refinements, test-first evidence, fixes, runtime checks and pending independent/human review.

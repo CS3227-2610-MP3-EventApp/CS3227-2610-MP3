@@ -4,7 +4,7 @@
 - Branch: `chore/agent-model-configuration`; base revision: `13b768b`.
 - Source coverage: visible prompts, assistant responses, tool output and repository files in this chat. Earlier chats are outside this summary's coverage.
 - AI factual check: checked against the stated evidence; focused validation results are recorded below.
-- Human verification: Pending. Reviewer/date/corrections: not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

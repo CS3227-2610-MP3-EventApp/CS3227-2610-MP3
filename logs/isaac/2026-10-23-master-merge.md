@@ -1,0 +1,34 @@
+# Session summary: merge master into the business branch
+
+- Date/timezone and session owner: 2026-10-23, Asia/Singapore / Isaac.
+- Feature/task, branch and source revision: resolve the conflicts from merging `master` (`0a3b5f5`, PR #16 attendee event questions) into `itzxitzx/basic-business-features` (`f85cab7`); merge base `3c5ff1e`.
+- Source coverage: all visible user requests, assistant actions and tool results in this conversation. Faithful summary, not a verbatim transcript.
+- AI factual check: checked against the visible conversation and command output.
+- Human verification: Pending. Reviewer/date/corrections: not yet supplied.
+
+## Prompts and interactions
+
+1. Isaac reported having merged master into the branch and asked to resolve the conflicts, preferring master's code and adapting the branch's implementation to fit, then to update specs to match the code, run the tests, and explain how to test manually, especially F06 and F09.
+2. The assistant surveyed 17 conflicted files and found two semantic conflicts between protected tests that a textual merge could not settle. It asked two questions; Isaac chose:
+   - **ai_jobs columns:** extend master's `ORGANISER_AI_JOB_COLUMNS` with the branch's `workflow`, `business_participation_id` and `source_snapshot` (recorded as MERGE-TCR-01), rather than moving business jobs to a separate table.
+   - **Focus revalidation:** adopt master's approved SILENT-TCR-01 (silent focus/page-show checks) and rewrite the branch's "focus conceals and restores scroll" test to assert master's behaviour (MERGE-TCR-02).
+3. After the first frontend run, three programme acceptance cases failed. The branch had edited the protected picker helper for its `DD MMM` picker, which broke master's ISO-ordered picker: the numeric month placeholder "MM" matched the branch's month-name heuristic. Master's copy of the test passed 39/39 in a temporary master worktree, so master's version of the file was restored. Also after the first frontend run, 11 more branch business tests failed for the same SILENT-TCR-01 reason. The assistant asked again; Isaac chose to change only those tests' trigger to a bfcache-restored page show (`persisted: true`), which master still treats as a concealed re-check, keeping every concealment/purge/late-response assertion (MERGE-TCR-02, extended).
+
+4. The full backend run then had one failure. A branch test pinned the organiser job response's exact keys, but master's approved F05 envelope (monitor AC08) adds `kind`, `sourceChangeId` and `announcementDraftId`. Following Isaac's "prefer master" instruction, the assistant extended the expected set and asserted the three new values (MERGE-TCR-03). This extension was not separately confirmed; it mirrors the approved MERGE-TCR-01.
+
+## Decisions and actions
+
+- **AI jobs (`backend/app/ai/models.py`, `worker.py`):** kept master's `kind`, `source_change_id`, `announcement_draft_id` and added the branch's `workflow`, `business_participation_id`, `source_snapshot`. Organiser jobs (both kinds) use `workflow='analysis'`. `ck_ai_job_kind_target` now applies master's rules to organiser rows only. Business rows must keep the default kind with no change/announcement links. `ck_ai_job_workflow_context` no longer requires application/rubric for organiser rows, which the kind check covers. The worker keeps master's `criteria is None` sentinel for announcements; preparation drafts moved to `"__preparation__"`. The provider gate counts organiser, business and attendee-itinerary attempts, and supplier research keeps its deferred attempt recording.
+- **Migrations:** master and the branch had both used IDs `20261021_0006`–`20261022_0009`. The branch's 10 migrations were renumbered `20261023_0020`–`0029` and chained linearly after master's head `20261022_0009`. The first renumbering attempt (`0010`–`0019`) reused the branch's old head ID `20261023_0015` and broke a database stamped with it, so it was changed. `business_jobs` stopped re-imposing NOT NULL on columns master made nullable, and it scopes the kind check. A single head was confirmed.
+- **Other code:** `main.py`, `alembic/env.py` and the backend table-set test are unions of both sides. `Auth.tsx` uses master's silent revalidation, drops the branch's scroll-restore, and keeps `revalidate` stable with `useCallback` because business pages list it in hook dependencies. `Programme.tsx` and `frontend/tests/acceptance/programme.test.tsx` are master's: the branch's picker-helper edits only supported its `DD MMM` picker and broke master's ISO picker. `Workspace.tsx` and the home-page tests combine the branch's business cards/counts with master's attendee itinerary card/counts. `openapi.json` and `api-schema.d.ts` were regenerated, not hand-merged.
+- **Specs/docs:** `specs/shared/monitor-and-recover-ai-tasks.md` is now revision 7. Master's r3 and AC08–09 were kept, the branch's parallel revision 3 was labelled 3-B, and its business AC08–12 were renumbered AC23–27. `submit-business-applications` branch r5 was renumbered r6 after master's r5. Shared UI AC14 was aligned with silent revalidation. Updated `specs/README.md` rows, `docs/architecture.md`, `docs/DeveloperGuide.md` (migration renumbering, DB recreate note), `docs/BusinessPreparationTesting.md`, `docs/UserGuide.md` and `logs/README.md`. Historical run records were left unchanged.
+- **Environment:** the synthetic test DB (port 5433) was stamped at the retired `20261023_0015`; its `public` schema was dropped and recreated. The development DB on 5432 was not touched.
+
+## Verification and limitations
+
+- Backend `tests/`: 800 passed and 1 failed (the MERGE-TCR-03 case) in a full run on the reset synthetic test DB. After the fix, `tests/test_business_jobs.py` passed 31/31. `tests/test_health.py` + `unit_tests` + `developer_checks` (with `PYTHONPATH=.`): 143 passed. `alembic heads` shows the single head `20261023_0029`.
+- Frontend: `tsc -b` clean, `vitest run` 583/583 (30 files), `npm run build` succeeds.
+- Hazard found: running `developer_checks` without any `tests/` file skips `tests/conftest.py`, so the shared migration fixture targets `DATABASE_URL` (the development DB). In this session that run stopped at "Can't locate revision `20261022_0014`" before making changes. Always include `tests/` in the run, as documented.
+- Not done: manual browser checks, live SoCLaaS/Tavily calls, the protected-baseline guard against a new baseline SHA, and independent behaviour/security review.
+- Protected-test edits (MERGE-TCR-01/02) were made by the developer session on Isaac's approval. Test-owner and independent review are still required, and no new baseline SHA has been recorded.
+- No commit, push or merge was made. The development database must be recreated before manual testing (DeveloperGuide, "2026-10-23 master merge").

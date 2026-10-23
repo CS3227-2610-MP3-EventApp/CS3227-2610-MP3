@@ -15,6 +15,7 @@ class Settings(BaseSettings):
         "http://localhost:5173", "http://127.0.0.1:5173",
     ])
     ai_enabled: bool = False
+    f02_planning_enabled: bool = False
     ai_synthetic_only: bool = False
     ai_real_data_enabled: bool = False
     ai_allowed_event_ids: str = "[]"

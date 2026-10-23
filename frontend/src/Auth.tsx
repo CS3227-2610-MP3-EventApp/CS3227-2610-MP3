@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Box, Button, Typography } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigationType } from "react-router-dom";
 import { api, ApiError } from "./api";
 import type { CurrentActor } from "./session";
 import type { DraftMemory, OrganiserDraftMemory } from "./applications/model";
@@ -33,9 +33,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionNotice, setSessionNotice] = useState("");
   const [attempt, setAttempt] = useState(0);
   const epoch = useRef(0);
-  const scrollRestore = useRef<{x:number;y:number;height:number} | null>(null);
-  const [preservedHeight, setPreservedHeight] = useState(0);
+  const lastAttempt = useRef(0);
+  const silentRef = useRef(false);
+  const screenRef = useRef({ loading: true, error: "" });
+  screenRef.current = { loading, error };
   const location = useLocation();
+  const navigationType = useNavigationType();
+  // Stable identity: pages list setActor in effect dependencies, and silent revalidation must not refetch them.
   const setActor = useCallback((value: CurrentActor | null) => {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
@@ -84,21 +88,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (lostScope || actorRef.current?.businessMemberships.some((membership) => !owns(membership.businessId)) || actorRef.current?.eventMemberships.some((membership) => !assigned(membership.eventId))) setSessionNotice("");
     }
-    actorRef.current = value; updateActor(value);
+    actorRef.current = value;
+    updateActor((current) => current && value && JSON.stringify(current) === JSON.stringify(value) ? current : value);
   }, []);
-  const revalidate = useCallback(() => { scrollRestore.current = {x: window.scrollX, y: window.scrollY, height: document.documentElement.scrollHeight}; setPreservedHeight(document.documentElement.scrollHeight); epoch.current++; setLoading(true); setAttempt((value) => value + 1); }, []);
+  // Stable identity: business pages list revalidate in effect dependencies.
+  const revalidate = useCallback(() => { epoch.current++; setLoading(true); setAttempt((value) => value + 1); }, []);
+  // Window focus and non-restored page show re-check the session in the background: the page stays visible.
+  // Navigation, restored (bfcache) pages and recovery keep the concealed, non-silent check, and a silent check
+  // never replaces a loading or error screen that is already showing.
+  // A check already in flight is confirming identity, so a focus during it is ignored; the error screen retries.
+  function silentRevalidate() {
+    if (screenRef.current.loading) return;
+    if (screenRef.current.error) { revalidate(); return; }
+    silentRef.current = true; setAttempt((value) => value + 1);
+  }
   useEffect(() => {
-    const listener = () => revalidate();
-    window.addEventListener("focus", listener); window.addEventListener("pageshow", listener);
-    return () => { window.removeEventListener("focus", listener); window.removeEventListener("pageshow", listener); };
+    const focus = () => silentRevalidate();
+    const pageshow = (event: Event) => { if ((event as PageTransitionEvent).persisted) revalidate(); else silentRevalidate(); };
+    window.addEventListener("focus", focus); window.addEventListener("pageshow", pageshow);
+    return () => { window.removeEventListener("focus", focus); window.removeEventListener("pageshow", pageshow); };
   }, []);
   useEffect(() => {
+    // A guard redirect (replace navigation) from an already-verified, settled session is not a new
+    // context; re-checking would briefly unmount the page the redirect just opened.
+    if (navigationType === "REPLACE" && !loading && !error && actorRef.current && attempt === lastAttempt.current) return;
+    lastAttempt.current = attempt;
+    const silent = silentRef.current && !loading && !error;
+    silentRef.current = false;
     let active = true;
     const current = ++epoch.current;
     let completionEpoch = current;
-    setLoading(true); setStillLoading(false); setError("");
+    if (!silent) { setLoading(true); setStillLoading(false); setError(""); }
     const started = performance.now();
-    const timer = setTimeout(() => { if (active && epoch.current === current && performance.now() - started >= 10000) setStillLoading(true); }, 10000);
+    const timer = silent ? undefined : setTimeout(() => { if (active && epoch.current === current && performance.now() - started >= 10000) setStillLoading(true); }, 10000);
     try { sessionStorage.removeItem("eventapp.prototype.session"); } catch { /* Optional storage. */ }
     api.me().then((value) => { if (active && epoch.current === current) { setActor(value); completionEpoch = epoch.current; } }).catch((failure: unknown) => {
       if (!active || epoch.current !== current) return;
@@ -107,14 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).finally(() => { if (active && epoch.current === completionEpoch) { clearTimeout(timer); setStillLoading(false); setLoading(false); } });
     return () => { active = false; clearTimeout(timer); epoch.current++; };
   }, [attempt, location.pathname, location.search]);
-  useEffect(() => {
-    if (loading || !scrollRestore.current) return;
-    const saved = scrollRestore.current;
-    const frame = requestAnimationFrame(() => { if (saved.x || saved.y) window.scrollTo(saved.x, saved.y); });
-    const timer = setTimeout(() => { setPreservedHeight(0); scrollRestore.current = null; }, 1500);
-    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
-  }, [loading]);
   const value = { draftMemory: draftMemory.current, actor, setActor, sessionNotice, setSessionNotice, revalidate, memory: memory.current, organiserMemory: organiserMemory.current, preparationMemory: preparationMemory.current, setupMemory: setupMemory.current, destinations: destinations.current };
-  return <AuthContext.Provider value={value}><Box sx={{ minHeight: preservedHeight || undefined }}>{loading ? <Box component="main" sx={{ p: 4 }}><Typography role="status">{stillLoading ? "Still in progress — checking your session…" : "In progress — checking your session…"}</Typography></Box> : error ? <Box component="main" sx={{ p: 4 }}><Typography component="h1" variant="h2">Check EventApp access</Typography><Alert severity="error" sx={{ my: 2 }}>{error}</Alert><Button onClick={revalidate}>Try again</Button></Box> : children}</Box></AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{loading ? <Box component="main" sx={{ p: 4 }}><Typography role="status">{stillLoading ? "Still in progress — checking your session…" : "In progress — checking your session…"}</Typography></Box> : error ? <Box component="main" sx={{ p: 4 }}><Typography component="h1" variant="h2">Check EventApp access</Typography><Alert severity="error" sx={{ my: 2 }}>{error}</Alert><Button onClick={revalidate}>Try again</Button></Box> : children}</AuthContext.Provider>;
 }
 export function useAuth() { const auth = useContext(AuthContext); if (!auth) throw new Error("Authentication context is unavailable."); return auth; }

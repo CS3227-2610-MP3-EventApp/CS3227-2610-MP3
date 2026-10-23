@@ -1,8 +1,8 @@
 """Separate setup publication and add the optional overall budget limit."""
 from alembic import op
 import sqlalchemy as sa
-revision = "20261022_0011"
-down_revision = "20261022_0010"
+revision = "20261023_0025"
+down_revision = "20261023_0024"
 branch_labels = depends_on = None
 
 def upgrade():

@@ -4,6 +4,9 @@ import { expect, test, vi } from "vitest";
 import { renderPrototype, storedValues } from "./helpers/renderPrototype";
 import { applications, submitted, B1, E1 } from "./fixtures/applications";
 import { auth } from "./fixtures/auth";
+// MERGE-TCR-02: master SILENT-TCR-01 made focus and ordinary pageshow checks silent; a bfcache-restored pageshow
+// still conceals and remounts, so these concealment/late-response cases use it as their trigger.
+const restoredPageshow = () => Object.assign(new Event("pageshow"), { persisted: true });
 
 // Independent public wire contract: generate-preparation-drafts r3 / shared jobs r3.
 // These synthetic server records do not import the implementation or its validators.
@@ -295,12 +298,12 @@ test("UI03 actor change before lost-write reconciliation cannot restore former o
   expect(storage()).not.toContain("PRIVATE-DEPARTED-WRITE");
 });
 
-test.each(["focus", "pageshow"])("UI04 %s conceals and preserves same-scope unsaved input in memory only", async event => {
+test.each(["restored pageshow"])("UI04 %s conceals and preserves same-scope unsaved input in memory only", async event => {
   install(); await open();
   fireEvent.change(screen.getByLabelText(/^needs$/i), { target: { value: "PRIVATE-DIRTY-NEEDS" } });
   fireEvent.change(screen.getByLabelText(/^task title$/i), { target: { value: "PRIVATE-DIRTY-SUGGESTION" } });
   const release = applications.hold("/api/v1/auth/me");
-  await act(async () => { window.dispatchEvent(new Event(event)); });
+  await act(async () => { window.dispatchEvent(restoredPageshow()); });
   await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-DIRTY-SUGGESTION")).not.toBeInTheDocument());
   await act(async () => { release(); });
   expect(await screen.findByDisplayValue("PRIVATE-DIRTY-SUGGESTION")).toBeVisible();
@@ -310,7 +313,7 @@ test.each(["focus", "pageshow"])("UI04 %s conceals and preserves same-scope unsa
 
 test("UI04 failed source reload conceals cached suggestions and offers recovery", async () => {
   const server = install(); await open(); server.fail(historyPath);
-  await act(async () => { window.dispatchEvent(new Event("focus")); });
+  await act(async () => { window.dispatchEvent(restoredPageshow()); });
   expect(await screen.findByRole("alert")).toHaveTextContent(/unavailable|could not|retry|check/i);
   expect(screen.queryByDisplayValue("PRIVATE-SUGGESTED-TASK")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: /retry|try again|reload|check access/i })).toBeEnabled();
@@ -319,10 +322,10 @@ test("UI04 failed source reload conceals cached suggestions and offers recovery"
 test("UI04 late dispatched private history cannot restore data after actor departure", async () => {
   const server = install(); await open(); const before = server.requests.length;
   const release = server.hold(historyPath);
-  await act(async () => { window.dispatchEvent(new Event("focus")); });
+  await act(async () => { window.dispatchEvent(restoredPageshow()); });
   await waitFor(() => expect(server.requests.slice(before).some(x => x.path === historyPath)).toBe(true));
   auth.current = null;
-  await act(async () => { window.dispatchEvent(new Event("pageshow")); });
+  await act(async () => { window.dispatchEvent(restoredPageshow()); });
   await waitFor(() => expect(screen.queryByDisplayValue("PRIVATE-SUGGESTED-TASK")).not.toBeInTheDocument());
   await act(async () => { release(); });
   expect(screen.queryByDisplayValue("PRIVATE-SUGGESTED-TASK")).not.toBeInTheDocument();
@@ -332,7 +335,7 @@ test("UI04 late dispatched private history cannot restore data after actor depar
 test("UI04 held response from departed route cannot restore private editor", async () => {
   const server = install(); await open(); const before = server.requests.length;
   const release = server.hold(historyPath);
-  await act(async () => { window.dispatchEvent(new Event("focus")); });
+  await act(async () => { window.dispatchEvent(restoredPageshow()); });
   await waitFor(() => expect(server.requests.slice(before).some(x => x.path === historyPath)).toBe(true));
   await act(async () => { history.pushState({}, "", "/business"); window.dispatchEvent(new PopStateEvent("popstate")); });
   await screen.findByRole("link", { name: /open preparation/i });

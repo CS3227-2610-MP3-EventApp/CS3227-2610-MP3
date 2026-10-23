@@ -57,11 +57,11 @@ class ProgrammeItem(Base):
         CheckConstraint("revision >= 1", name="ck_programme_items_revision"),
         CheckConstraint("title = btrim(title) AND char_length(title) BETWEEN 1 AND 200", name="ck_programme_items_title"),
         CheckConstraint("type IN ('talk','workshop','panel','booth','performance','other')", name="ck_programme_items_type"),
-        CheckConstraint("state IN ('draft','published')", name="ck_programme_items_state"),
+        CheckConstraint("state IN ('draft','published','cancelled')", name="ck_programme_items_state"),
         CheckConstraint("ends_at > starts_at", name="ck_programme_items_duration"),
         CheckConstraint("capacity >= 1 AND price_minor_units >= 0 AND currency = 'SGD'", name="ck_programme_items_values"),
         CheckConstraint("char_length(accessibility_details) <= 2000", name="ck_programme_items_accessibility"),
-        CheckConstraint("(state = 'draft' AND published_at IS NULL) OR (state = 'published' AND published_at IS NOT NULL)", name="ck_programme_items_publication"),
+        CheckConstraint("(state = 'draft' AND published_at IS NULL) OR (state IN ('published','cancelled') AND published_at IS NOT NULL)", name="ck_programme_items_publication"),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     event_id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), index=True)
@@ -79,6 +79,10 @@ class ProgrammeItem(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_change_id: Mapped[UUID | None] = mapped_column(ForeignKey("programme_changes.id", use_alter=True))
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancellation_reason: Mapped[str | None] = mapped_column(String(1000))
+    cancelled_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
 
 
 class ProgrammeItemRevision(Base):
@@ -90,7 +94,7 @@ class ProgrammeItemRevision(Base):
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     event_id: Mapped[UUID] = mapped_column(ForeignKey("events.id"), index=True)
-    item_id: Mapped[UUID] = mapped_column(unique=True)
+    item_id: Mapped[UUID]
     revision: Mapped[int] = mapped_column(Integer)
     snapshot: Mapped[dict] = mapped_column(JSONB)
     actor_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))

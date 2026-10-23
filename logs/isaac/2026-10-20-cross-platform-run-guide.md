@@ -4,7 +4,7 @@
 - Feature/task, branch and source revision: Developer startup documentation / `master` at `07a5666` before these edits.
 - Source coverage: Visible conversation and tool results in this session; no external history used.
 - AI factual check: Checked against `docs/DeveloperGuide.md`, `compose.yaml`, backend settings and test configuration, and Vite proxy configuration.
-- Human verification: Pending. Reviewer/date/corrections: not yet supplied.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and interactions
 

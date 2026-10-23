@@ -3,8 +3,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = "20261022_0014"
-down_revision = "20261022_0013"
+revision = "20261023_0028"
+down_revision = "20261023_0027"
 branch_labels = None
 depends_on = None
 
@@ -15,7 +15,7 @@ def upgrade() -> None:
     op.create_check_constraint("ck_ai_job_workflow", "ai_jobs",
         "workflow IN ('analysis','preparation','promotional','supplier_research')")
     op.create_check_constraint("ck_ai_job_workflow_context", "ai_jobs",
-        "(workflow = 'analysis' AND application_id IS NOT NULL AND source_revision IS NOT NULL AND rubric_revision IS NOT NULL AND business_participation_id IS NULL) OR (workflow IN ('preparation','promotional','supplier_research') AND application_id IS NULL AND source_revision IS NULL AND rubric_revision IS NULL AND business_participation_id IS NOT NULL)")
+        "(workflow = 'analysis' AND source_revision IS NOT NULL AND business_participation_id IS NULL) OR (workflow IN ('preparation','promotional','supplier_research') AND application_id IS NULL AND source_revision IS NULL AND rubric_revision IS NULL AND business_participation_id IS NOT NULL)")
     op.create_table("supplier_research_snapshots",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("job_id", sa.Uuid(), sa.ForeignKey("ai_jobs.id", ondelete="SET NULL"), nullable=True, unique=True),
@@ -65,4 +65,4 @@ def downgrade() -> None:
     op.create_check_constraint("ck_ai_job_workflow", "ai_jobs",
         "workflow IN ('analysis','preparation','promotional')")
     op.create_check_constraint("ck_ai_job_workflow_context", "ai_jobs",
-        "(workflow = 'analysis' AND application_id IS NOT NULL AND source_revision IS NOT NULL AND rubric_revision IS NOT NULL AND business_participation_id IS NULL) OR (workflow IN ('preparation','promotional') AND application_id IS NULL AND source_revision IS NULL AND rubric_revision IS NULL AND business_participation_id IS NOT NULL)")
+        "(workflow = 'analysis' AND source_revision IS NOT NULL AND business_participation_id IS NULL) OR (workflow IN ('preparation','promotional') AND application_id IS NULL AND source_revision IS NULL AND rubric_revision IS NULL AND business_participation_id IS NOT NULL)")

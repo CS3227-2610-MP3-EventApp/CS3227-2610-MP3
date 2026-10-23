@@ -2,7 +2,7 @@
 
 - Date/timezone: 2026-10-21, Asia/Singapore. Owner: Yik Bing.
 - Branch: feat/yikbing-programme-browsing; starting snapshot b2c7908; reviewed replacement test baseline 1b720adbb008cd7f52aa05db0b34887e2baeef6d.
-- Source coverage: visible conversation and actual tools/agent handoffs only. AI factual check: checked against stated evidence; final verification pending below. Human verification: Pending.
+- Human verification: Approved by the team on 2026-10-22.
 
 ## Prompts and decisions
 
