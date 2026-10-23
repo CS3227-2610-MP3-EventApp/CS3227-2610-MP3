@@ -11,6 +11,7 @@ import { appearanceColors } from "./theme";
 import { AttendeeProgramme } from "./AttendeeProgramme";
 import { useFeedback } from "./applications/shared";
 import { PreparationCard } from "./preparation/PreparationCard";
+import { clearMarkers } from "./procurement/markers";
 
 const workspaceContent: Record<Role, { intro: string; subtitle: string; cards: [string, string, string][] }> = {
   attendee: {
@@ -67,7 +68,7 @@ export function Workspace({ session }: { session: CurrentActor }) {
   async function signOut() {
     if (lock.current || unknown) return;
     lock.current = true; setPending(true); progress.start(); setError(""); setSessionNotice("");
-    try { await api.logout(); if (!alive.current) return; setActor(null); navigate("/login", { replace: true }); }
+    try { await api.logout(); clearMarkers(null); if (!alive.current) return; setActor(null); navigate("/login", { replace: true }); }
     catch (failure) {if (alive.current) {if (!(failure instanceof ApiError) || failure.status === 0 || failure.status >= 500) {setUnknown(true); setError(failure instanceof ApiError && failure.status >= 500 ? "Request could not be completed." : "Unable to reach EventApp. Please try again."); setSessionNotice("Outcome not confirmed - the sign-out result could not be confirmed. Check session before trying again.");} else setSessionNotice(errorFeedback(failure));}}
     finally {if (alive.current) {lock.current = false; setPending(false); progress.finish("");}}
   }

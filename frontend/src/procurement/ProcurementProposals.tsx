@@ -5,7 +5,7 @@ import { api } from "../api";
 import { useAuth } from "../Auth";
 import { AppearanceControl } from "../Appearance";
 import { displayDate } from "../displayDate";
-import { readMarkers, removeMarker, safeReadMarkers, writeMarker, isMarkerKey, type MarkerState } from "./markers";
+import { clearMarkers, readMarkers, removeMarker, safeReadMarkers, writeMarker, isMarkerKey, type MarkerState } from "./markers";
 import {
   accessFailure, errorMessage, indeterminate, loadProposals, parseReceipt, parseShortlist, parseView, proposalApi, resolveChoices, sgd, usableApproval,
   uuid, validEmail, validRequestText, NON_COMMITTING, ProposalError,
@@ -13,7 +13,8 @@ import {
 } from "./model";
 
 type Phase = "invalid" | "loading" | "blocked" | "ready";
-type DialogState = null | { kind: "approve" | "cancel" | "revise"; key: string };
+// A dialog is bound to the exact revision and digest the owner opened it on.
+type DialogState = null | { kind: "approve" | "cancel" | "revise"; key: string; revision: number; digest: string };
 const typeLabel = (t: ActionType) => t === "quotation_request" ? "Quotation request" : "Purchase/cart proposal";
 const stateLabel: Record<string, string> = { open: "Open", cancelled: "Cancelled", simulated: "Simulated in sandbox", failed: "Simulation failed", uncertain: "Simulation outcome uncertain" };
 const reasonLabel: Record<string, string> = { source_price_unknown: "the source price is unknown", quantity_mismatch: "the quantity differs from the researched quantity", arithmetic_overflow: "the amount is too large to calculate" };
@@ -51,7 +52,7 @@ export function ProcurementProposals() {
   /** Clears every private proposal/quotation value from memory and shows a fixed message. */
   function wipe(message: string) {
     epoch.current += 1;
-    setShortlist(null); setChoices(null); setEntries(null); setSelected([]); setOpenKey(""); setDialog(null); setLocked([]); clearQuoteFields();
+    setShortlist(null); setChoices(null); setEntries(null); setSelected([]); setOpenKey(""); setDialog(null); setLocked([]); setListReloading(false); clearQuoteFields();
     setNotice(""); setError(message); setPhase("blocked");
   }
   const live = (v: number) => epoch.current === v;
@@ -73,7 +74,7 @@ export function ProcurementProposals() {
 
   async function load() {
     const v = ++epoch.current;
-    mutex.current = false; setBusy(false); setLocked([]); setError(""); setNotice("");
+    mutex.current = false; setBusy(false); setLocked([]); setListReloading(false); setDialog(null); setError(""); setNotice("");
     setShortlist(null); setChoices(null); setEntries(null);
     if (!context) { setPhase("invalid"); return; }
     setPhase("loading");
@@ -111,7 +112,7 @@ export function ProcurementProposals() {
       for (const proposalId of before.map.keys()) if (!after.map.has(proposalId)) void reloadDetail(proposalId);
     };
     // Back-forward-cache restores must not show earlier private quote text.
-    const onShow = (event: PageTransitionEvent) => { if (event.persisted) clearQuoteFields(); };
+    const onShow = (event: PageTransitionEvent) => { if (event.persisted) { clearQuoteFields(); void load(); } };
     window.addEventListener("storage", onStorage); window.addEventListener("pageshow", onShow);
     return () => { window.removeEventListener("storage", onStorage); window.removeEventListener("pageshow", onShow); };
   });
@@ -133,6 +134,7 @@ export function ProcurementProposals() {
     try {
       const entry = parseView(await proposalApi.detail(proposalId), context, proposalId);
       if (!live(v)) return null;
+      if (entry.key !== proposalId) { setError((old) => old || "The latest proposal state could not be confirmed. Reload before continuing."); return null; }
       replace(entry); lock(proposalId, false);
       return entry;
     } catch (failure) {
@@ -186,8 +188,16 @@ export function ProcurementProposals() {
         // Create has no idempotency key: never repeat it, and reload the list before another explicit create.
         setError(failure instanceof ProposalError && failure.status !== 0 && failure.code !== "invalid_response" ? errorMessage(failure) : "The create request could not be confirmed and was not repeated. Saved proposals were reloaded; check them before creating again.");
         await reloadList(v);
+        await refreshShortlist(v);
       }
     });
+  }
+  /** After a rejected create/revise, refresh the saved shortlist revision so the next explicit attempt is not stale. */
+  async function refreshShortlist(v: number) {
+    try {
+      const saved = parseShortlist(await proposalApi.shortlist(participationId), participationId);
+      if (live(v)) setShortlist(saved);
+    } catch (failure) { if (live(v) && accessFailure(failure)) wipe(errorMessage(failure)); }
   }
 
   function controls(entry: Entry | undefined) {
@@ -208,7 +218,7 @@ export function ProcurementProposals() {
         const matches = (() => { try { return !!response && typeof response === "object" && (response as Record<string, unknown>).proposalRevision === p.proposalRevision && (response as Record<string, unknown>).payloadDigest === p.current.payloadDigest && (response as Record<string, unknown>).approvedBy === actor?.id && (response as Record<string, unknown>).state === "valid"; } catch { return false; } })();
         const fresh = await reloadDetail(p.proposalId);
         if (!live(v)) return;
-        if (!matches) setError("The approval response did not match the displayed revision. The latest saved state was reloaded; review it before continuing.");
+        if (!matches) { lock(p.proposalId, true); setError("The approval response did not match the displayed revision, so this proposal's actions are disabled. Reload proposals before continuing."); }
         else if (fresh) setNotice(`Revision ${p.proposalRevision} approved. It is not yet simulated; simulate it separately before the approval expires.`);
       } catch (failure) {
         if (!live(v) || accessFailure(failure)) throw failure;
@@ -231,9 +241,10 @@ export function ProcurementProposals() {
       }
     });
   }
+  const bind = (kind: "approve" | "cancel" | "revise", p: Proposal) => ({ kind, key: p.proposalId, revision: p.proposalRevision, digest: p.current.payloadDigest });
   function startRevision(p: Proposal) {
     setRevision({ quantities: p.current.payload.lines.map((l) => String(l.quantity)), recipient: p.current.payload.recipientEmail ?? "", requestText: p.current.payload.requestText ?? "" });
-    setDialog({ kind: "revise", key: p.proposalId });
+    setDialog(bind("revise", p));
   }
   const revisionQuote = (p: Proposal) => p.current.actionType === "quotation_request";
   const revisionInvalid = (p: Proposal) => revision.quantities.some((q) => !/^[1-9][0-9]{0,6}$/.test(q) || Number(q) > 1_000_000)
@@ -254,6 +265,7 @@ export function ProcurementProposals() {
         if (!live(v) || accessFailure(failure)) throw failure;
         setError(errorMessage(failure));
         await reloadDetail(p.proposalId);
+        await refreshShortlist(v);
       }
     });
   }
@@ -299,13 +311,15 @@ export function ProcurementProposals() {
 
   async function signOut() {
     setSigningOut(true);
-    try { await api.logout(); setActor(null); navigate("/login", { replace: true }); }
+    try { await api.logout(); clearMarkers(null); setActor(null); navigate("/login", { replace: true }); }
     catch { setSigningOut(false); setError("Sign-out could not be confirmed. Check your session before trying again."); }
   }
 
   const openEntry = entries?.find((e) => e.key === openKey);
   const dialogEntry = dialog ? entries?.find((e) => e.key === dialog.key) : undefined;
-  const dialogProposal = dialogEntry?.valid ? dialogEntry.proposal : null;
+  // If the entry changed underneath an open dialog, it closes rather than confirming an unreviewed revision.
+  const dialogProposal = dialogEntry?.valid && dialog && dialogEntry.proposal.proposalRevision === dialog.revision && dialogEntry.proposal.current.payloadDigest === dialog.digest ? dialogEntry.proposal : null;
+  const dialogAllowed = !!dialogProposal && !!dialog && controls(dialogEntry)[dialog.kind];
   const ownEntries = entries ?? [];
 
   return <Box component="main" sx={{ maxWidth: 1100, mx: "auto", p: { xs: 2, md: 4 }, overflowWrap: "anywhere" }}><Stack spacing={3}>
@@ -359,7 +373,7 @@ export function ProcurementProposals() {
       </Stack></Paper>
 
       <Box component="section"><Stack spacing={2}>
-        <Typography component="h2" variant="h5">Saved proposals</Typography>
+        <Stack direction="row" sx={{ flexWrap: "wrap", gap: 2, alignItems: "center", justifyContent: "space-between" }}><Typography component="h2" variant="h5">Saved proposals</Typography><Button disabled={busy} onClick={() => void load()}>Reload proposals</Button></Stack>
         {listReloading && <Typography role="status">Reloading saved proposals…</Typography>}
         {!ownEntries.length ? <Typography>No proposals yet for this participation.</Typography>
           : <Typography>{ownEntries.length === 1 ? "1 proposal" : `${ownEntries.length} proposals`} for this participation.</Typography>}
@@ -373,7 +387,7 @@ export function ProcurementProposals() {
       </Stack></Box>
 
       {openEntry && <ProposalDetail entry={openEntry} controls={controls(openEntry)} marked={openEntry.valid && markers.map.has(openEntry.proposal.proposalId)} storageBroken={markers.broken}
-        onRevise={startRevision} onApprove={(p) => setDialog({ kind: "approve", key: p.proposalId })} onCancel={(p) => setDialog({ kind: "cancel", key: p.proposalId })} onSimulate={simulate} />}
+        onRevise={startRevision} onApprove={(p) => setDialog(bind("approve", p))} onCancel={(p) => setDialog(bind("cancel", p))} onSimulate={simulate} />}
     </>}
 
     <Dialog open={!!dialogProposal} onClose={() => setDialog(null)} transitionDuration={0} aria-labelledby="proposal-dialog-title" fullWidth maxWidth="sm">
@@ -394,8 +408,9 @@ export function ProcurementProposals() {
         </Stack></DialogContent>
         <DialogActions>
           <Button onClick={() => setDialog(null)}>Go back</Button>
-          <Button variant="contained" disabled={dialog.kind === "revise" && revisionInvalid(dialogProposal)} onClick={() => {
+          <Button variant="contained" disabled={!dialogAllowed || dialog.kind === "revise" && revisionInvalid(dialogProposal)} onClick={() => {
             const p = dialogProposal, kind = dialog.kind;
+            if (!dialogAllowed) return;
             setDialog(null);
             void (kind === "approve" ? approve(p) : kind === "cancel" ? cancel(p) : revise(p));
           }}>{dialog.kind === "approve" ? "Confirm approval" : dialog.kind === "cancel" ? "Confirm cancellation" : "Save new revision"}</Button>

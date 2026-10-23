@@ -40,8 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
       draftMemory.current.clear(); memory.current.clear(); organiserMemory.current.clear(); preparationMemory.current.clear(); setupMemory.current.clear(); destinations.current.clear();
-      // Procurement no-retry markers: logout clears all, an actor change clears other actors' markers.
-      if (!value || value.id !== actorRef.current?.id) clearMarkers(value?.id ?? null);
+      // Procurement no-retry markers: an actor change clears other actors' markers. Explicit sign-out clears all
+      // (see signOut handlers); session expiry alone keeps them so an unconfirmed execute stays fail-closed.
+      if (value && value.id !== actorRef.current?.id) clearMarkers(value.id);
       if (identity(value) !== identity(actorRef.current)) setSessionNotice("");
     } else {
       const owns = (businessId: string) => value.businessMemberships.some((membership) => membership.businessId === businessId && membership.status === "active" && membership.role === "owner");

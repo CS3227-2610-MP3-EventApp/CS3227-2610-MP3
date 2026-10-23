@@ -6,6 +6,7 @@ import { api, ApiError, errorAction, errorCategory, fieldMessage } from "./api";
 import { EntryLayout } from "./components";
 import { useFeedback } from "./applications/shared";
 import { uncertain } from "./applications/model";
+import { clearMarkers } from "./procurement/markers";
 export function ChangePassword({ signOutOnly = false }: { signOutOnly?: boolean }) {
   const {actor, setActor, setSessionNotice} = useAuth(), navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState(""), [newPassword, setNewPassword] = useState(""), [confirmation, setConfirmation] = useState("");
@@ -36,7 +37,7 @@ export function ChangePassword({ signOutOnly = false }: { signOutOnly?: boolean 
   }
   async function signOut() {
     if (lock.current || unknown) return; lock.current = true; setPending(true); setError(null); start();
-    try {await api.logout(); if (!alive.current) return; setActor(null); navigate("/login", {replace: true});}
+    try {await api.logout(); clearMarkers(null); if (!alive.current) return; setActor(null); navigate("/login", {replace: true});}
     catch (failure) {if (alive.current) {if (uncertain(failure)) {setUnknown("logout"); finish("Outcome not confirmed - the sign-out result could not be confirmed. Check session before trying again.");} else {setError(failure); finish("");}}}
     finally {if (alive.current) {lock.current = false; setPending(false);}}
   }

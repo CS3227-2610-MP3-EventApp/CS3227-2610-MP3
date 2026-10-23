@@ -50,11 +50,15 @@ export function errorMessage(e: unknown): string {
   return "The request could not be completed. Reload before trying again.";
 }
 
+const REQUEST_TIMEOUT_MS = 30_000;
 async function call(path: string, method = "GET", body?: unknown): Promise<unknown> {
   let response: Response;
+  // A hung request becomes an indeterminate (status 0) outcome instead of leaving the page busy forever.
+  const abort = new AbortController(), timer = setTimeout(() => abort.abort(), REQUEST_TIMEOUT_MS);
   try {
-    response = await fetch(path, { method, credentials: "same-origin", cache: "no-store", ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }) });
+    response = await fetch(path, { method, credentials: "same-origin", cache: "no-store", signal: abort.signal, ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }) });
   } catch { throw new ProposalError(0, "network"); }
+  finally { clearTimeout(timer); }
   if (!response.ok) {
     let code = "unknown";
     try {
