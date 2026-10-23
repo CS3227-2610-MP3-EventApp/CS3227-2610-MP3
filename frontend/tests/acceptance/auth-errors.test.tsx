@@ -148,16 +148,16 @@ describe("Access r4 AC20/21 and shared UI r4 clear, safe reasons", () => {
     expect(await screen.findByText(/check.*(identifier|username|email).*password.*role/i)).toBeVisible();
     expect(document.body).not.toHaveTextContent(HOSTILE); expect(window.location.pathname).toBe("/login"); noPrivateStorage();
   });
-  test("registration conflict stays generic and gives safe supported next steps", async () => {
+  test("registration conflict explains duplicate identifiers with safe supported next steps", async () => {
     overrideError("/api/v1/auth/register/attendee", 409, "registration_conflict");
     await renderPrototype("/register/attendee");
     for (const [label, value] of [[/display name/i, "Synthetic Person"], [/^username$/i, "synthetic-person"], [/^email$/i, "synthetic@example.test"], [/^password$/i, CURRENT], [/confirm password/i, CURRENT]] as const) {
       fireEvent.change(screen.getByLabelText(label), { target: { value } });
     }
     await userEvent.setup().click(screen.getByRole("button", { name: /create account/i }));
-    expect(await screen.findByText(/registration could not be completed/i)).toBeVisible();
+    expect(await screen.findByText(/^An account already exists with this username or email, or the business name is already registered\.$/)).toBeVisible();
     expect(document.body).toHaveTextContent(/check.*details|sign in/i);
-    expect(document.body).not.toHaveTextContent(/email.*already|username.*already|business.*already/i);
+    expect(document.body).toHaveTextContent(/account already exists/i);
     expect(document.body).not.toHaveTextContent(HOSTILE); noPrivateStorage();
   });
   test.each([true, false])("lost logout response committed%s reconciles session without claiming revocation or replaying logout", async (committed) => {

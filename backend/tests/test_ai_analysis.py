@@ -438,7 +438,7 @@ def test_owner_current_membership_and_role_are_required_for_jobs_and_reports(ai_
     job_path = f"/api/v1/ai/jobs/{job['id']}"
     _problem(request(world.anonymous, "GET", job_path), 401)
     _problem(request(world.attendee, "GET", job_path), 403)
-    _problem(request(world.business, "GET", job_path), 403)
+    _problem(request(world.business, "GET", job_path), 404)
     _problem(request(world.other_owner, "GET", job_path), 404)
 
     before = _get_job(world, job["id"])
@@ -449,7 +449,7 @@ def test_owner_current_membership_and_role_are_required_for_jobs_and_reports(ai_
     assert after == before
 
     applicant_read = request(world.business, "GET", job_path)
-    assert applicant_read.status_code == 403
+    assert applicant_read.status_code == 404
     assert "An invented local maker festival." not in applicant_read.text
 
 

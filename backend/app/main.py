@@ -21,6 +21,15 @@ from app.disruptions.routes import router as disruption_router
 from app.disruptions.ai import router as announcement_ai_router
 from app.attendee_planning.routes import router as planning_router
 from app.attendee_planning.problems import PlanningProblem, validation_problem, problem_response as planning_problem_response
+from app.preparation.problems import PreparationError, is_preparation_path, problem_response as preparation_problem_response
+from app.preparation.routes import router as preparation_router
+from app.setup.problems import SetupError, is_setup_path, problem_response as setup_problem_response
+from app.setup.routes import router as setup_router
+from app.preparation_drafts.routes import router as draft_router
+from app.promotional_concepts.routes import router as promotional_concepts_router
+from app.supplier_research.routes import router as supplier_research_router
+from app.external_actions.routes import router as external_actions_router
+from app.external_actions.problems import ActionError, problem_response as action_problem_response
 from app.database import engine
 from app.settings import Settings
 
@@ -36,6 +45,12 @@ app.include_router(disruption_router)
 app.include_router(planning_router)
 app.include_router(ai_router)
 app.include_router(attendee_ai_router)
+app.include_router(preparation_router)
+app.include_router(setup_router)
+app.include_router(draft_router)
+app.include_router(promotional_concepts_router)
+app.include_router(supplier_research_router)
+app.include_router(external_actions_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.trusted_origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type"])
 
@@ -49,13 +64,36 @@ async def application_problem(request: Request, exc: ApplicationError):
     return application_problem_response(request, exc.code, current_application=exc.current_application)
 
 
+@app.exception_handler(ActionError)
+async def external_action_problem(request: Request, exc: ActionError):
+    return action_problem_response(request, exc.code)
+
+
 @app.exception_handler(AIError)
 async def ai_problem(request: Request, exc: AIError):
     return ai_problem_response(request, exc.code)
 
 
+@app.exception_handler(PreparationError)
+async def preparation_problem(request: Request, exc: PreparationError):
+    return preparation_problem_response(request, exc.code, fields=exc.fields,
+                                        current_revision=exc.current_revision)
+
+
+@app.exception_handler(SetupError)
+async def setup_problem(request: Request, exc: SetupError):
+    return setup_problem_response(request, exc.code, fields=exc.fields,
+                                  current_revision=exc.current_revision)
+
+
 @app.exception_handler(HTTPException)
 async def http_problem(request: Request, exc: HTTPException):
+    if request.url.path.startswith(("/api/v1/business/action-proposals", "/api/v1/business/action-approvals")) and exc.status_code in {404, 405}:
+        return action_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
+    if is_setup_path(request.url.path) and exc.status_code in {404, 405}:
+        return setup_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
+    if is_preparation_path(request.url.path) and exc.status_code in {404, 405}:
+        return preparation_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
     if is_application_path(request.url.path) and exc.status_code in {404, 405}:
         return application_problem_response(request, "not_found" if exc.status_code == 404 else "method_not_allowed")
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=exc.headers)
@@ -63,7 +101,7 @@ async def http_problem(request: Request, exc: HTTPException):
 
 @app.exception_handler(AuthProblem)
 async def auth_problem(request: Request, exc: AuthProblem):
-    return problem_response(request, exc.code)
+    return problem_response(request, exc.code, exc.fields)
 
 
 @app.exception_handler(RequestValidationError)
@@ -72,6 +110,14 @@ async def invalid_request(request: Request, exc: RequestValidationError):
         return planning_problem_response(request, validation_problem(exc.errors()))
     if "itinerary-generations" in request.url.path:
         return ai_problem_response(request, "validation_error")
+    if request.url.path.startswith(("/api/v1/business/action-proposals", "/api/v1/business/action-approvals")):
+        return action_problem_response(request, "validation_error")
+    if "preparation-drafts" in request.url.path or "promotional-concepts" in request.url.path or "supplier-research" in request.url.path or "supplier-shortlist" in request.url.path:
+        return ai_problem_response(request, "validation_error")
+    if is_setup_path(request.url.path):
+        return setup_problem_response(request, "validation_error", exc.errors())
+    if is_preparation_path(request.url.path):
+        return preparation_problem_response(request, "validation_error", exc.errors())
     if "/analysis" in request.url.path or request.url.path.endswith(("analysis-rubric", "/announcements/generate")):
         return ai_problem_response(request, "validation_error")
     if is_application_path(request.url.path):
@@ -98,7 +144,7 @@ async def unexpected_failure(request: Request, exc: Exception):
 
 @app.middleware("http")
 async def auth_boundary(request: Request, call_next):
-    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/", "/api/v1/ai/")) or is_application_path(request.url.path):
+    if request.url.path.startswith(("/api/v1/auth/", "/api/v1/organiser/", "/api/v1/attendee/", "/api/v1/ai/", "/api/v1/business/")) or is_application_path(request.url.path) or is_preparation_path(request.url.path) or is_setup_path(request.url.path):
         if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("origin") not in settings.trusted_origins:
             return problem_response(request, "forbidden")
         response = await call_next(request)

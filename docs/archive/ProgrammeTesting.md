@@ -1,12 +1,12 @@
 # Organiser programme: local testing and attendee API handoff
 
-Contract: [programme revision 6](../specs/programme/create-and-publish-programme.md). This guide describes the intended test flows; actual passing evidence and remaining checks belong in the [run record](../workflow/agents/runs/2026-10-20-organiser-programme.md).
+Contract: [programme revision 6](../../specs/programme/create-and-publish-programme.md). This guide describes the intended test flows; actual passing evidence and remaining checks belong in the [run record](../../workflow/agents/runs/2026-10-20-organiser-programme.md).
 
 F05 adds a separate explicit change/cancellation workflow after initial publication; follow [disruptions testing](DisruptionsTesting.md) for that extension. Published items still cannot use draft-edit/delete endpoints, and historical snapshots remain immutable.
 
 ## Start locally
 
-Follow [DeveloperGuide](DeveloperGuide.md) to start PostgreSQL, apply `uv run alembic upgrade head` in `backend/`, then run FastAPI and the frontend separately. New programme tables require the latest migration before using the screens. Do not reset an existing development database or use it for automated tests.
+Follow [DeveloperGuide](../DeveloperGuide.md) to start PostgreSQL, apply `uv run alembic upgrade head` in `backend/`, then run FastAPI and the frontend separately. New programme tables require the latest migration before using the screens. Do not reset an existing development database or use it for automated tests.
 
 Use the existing trusted bootstrap CLI to create an event and assign an organiser; the guide gives synthetic examples. Replace the initial organiser password when prompted by the application. Ensure the event dates include the programme times you will enter. There is no event-creation UI in this slice.
 

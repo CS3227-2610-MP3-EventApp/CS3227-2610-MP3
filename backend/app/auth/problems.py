@@ -9,7 +9,7 @@ ERRORS = {
     "unauthenticated": (401, "Authentication required."),
     "forbidden": (403, "Access is not permitted."),
     "password_change_required": (403, "Password change required."),
-    "registration_conflict": (409, "Registration could not be completed."),
+    "registration_conflict": (409, "An account already exists with this username or email, or the business name is already registered."),
     "validation_error": (422, "Request validation failed."),
     "current_password_incorrect": (422, "The current password is incorrect."),
     "password_unchanged": (422, "The new password must be different from your current password."),
@@ -19,8 +19,9 @@ ERRORS = {
 
 
 class AuthProblem(Exception):
-    def __init__(self, code: str):
+    def __init__(self, code: str, fields=None):
         self.code = code
+        self.fields = fields or []
 
 
 def problem_response(request: Request, code: str, errors=None) -> JSONResponse:
@@ -29,6 +30,8 @@ def problem_response(request: Request, code: str, errors=None) -> JSONResponse:
         "type": "about:blank", "title": HTTPStatus(status).phrase, "status": status,
         "detail": detail, "instance": request.url.path, "code": code,
     }
+    if code == "registration_conflict" and errors:
+        body["fieldErrors"] = [{"field": field, "code": "already_exists"} for field in sorted(set(errors)) if field in {"username", "email", "businessName"}]
     if code == "validation_error":
         accepted = {"username", "email", "displayName", "password", "businessName", "identifier", "role", "currentPassword", "newPassword"}
         password_fields = {"password", "currentPassword", "newPassword"}

@@ -1,3 +1,4 @@
+import { displayDate, browserTimezone } from "../displayDate";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Link, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
@@ -25,16 +26,16 @@ export function Frozen({ value }: { value: Application }) {
     <Typography component="h2" variant="h2">{value.status === "accepted" ? "Accepted" : value.status === "rejected" ? "Rejected" : "Submitted - awaiting an organiser decision"}</Typography>
     <Typography>Business: {value.businessName}</Typography><Typography>Event: {value.eventTitle}</Typography>
     <Typography>Submitted content is frozen. Submission is a request for participation. No booth or setup has been assigned.</Typography>
-    {value.decision && <><Typography>Decision at <time dateTime={value.decision.decidedAt}>{value.decision.decidedAt}</time></Typography>{value.decision.reason && <Typography sx={{whiteSpace: "pre-wrap"}}>{value.decision.reason}</Typography>}</>}
+    {value.decision && <><Typography>Decision at <time dateTime={value.decision.decidedAt}>{displayDate(value.decision.decidedAt)} ({browserTimezone()})</time></Typography>{value.decision.reason && <Typography sx={{whiteSpace: "pre-wrap"}}>{value.decision.reason}</Typography>}</>}
     <Typography>Frozen submitted revision: {value.frozenSubmittedContentRevision}</Typography>
-    {value.submittedAt && <Typography>Submitted at <time dateTime={value.submittedAt}>{value.submittedAt}</time></Typography>}
+    {value.submittedAt && <Typography>Submitted at <time dateTime={value.submittedAt}>{displayDate(value.submittedAt)} ({browserTimezone()})</time></Typography>}
     <ContentSummary value={value} />
   </Box>;
 }
 export function ContentSummary({ value }: { value: Application }) {
   return <Box component="dl" sx={{ m: 0, overflowWrap: "anywhere", "& dt": { fontWeight: 700, mt: 2 }, "& dd": { m: 0, whiteSpace: "pre-wrap" } }}>{(Object.keys(labels) as (keyof typeof labels)[]).map((field) => <Box key={field}><Typography component="dt">{labels[field]}</Typography><Typography component="dd">{value.content[field]}</Typography></Box>)}</Box>;
 }
-export function ApplicationLayout({ title, role, dirty = false, children }: { title: string; role: "business" | "organiser"; dirty?: boolean; children: ReactNode }) {
+export function ApplicationLayout({ title, role, dirty = false, children, wide = false }: { title: string; role: "business" | "organiser"; dirty?: boolean; wide?: boolean; children: ReactNode }) {
   const navigate = useNavigate();
   const [destination, setDestination] = useState<string | null>(null);
   useEffect(() => {
@@ -52,7 +53,7 @@ export function ApplicationLayout({ title, role, dirty = false, children }: { ti
     {role === "organiser" ? <WorkspaceHeader /> : <Stack component="header" direction="row" sx={{ p: { xs: 2, md: 3 }, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
       <Link component={RouterLink} to={`/${role}`}>{role === "business" ? "Business" : "Organiser"} workspace / Overview</Link><AppearanceControl />
     </Stack>}
-    <Box component="main" sx={{ p: { xs: 2, md: 4 }, maxWidth: role === "organiser" ? 1500 : 1100, mx: "auto", minWidth: 0 }}>
+    <Box component="main" sx={{ p: { xs: 2, md: 4 }, maxWidth: wide ? "none" : role === "organiser" ? 1500 : 1100, mx: "auto", minWidth: 0 }}>
       <Typography component="h1" variant="h1" data-page-heading tabIndex={-1} sx={{ mb: 3 }}>{title}</Typography>
       <Paper elevation={0} sx={{ p: role === "organiser" ? 0 : { xs: 2, md: 3 }, border: role === "organiser" ? 0 : 1, bgcolor: role === "organiser" ? "transparent" : "background.paper", borderColor: "divider", minWidth: 0, "& .MuiInputBase-root": { minWidth: 0 } }}>{children}</Paper>
     </Box>

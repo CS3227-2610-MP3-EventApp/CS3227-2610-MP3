@@ -16,6 +16,30 @@ The AI checks factual statements against the visible interaction/tool evidence a
 
 ## Coverage index
 
+- [2026-10-23 Isaac guides and testing archive](isaac/2026-10-23-guides-and-testing-archive.md): stage-guide relocation, connected three-role smoke walkthrough, historical screenshot provenance, cross-platform AI setup and implementation diagrams; human verification pending.
+
+- [2026-10-23 Isaac partial supplier research saving](isaac/2026-10-23-partial-research-save.md): save control beside available offers, partial-result guidance, focused test evidence and specification/documentation synchronization; human verification pending.
+
+- [2026-10-23 Isaac master merge](isaac/2026-10-23-master-merge.md): resolved the master merge preferring master, shared `ai_jobs` kind/workflow split, business migrations renumbered 0020–0029, approved merge test changes MERGE-TCR-01/02/03, specs synchronized, full backend/frontend runs; follow-ups added the Business smoke test guide and fixed the false unsaved-preparation warning, automatic AI job status and a worker startup crash; human verification pending.
+- [2026-10-23 Isaac F09-US03 implementation](isaac/2026-10-23-f09-us03-implementation.md): whole conversation covering the procurement proposal UI, test corrections, evidence, commits, reviewer model fix and independent-review launch; human verification pending.
+- [2026-10-23 Isaac F09-US03 specification and test handoff](isaac/2026-10-23-f09-us03-start-and-tcr-correction.md): F09-US03 r15 approval, Phase 3 schema-test correction, acceptance-test design/review blockers and takeover steps; human verification pending.
+- [2026-10-23 Isaac F09 Phase 3 approval contract](isaac/2026-10-23-f09-phase3-approval-contract.md): whole visible conversation covering specification review, default/exact revision approval, independent test baseline, sandbox implementation, verification corrections and commit evidence; human verification pending.
+
+- [2026-10-23 Isaac F09 Phase 2 completion and Phase 3 handoff](isaac/2026-10-23-f09-phase2-completion-and-handoff.md): whole-conversation summary of listing-only offers (r4), flexible extraction (r5), approvals, live and browser evidence, reviews and the Phase 3 handoff.
+
+- [2026-10-23 Isaac F09 Phase 2 delivery-grounding review](isaac/2026-10-23-f09-phase2-delivery-grounding-review.md): whole-conversation summary of the Phase 2 pending-review, qualifier-bypass regression cycle, live-research limits and remaining gates; human verification pending.
+
+- [2026-10-22 Isaac F09 phased delivery](isaac/2026-10-22-f09-phased-delivery.md): whole-conversation summary covering Phase1 delivery/commits, Phase2 approvals and protected tests, implementation/review repairs, pinned-model selection, SoCLaaS limit diagnosis, delivery-evidence review/fixes, failed live integration and the explicit unfinished-phase handoffs; human verification pending.
+
+- [2026-10-22 Isaac whole Business preparation conversation](isaac/2026-10-22-business-preparation-conversation.md): phase-5 request, fixture approval, testing-guide follow-ups, approved workflow refinements, documentation synchronization, verification and remaining review gates; human verification pending.
+
+- [2026-10-22 Isaac F06 phase5](isaac/2026-10-22-f06-phase-5-drafts.md): approved AI draft/adoption scope and actual independent pipeline; evidence/limitations updated as observed.
+
+- [2026-10-22 Isaac F06 phase4](isaac/2026-10-22-f06-phase-4-jobs.md): approved business-job foundation and sequential independent pipeline; observed results and pending gates.
+
+- [2026-10-21 Isaac F06 phase2](isaac/2026-10-21-f06-phase-2-implementation.md): approved manual preparation bounds, actual independent test/developer/reviewer handoffs, repairs, local integration/restart evidence and commit; human verification pending.
+- [2026-10-21 Isaac F06 phase3](isaac/2026-10-21-f06-phase-3-setup.md): approved booth/setup scope and ongoing independent test-first pipeline; results recorded as observed, human verification pending.
+
 - [2026-10-21 Dylan organiser disruptions](dylan/2026-10-21-organiser-disruptions.md): F05 staged changes/announcements, actual specialist handoffs, protected regressions, corrected review findings, invented-data provider check and pending F02 integration; human verification approved by the team on 2026-10-22.
 
 - [2026-10-21 Dylan organiser AI analysis](dylan/2026-10-21-organiser-ai-analysis.md): approved-plan implementation, SoCLaaS synthetic-data boundary, actual specialist handoffs, protected tests and verification status; human verification approved by the team on 2026-10-22.
@@ -52,3 +76,5 @@ Each teammate must add summaries for their own earlier sessions and verify the h
 - [2026-10-22 Dylan manual issue fixes](dylan/2026-10-22-manual-issues.md): accessibility snapshot diagnosis, organiser activity selection persistence, AI JSON-fence parsing, and focused verification; human verification approved by the team on 2026-10-22.
 - [2026-10-22 Dylan master merge](dylan/2026-10-22-master-merge.md): resolved the latest master merge, regenerated API contracts, synchronized attendee-AI documentation, and verified the merged backend/frontend changes; human verification pending.
 - [2026-10-22 Dylan GitHub Pages deployment](dylan/2026-10-22-github-pages-deployment.md): created and published the static EventApp product website with GitHub Pages; human verification approved after the public URL and successful Actions run were checked.
+
+- [2026-10-22 Isaac Business refinements](isaac/2026-10-22-business-refinements.md): user-approved account/setup/budget/date/AI/UI refinements, test-first evidence, fixes, runtime checks and pending independent/human review.

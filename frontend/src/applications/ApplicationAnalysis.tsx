@@ -1,5 +1,6 @@
+import { displayDate, browserTimezone } from "../displayDate";
 import { useEffect, useRef, useState } from "react";
-import { Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, TextField, Typography } from "@mui/material";
 import { ApiError } from "../api";
 import { analysisApi, type Job, type Report, type Rubric } from "./analysisApi";
 
@@ -35,7 +36,6 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
   const [error, setError] = useState("");
   const [statusError, setStatusError] = useState("");
   const [dialog, setDialog] = useState<"start" | "reload" | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
   const [historicalRubric, setHistoricalRubric] = useState<Rubric | null>(null);
   const epoch = useRef(0), mutation = useRef(false), requestId = useRef<string | null>(null);
   const settledJobs = useRef(new Set<string>());
@@ -53,7 +53,7 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
   useEffect(() => {
     const generation = ++epoch.current;
     setLoading(true); setError(""); setStatusError(""); setRubric(null); setCriteria([]); setJob(null); setReports([]); setTotal(0);
-    setDialog(null); setConfirmed(false); setHistoricalRubric(null); setBusy(false); mutation.current = false; requestId.current = null; settledJobs.current.clear();
+    setDialog(null); setHistoricalRubric(null); setBusy(false); mutation.current = false; requestId.current = null; settledJobs.current.clear();
     Promise.all([analysisApi.rubric(eventId), analysisApi.history(eventId, applicationId)])
       .then(([saved, history]) => {
         if (epoch.current !== generation) return;
@@ -115,16 +115,16 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
   }
 
   function start() {
-    if (!rubric || !confirmed || dirty || active(job)) return;
+    if (!rubric || dirty || active(job)) return;
     const generation = epoch.current;
     requestId.current ??= crypto.randomUUID();
     void change(async () => {
       const next = await analysisApi.start(eventId, applicationId, {
         requestId: requestId.current!, expectedRubricRevision: rubric.revision,
-        expectedSubmittedRevision: submittedRevision, syntheticDataConfirmed: true,
+        expectedSubmittedRevision: submittedRevision, dataSharingConfirmed: true,
       });
       if (generation !== epoch.current) return;
-      setJob(next); setDialog(null); setConfirmed(false); requestId.current = null;
+      setJob(next); setDialog(null); requestId.current = null;
     });
   }
 
@@ -170,7 +170,7 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
   return <Paper component="section" variant="outlined" sx={{ p: { xs: 2, md: 3 }, minWidth: 0 }}>
     <Stack spacing={3}>
       <Typography component="h2" variant="h2">Application analysis</Typography>
-      <Typography color="text.secondary">Use invented applications only. AI findings support human interpretation and never change an application decision.</Typography>
+      <Typography color="text.secondary">AI findings support human interpretation and never change an application decision.</Typography>
       <Button component="a" href={`/organiser/applications?eventId=${encodeURIComponent(eventId)}&applicationId=${encodeURIComponent(applicationId)}`} onClick={(event) => {if (onManualReview) {event.preventDefault(); onManualReview();}}} sx={{ alignSelf: "flex-start" }}>Continue manual review</Button>
       {loading && <Typography role="status">Loading analysis…</Typography>}
       {error && <Alert severity="error" role="alert">{error}</Alert>}
@@ -194,7 +194,7 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
           <Button disabled={busy || criteria.length >= 10} onClick={() => {setEditingRubric(true); setCriteria((previous) => [...previous, { id: `criterion-${crypto.randomUUID().slice(0, 8)}`, title: "", instructions: "" }]);}}>Add criterion</Button>
           <Button variant="outlined" disabled={busy || invalidCriteria || (!dirty && rubric.revision > 0)} onClick={save}>Save rubric</Button>
           <Button disabled={busy} onClick={() => dirty ? setDialog("reload") : refresh()}>Reload latest</Button>
-          <Button variant="contained" disabled={busy || dirty || rubric.revision === 0 || active(job)} onClick={() => { setConfirmed(false); setDialog("start"); }}>Analyse application</Button>
+          <Button variant="contained" disabled={busy || dirty || rubric.revision === 0 || active(job)} onClick={() => { setDialog("start"); }}>Analyse application</Button>
         </Stack>
         {dirty && <Typography variant="body2">Save your rubric changes before starting analysis.</Typography>}
         {invalidCriteria && <Alert severity="info">Each criterion needs a unique lowercase ID, a title and assessment instructions.</Alert>}
@@ -209,7 +209,7 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
           <Typography component="h3" variant="h3">Review report</Typography>
           {(report.stale || (!!rubric && report.rubricRevision !== rubric.revision)) && <Alert severity="warning">Stale report — generate a new report for the current rubric.</Alert>}
           <Typography>Rubric {report.rubricRevision}</Typography><Typography>Source revision {report.sourceRevision}</Typography>
-          <Typography variant="caption">Created <time dateTime={report.createdAt}>{report.createdAt}</time></Typography>
+          <Typography variant="caption">Created <time dateTime={report.createdAt}>{displayDate(report.createdAt)} ({browserTimezone()})</time></Typography>
           <Button disabled={busy} onClick={() => viewRubric(report.rubricRevision)} sx={{ alignSelf: "flex-start" }}>View criteria used</Button>
           <Typography variant="body2">Limited comparison: up to five same-event submissions with at least 50% normalized word overlap. Unexamined submissions may also match; this is a review prompt.</Typography>
           {report.comparisonRevisions.map((reference) => <Typography key={reference.applicationId} variant="body2">{reference.sourceLabel} · source revision {reference.sourceRevision} · text overlap {Math.round(reference.similarity * 100)}%</Typography>)}
@@ -230,9 +230,9 @@ export default function ApplicationAnalysis({ eventId, applicationId, submittedR
     {dialog && <Dialog open transitionDuration={0} onClose={() => !busy && setDialog(null)} aria-labelledby="analysis-confirmation-title" fullWidth maxWidth="sm">
       <DialogTitle id="analysis-confirmation-title">{dialog === "start" ? "Confirm analysis" : "Reload rubric?"}</DialogTitle>
       <DialogContent>
-        {dialog === "start" ? <><Typography>Only use fictional records. Descriptions and assessment instructions will be sent to the AI service. This uses your request quota.</Typography><FormControlLabel control={<Checkbox checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />} label="I confirm this event contains only synthetic, invented data." /></> : <Typography>Reloading replaces your unsaved criterion edits with the latest saved rubric.</Typography>}
+        {dialog === "start" ? <Typography>Application descriptions and assessment criteria will be shared with the AI provider. Account contact fields are excluded. Review the information before starting; this uses your request quota.</Typography> : <Typography>Reloading replaces your unsaved criterion edits with the latest saved rubric.</Typography>}
       </DialogContent>
-      <DialogActions><Button onClick={() => setDialog(null)} disabled={busy}>Keep reviewing</Button><Button disabled={busy || (dialog === "start" && !confirmed)} onClick={dialog === "start" ? start : refresh}>{dialog === "start" ? "Start analysis" : "Reload rubric"}</Button></DialogActions>
+      <DialogActions><Button onClick={() => setDialog(null)} disabled={busy}>Keep reviewing</Button><Button disabled={busy} onClick={dialog === "start" ? start : refresh}>{dialog === "start" ? "Start analysis" : "Reload rubric"}</Button></DialogActions>
     </Dialog>}
     {historicalRubric && <Dialog open transitionDuration={0} onClose={() => setHistoricalRubric(null)} aria-labelledby="saved-criteria-title" fullWidth maxWidth="sm">
       <DialogTitle id="saved-criteria-title">Saved criteria · revision {historicalRubric.revision}</DialogTitle>

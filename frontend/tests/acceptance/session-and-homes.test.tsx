@@ -114,7 +114,7 @@ describe("role homes preserve presentation and accessibility", () => {
     for (const card of cards) expect(await screen.findByText(card)).toBeVisible();
     for (const card of Object.entries(homes).filter(([other]) => other !== role).flatMap(([, values]) => values)) expect(screen.queryByText(card)).not.toBeInTheDocument();
     const unavailable = screen.queryAllByRole("button", { name: /coming later/i });
-    expect(unavailable).toHaveLength(role === "organiser" ? 0 : role === "business" ? 2 : 1);
+    expect(unavailable).toHaveLength(role === "organiser" || role === "business" ? 0 : 1);
     for (const button of unavailable) expect(button).toBeDisabled();
     if (role === "attendee") {
       // F02-TCR-01: My Itinerary joins Browse Programme; Event Assistant remains a preview.
@@ -134,6 +134,12 @@ describe("role homes preserve presentation and accessibility", () => {
       expect(itinerary).toBeEnabled();
     }
     if (role === "business") {
+      const aiPreparation = screen.getByRole("link", { name: /AI preparation draft/i });
+      expect(aiPreparation).toHaveAttribute("href", "/business/preparation-drafts");
+      expect(aiPreparation).not.toHaveAttribute("aria-disabled", "true");
+      const preparation = screen.getByRole("link", { name: /^open preparation$/i });
+      expect(preparation).toHaveAttribute("href", "/business/preparation");
+      expect(preparation).not.toHaveAttribute("aria-disabled", "true");
       const entry = screen.getByRole("link", { name: role === "business" ? /^open applications$/i : /^review applications$/i });
       expect(entry).toHaveAttribute("href", `/${role}/applications`);
       expect(entry).not.toHaveAttribute("aria-disabled", "true");
@@ -141,7 +147,7 @@ describe("role homes preserve presentation and accessibility", () => {
     if (role === "organiser") {
       const analysisCard = screen.getByRole("heading", { name: "AI Application Analysis" }).closest("article");
       expect(analysisCard).not.toBeNull();
-      expect(within(analysisCard!).getByText(/synthetic|invented/i)).toBeVisible();
+      expect(within(analysisCard!).getByText(/Review submitted applications with evidence-based AI support/i)).toBeVisible();
       expect(within(analysisCard!).getByRole("link", { name: /analysis/i })).toHaveAttribute("href", "/organiser/applications#analysis");
       const programmeAction = screen.queryByRole("link", { name: /programme/i }) ?? screen.getByRole("button", { name: /programme/i });
       expect(programmeAction).not.toBeDisabled();

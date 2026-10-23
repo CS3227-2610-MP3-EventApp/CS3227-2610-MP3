@@ -1,0 +1,9 @@
+# Test baseline addition request JOBS-TCR-01
+
+- Requester/date: orchestrator `/root`,2026-10-22; owner `/root/preparation_scenarios`. Original protected baseline55817ee5296f9f291d09729237aa8811bcc330ee; backend/tests/test_business_jobs.py and jobs test-plan metadata affected.
+- Independent final-review findings reported by root: shared actor gate lost prelookup mandatory-password restriction; migration0008 removed SQL analysis workflow default contrary to approved legacy compatibility design. Full backend suite running separately; no owner DB execution during that run.
+- Approved compatibility: shared GET/cancel retains password_change_required before existing/missing lookup for organiser and business; legacy SQL INSERT omitting workflow defaults to analysis, and organiser envelope stays unchanged.
+- Added cases only: six role/target/method mandatory-password cases asserting unchanged job/domain state; one true SQL INSERT omitting workflow followed by stored-default and organiser GET envelope assertion. No original tests, assertions, discovery or production edits.
+- Implementation correction belongs to developer after independent adequacy review/replacement baseline. Existing applied0008 must not be rewritten; root coordinates additive0009 restore-default migration.
+- Cause: missing independent compatibility coverage; expectations were already approved, no new product behavior. Human product change approval N/A.
+- Independent adequacy review: actual `/root/phase2_final_behaviour` and `/root/phase2_final_security` approved the exact7-case compatibility delta through read-only review; neither executed tests. Tests/metadata frozen for orchestrator replacement baseline; preserve original baseline/evidence. No passing/RED execution claimed yet; root full database suite still running, so owner waits for exclusive slot.
