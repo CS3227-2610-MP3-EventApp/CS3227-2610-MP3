@@ -328,13 +328,13 @@ export function PreparationDrafts() {
           <Typography component="h2" variant="h2">Private preparation draft</Typography>
           <Typography>Draft revision {mem.draft.revision} · source event/setup/preparation {mem.draft.sourceRevisions.event}/{mem.draft.sourceRevisions.setup}/{mem.draft.sourceRevisions.preparation}. Suggestions are not authoritative facts.</Typography>
           {mem.draft.adoptedAt && <Alert severity="success">Adopted into manual preparation revision {mem.draft.adoptedPreparationRevision}.</Alert>}
-          {mem.draft.tasks.map((task, index) => <Paper component="fieldset" key={index} variant="outlined" sx={{ my: 1, p: 1.5 }}><Typography component="legend">Suggested task {index + 1}</Typography>
+          {mem.draft.tasks.map((task, index) => <Paper component="fieldset" key={index} variant="outlined" sx={{ my: 2, p: 2, display: "flex", flexDirection: "column", gap: 2 }}><Typography component="legend">Suggested task {index + 1}</Typography>
             <FormControlLabel control={<Checkbox aria-label={`Select task ${index + 1}: ${task.title}`} checked={selectedIndexes("task").includes(index)} onChange={(_, checked) => select("task", index, checked)} disabled={!!mem.draft?.adoptedAt} />} label="Select task" />
             <TextField label="Task title" value={task.title} onChange={e => updateTask(index, { title: e.target.value })} disabled={!editable} />
             <TextField select label="Task status" value={task.status} onChange={e => updateTask(index, { status: e.target.value as DraftTask["status"] })} disabled={!editable}>{statusValues.map(s => <MenuItem key={s} value={s}>{s.replace("_", " ")}</MenuItem>)}</TextField>
             <TextField type="date" label="Task due date" value={task.dueDate ?? ""} onChange={e => updateTask(index, { dueDate: e.target.value || null })} slotProps={{ inputLabel: { shrink: true } }} disabled={!editable} />
           </Paper>)}
-          {mem.draft.budget.lines.map((line, index) => <Paper component="fieldset" key={index} variant="outlined" sx={{ my: 1, p: 1.5 }}><Typography component="legend">Cost item {index + 1}</Typography>
+          {mem.draft.budget.lines.map((line, index) => <Paper component="fieldset" key={index} variant="outlined" sx={{ my: 2, p: 2, display: "flex", flexDirection: "column", gap: 2 }}><Typography component="legend">Cost item {index + 1}</Typography>
             <FormControlLabel control={<Checkbox aria-label={`Select cost item ${index + 1}: ${line.description}`} checked={selectedIndexes("line").includes(index)} onChange={(_, checked) => select("line", index, checked)} disabled={!!mem.draft?.adoptedAt} />} label="Select cost item" />
             <TextField label="Category (optional)" value={line.category ?? ""} onChange={e => updateLine(index, {category:e.target.value || null})} disabled={!editable} />
             <TextField label="Item description" value={line.description} onChange={e => updateLine(index, { description: e.target.value })} disabled={!editable} />

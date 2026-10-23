@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | draft-promotional-concepts |
 | Covered stories | F09-US01; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 3 / In review |
+| Specification revision / status | 4 / In review |
 | Product roles / roadmap reference | Authenticated business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved the three F09 default bundles on 2026-10-22 in response to the original phased implementation request. Revision 3 records the bounded contract derived from that authorization; no approval of unrelated policy is implied. Shared job extension is documented in monitor-and-recover-ai-tasks r5. |
 | Review / run record | [Phase 1 run](../../workflow/agents/runs/2026-10-22-f09-phase1.md); [scenario record PC01-PC20](../../workflow/agents/runs/2026-10-22-f09-promotional-draft-scenarios.md); independent behaviour/security review findings incorporated, final executable-test review pending |
@@ -115,3 +115,14 @@ Actual independent behaviour and security reviews passed their bounded corrected
 | 1 / 2026-10-18 | Initial bounded Draft from F09-US01 and current RD/SEC rules | Product approval and verification pending |
 | 2 / 2026-10-22 | Refined user journey, private draft lifecycle, fact/prose separation, failure preservation, AI/security boundaries and shared-job dependency; preserved AC01-05 and added AC06 for save/reopen/edit/delete persistence and revision conflicts | Draft only; product approval and verification pending |
 | 3 / 2026-10-22 | Applied the three user-approved default bundles; resolved versioned interfaces, DTOs, limits, source refresh and lifecycle within the authorized scope; linked additive shared AI job extension | Product defaults recorded as approved; independent acceptance-test design/baseline, implementation and runtime evidence pending |
+
+## Revision 4 amendment - automatic job status - 2026-10-23
+
+Isaac requested this UI change in chat on 2026-10-23 while manually testing; exact-revision teammate review is pending. Server contracts, limits, authority checks and AC01–AC06 are unchanged. It mirrors generate-preparation-drafts AC10.
+
+draft-promotional-concepts-AC07: while the latest concept job is `pending` or `running`, the page shows a decorative progress spinner beside the announced status text and rereads that job through `GET /api/v1/ai/jobs/{jobId}` about every 3 seconds; **Refresh status** and **Cancel job** stay available. A check is skipped while a user action is in progress, and its result is discarded if one started meanwhile. Checks never create, cancel or replay a job. On `completed`, saved history reloads, the new concept opens unless unsaved edits exist (as with Refresh), and a dismissible notification says it is ready. On `failed`, a notification points to the safe failure message. Checks stop at any terminal state and when the page is left. Developer evidence: `frontend/tests/promotional-concepts-polling.test.tsx`; independent review pending.
+
+| Revision / date | Change | Approval / evidence impact |
+| --- | --- | --- |
+| 4 / 2026-10-23 | Added AC07 automatic job status checks, spinner and completion notification | Requested by Isaac in chat; developer regression test only; independent/human review pending |
+

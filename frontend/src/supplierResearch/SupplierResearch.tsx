@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Box, Button, Checkbox, FormControlLabel, Link, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, Link, MenuItem, Paper, Snackbar, Stack, TextField, Typography } from "@mui/material";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { api, ApiError, applicationApi } from "../api";
 import { application, events as parseEvents, type Application, type ApplicationEvent } from "../applications/model";
@@ -30,8 +30,28 @@ export function SupplierResearch(){
  async function operation(action:(v:number,who:string)=>Promise<void>){if(mutex.current||!actor)return;mutex.current=true;setBusy(true);setError("");setNotice("");const v=epoch.current,who=actor.id;try{if(await ensure(v,who))await action(v,who);}catch(value){if(current(v,who))failure(value);}finally{if(current(v,who)){mutex.current=false;setBusy(false);}}}
  async function history(v:number,who:string,next=0){const h=parseHistory(await researchApi.history(participationId,next),participationId,eventId);if(current(v,who)){setItems(h.items);setTotal(h.total);setOffset(next);setJob(h.latestJob);}}
  const valid=brief.trim()&&Array.from(brief.trim()).length<=1000&&area.trim()&&Array.from(area.trim()).length<=100&&/^[1-9][0-9]*$/.test(quantity)&&Number(quantity)<=1000000;
- async function generate(){if(!valid)return;await operation(async(v,who)=>{try{const result=parseJob(await researchApi.create(participationId,{requestId:crypto.randomUUID(),category,brief:brief.trim(),quantity:Number(quantity),deliveryArea:area.trim(),...(neededBy?{neededBy}:{}),dataSharingConfirmed:true}),participationId,eventId);if(!current(v,who))return;setJob(result);setNotice("Research requested. Refresh status to check progress; requests are not replayed automatically.");if(result.snapshot)await history(v,who);}catch(value){if(current(v,who)&&value instanceof ResearchError&&(value.status===0||value.status>=500)){await history(v,who);if(current(v,who))setNotice("Checked saved job history after an uncertain request. No research request was replayed.");}throw value;}});}
+ async function generate(){if(!valid)return;await operation(async(v,who)=>{try{const result=parseJob(await researchApi.create(participationId,{requestId:crypto.randomUUID(),category,brief:brief.trim(),quantity:Number(quantity),deliveryArea:area.trim(),...(neededBy?{neededBy}:{}),dataSharingConfirmed:true}),participationId,eventId);if(!current(v,who))return;setJob(result);setNotice("Research requested. Status is checked automatically; requests are not replayed.");if(result.snapshot)await history(v,who);}catch(value){if(current(v,who)&&value instanceof ResearchError&&(value.status===0||value.status>=500)){await history(v,who);if(current(v,who))setNotice("Checked saved job history after an uncertain request. No research request was replayed.");}throw value;}});}
  async function refresh(cancel=false){await operation(async(v,who)=>{if(!job)return;const result=parseJob(await(cancel?researchApi.cancel(job.id):researchApi.job(job.id)),participationId,eventId);if(!current(v,who))return;setJob(result);if(result.snapshot)await history(v,who);});}
+ // Active jobs are reread automatically. A tick is skipped while a user action holds the mutex, and its result
+ // is discarded if one started meanwhile, so explicit Refresh/Cancel always win.
+ const [toast,setToast]=useState<{message:string;severity:"success"|"error"}|null>(null),[pollTick,setPollTick]=useState(0);
+ const activeJobId=active(job)?job!.id:null;
+ useEffect(()=>{
+  if(!activeJobId)return;
+  const timer=setTimeout(async()=>{
+   const v=epoch.current,who=actorRef.current?.id;
+   if(!who||mutex.current){setPollTick(t=>t+1);return;}
+   try{
+    const result=parseJob(await researchApi.job(activeJobId),participationId,eventId);
+    if(!current(v,who)||mutex.current)return;
+    setJob(result);if(result.snapshot)await history(v,who);
+    if(result.state==="completed")setToast({message:"Your supplier comparison is ready.",severity:"success"});
+    else if(result.state==="failed")setToast({message:"Supplier research failed. See the details on the page.",severity:"error"});
+   }catch(value){if(current(v,who))failure(value);}
+   finally{if(alive.current)setPollTick(t=>t+1);}
+  },3000);
+  return()=>clearTimeout(timer);
+ },[activeJobId,pollTick]); // eslint-disable-line react-hooks/exhaustive-deps
  async function save(){if(!saved)return;await operation(async(v,who)=>{try{const result=parseShortlist(await researchApi.save(participationId,{expectedRevision:saved.revision,selectedOffers:selected}),participationId);if(!current(v,who))return;setSaved(result);setSelected(result.selectedOffers);setConflict(false);setNotice("Private shortlist saved.");}catch(value){if(current(v,who)&&value instanceof ResearchError){if(value.code==="revision_conflict")setConflict(true);if(value.status===0||value.status>=500){try{const canonical=parseShortlist(await researchApi.shortlist(participationId),participationId);if(!current(v,who))return;setSaved(canonical);if(JSON.stringify(canonical.selectedOffers)===JSON.stringify(selected)){setConflict(false);setNotice("Saved shortlist confirmed after an uncertain response.");return;}setConflict(true);}catch(reconcileError){if(reconcileError instanceof ResearchError&&[401,403,404].includes(reconcileError.status))throw reconcileError;if(current(v,who))setUncertain(true);}}}throw value;}});}
  async function reloadShortlist(){if(dirty&&!window.confirm("Discard unsaved selections and reload the saved shortlist?"))return;await operation(async(v,who)=>{const result=parseShortlist(await researchApi.shortlist(participationId),participationId);if(current(v,who)){setSaved(result);setSelected(result.selectedOffers);setConflict(false);}});}
  async function remove(s:Snapshot){
@@ -55,7 +75,9 @@ export function SupplierResearch(){
  }
  function toggle(snapshotId:string,offerId:string,checked:boolean){setSelected(old=>checked?[...old,{snapshotId,offerId}]:old.filter(r=>r.snapshotId!==snapshotId||r.offerId!==offerId));}
  const status=job?.state==="failed"?({access_revoked:"Research stopped because access changed.",timed_out:"Research timed out. Saved comparisons remain available.",invalid_output:"Research could not be grounded in the retrieved pages."} as Record<string,string>)[job.failureCode??""]??"Supplier research failed. Saved comparisons remain available.":job?.state==="cancelled"?`Research cancelled. ${job.providerMayHaveRun?"A provider may already have run and used quota.":"No provider request was dispatched."}`:job?.state==="completed"?"Research completed. Its comparison is saved separately from the job.":job?`Research ${job.state}.`:"";
- return <Box sx={{maxWidth:1100,mx:"auto",p:{xs:2,md:4},overflowWrap:"anywhere"}}><Stack spacing={3}>
+ return <Box sx={{maxWidth:1100,mx:"auto",p:{xs:2,md:4},overflowWrap:"anywhere"}}><Snackbar open={!!toast} autoHideDuration={8000} onClose={()=>setToast(null)} anchorOrigin={{vertical:"bottom",horizontal:"right"}}>
+  {toast?<Alert severity={toast.severity} variant="filled" onClose={()=>setToast(null)}>{toast.message}</Alert>:undefined}
+ </Snackbar><Stack spacing={3}>
   <Stack direction="row" sx={{flexWrap:"wrap",gap:2,alignItems:"center",justifyContent:"space-between"}}><Button component={RouterLink} to="/business" onClick={e=>{if(dirty&&!window.confirm("Discard unsaved shortlist changes?"))e.preventDefault();}}>Business workspace</Button><AppearanceControl/></Stack>
   <Typography component="h1" variant="h2" data-page-heading tabIndex={-1}>Supplier research</Typography>
   {error&&<Alert severity="error">{error}</Alert>}{notice&&<Alert severity="info">{notice}</Alert>}
@@ -75,7 +97,7 @@ export function SupplierResearch(){
     <Button variant="contained" disabled={busy||uncertain||active(job)||!valid} onClick={generate}>Research suppliers</Button>
     <Typography variant="body2">Each research request creates a new comparison. Existing evidence and shortlist selections stay saved.</Typography>
    </Stack></Paper>
-   {job&&<Paper variant="outlined" sx={{p:2}}><Stack spacing={1}><Typography role="status">{status}</Typography><Stack direction="row" spacing={2}><Button disabled={busy} onClick={()=>refresh()}>Refresh status</Button>{active(job)&&<Button disabled={busy} onClick={()=>refresh(true)}>Cancel job</Button>}</Stack></Stack></Paper>}
+   {job&&<Paper variant="outlined" sx={{p:2}}><Stack spacing={1}><Stack direction="row" spacing={1.5} alignItems="center">{active(job)&&<CircularProgress size={20} aria-hidden="true"/>}<Typography role="status">{status}{active(job)&&" Checking automatically; the comparison appears here when it is ready."}</Typography></Stack><Stack direction="row" spacing={2}><Button disabled={busy} onClick={()=>refresh()}>Refresh status</Button>{active(job)&&<Button disabled={busy} onClick={()=>refresh(true)}>Cancel job</Button>}</Stack></Stack></Paper>}
    <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}><Typography component="h2" variant="h5">Private shortlist</Typography><Typography>{selected.length} selected offers. Saved revision {saved.revision}.{dirty?" Unsaved selections.":""}</Typography><Stack direction="row" sx={{flexWrap:"wrap",gap:2}}><Button variant="contained" disabled={busy||uncertain||conflict||selected.length>100} onClick={save}>Save shortlist</Button><Button disabled={busy} onClick={reloadShortlist}>Reload saved shortlist</Button><Button disabled={busy||!selected.length} onClick={()=>setSelected([])}>Clear selections</Button></Stack><Link component={RouterLink} to={`/business/procurement-proposals?${new URLSearchParams({participationId})}`} onClick={e=>{if(dirty&&!window.confirm("Discard unsaved shortlist changes?"))e.preventDefault();}}>Procurement proposals from this shortlist</Link>{conflict&&<Alert severity="warning">Your selections are retained. Reload the saved shortlist to resolve the conflict.</Alert>}</Stack></Paper>
    <Typography component="h2" variant="h5">Saved comparisons</Typography>
    <Alert severity="warning">Observed listings and calculated item subtotals are estimates, not quotations. Tax, shipping and fees are excluded from subtotals. Source links do not verify seller identity, reliability, safety, suitability or current inventory. Review the evidence before making decisions.</Alert>

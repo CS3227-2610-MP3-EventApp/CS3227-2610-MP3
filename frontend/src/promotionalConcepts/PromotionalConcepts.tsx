@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, Paper, Snackbar, Stack, TextField, Typography } from "@mui/material";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { api, ApiError, applicationApi } from "../api";
 import { application, events as parseEvents, type Application, type ApplicationEvent } from "../applications/model";
@@ -83,7 +83,7 @@ export function PromotionalConcepts() {
     await operation(async(v,who)=>{
       try{
         const parsed=parseJob(await conceptsApi.create(participationId,{requestId:crypto.randomUUID(),expectedEventRevision:event.eventRevision,expectedSetupRevision:setup.revision,brief:brief.trim(),factFields:selected,dataSharingConfirmed:true}),participationId,eventId);
-        if(!current(v,who))return;setJob(parsed);setNotice("Generation requested. Refresh status to check progress; no request is replayed automatically.");
+        if(!current(v,who))return;setJob(parsed);setNotice("Generation requested. Status is checked automatically; no request is replayed.");
         if(parsed.concept){const saved=parseHistory(await conceptsApi.history(participationId),participationId,eventId);if(!current(v,who))return;setItems(saved.items);setTotal(saved.total);setOffset(0);if(!dirtyRef.current)setConcept(parsed.concept);}
       }catch(value){
         if(!current(v,who))return;
@@ -97,6 +97,27 @@ export function PromotionalConcepts() {
     if(!job)return;const parsed=parseJob(await (cancel?conceptsApi.cancel(job.id):conceptsApi.job(job.id)),participationId,eventId);if(!current(v,who))return;setJob(parsed);
     if(parsed.concept){const saved=parseHistory(await conceptsApi.history(participationId),participationId,eventId);if(!current(v,who))return;setItems(saved.items);setTotal(saved.total);setOffset(0);if(!dirtyRef.current)setConcept(parsed.concept);else setNotice("A new concept was saved. Your unsaved edits remain open; choose the new draft from history.");}
   });}
+  // Active jobs are reread automatically. A tick is skipped while a user action holds the mutex, and its result
+  // is discarded if one started meanwhile, so explicit Refresh/Cancel always win.
+  const [toast,setToast]=useState<{message:string;severity:"success"|"error"}|null>(null),[pollTick,setPollTick]=useState(0);
+  const activeJobId=active(job)?job!.id:null;
+  useEffect(()=>{
+    if(!activeJobId)return;
+    const timer=setTimeout(async()=>{
+      const v=epoch.current,who=actorRef.current?.id;
+      if(!who||mutex.current){setPollTick(t=>t+1);return;}
+      try{
+        const parsed=parseJob(await conceptsApi.job(activeJobId),participationId,eventId);
+        if(!current(v,who)||mutex.current)return;
+        setJob(parsed);
+        if(parsed.concept){const saved=parseHistory(await conceptsApi.history(participationId),participationId,eventId);if(!current(v,who))return;setItems(saved.items);setTotal(saved.total);setOffset(0);if(!dirtyRef.current)setConcept(parsed.concept);else setNotice("A new concept was saved. Your unsaved edits remain open; choose the new draft from history.");}
+        if(parsed.state==="completed")setToast({message:"Your promotional concepts are ready.",severity:"success"});
+        else if(parsed.state==="failed")setToast({message:"Concept generation failed. See the details on the page.",severity:"error"});
+      }catch(value){if(current(v,who))failure(value);}
+      finally{if(alive.current)setPollTick(t=>t+1);}
+    },3000);
+    return()=>clearTimeout(timer);
+  },[activeJobId,pollTick]); // eslint-disable-line react-hooks/exhaustive-deps
   function edit(patch:Partial<Concept>){if(!concept)return;setConcept({...concept,...patch});setDirty(true);setDeleting(false);}
   async function save(){if(!concept)return;const submitted=concept;await operation(async(v,who)=>{
     try{const value=parseConcept(await conceptsApi.save(submitted.id,{expectedRevision:submitted.revision,posterCopySuggestions:submitted.posterCopySuggestions,freebieConcepts:submitted.freebieConcepts,layoutBrief:submitted.layoutBrief}),participationId);if(!current(v,who))return;setConcept(value);setItems(old=>old.map(c=>c.id===value.id?value:c));setDirty(false);setConflict(false);setNotice("Draft saved.");}
@@ -111,6 +132,9 @@ export function PromotionalConcepts() {
   });}
   const choices=applications.filter(a=>a.businessId===businessId);
   return <Box>
+    <Snackbar open={!!toast} autoHideDuration={8000} onClose={()=>setToast(null)} anchorOrigin={{vertical:"bottom",horizontal:"right"}}>
+      {toast?<Alert severity={toast.severity} variant="filled" onClose={()=>setToast(null)}>{toast.message}</Alert>:undefined}
+    </Snackbar>
     <Stack component="header" direction="row" justifyContent="space-between" sx={{p:3,borderBottom:1,borderColor:"divider",flexWrap:"wrap",gap:2}}><Button component={RouterLink} to="/business" sx={{whiteSpace:"nowrap"}}>Business workspace</Button><AppearanceControl/></Stack>
     <Stack component="main" spacing={3} sx={{p:{xs:2,md:4},maxWidth:1100,mx:"auto"}}>
       <Typography component="h1" variant="h2" data-page-heading tabIndex={-1}>Promotional concepts</Typography>
@@ -131,7 +155,7 @@ export function PromotionalConcepts() {
           <Button variant="contained" disabled={busy||active(job)||!brief.trim()||Array.from(brief.trim()).length>2000} onClick={generate}>Generate concepts</Button>
           {active(job)&&<Typography>An AI request is active. Refresh its status or cancel it before generating again.</Typography>}
         </Stack></Paper>
-        {job&&<Paper variant="outlined" sx={{p:2}}><Stack spacing={1}><Typography role="status">{jobText(job)}</Typography><Stack direction="row" spacing={2}><Button disabled={busy} onClick={()=>refreshJob()}>Refresh status</Button>{active(job)&&<Button disabled={busy} onClick={()=>refreshJob(true)}>Cancel job</Button>}</Stack></Stack></Paper>}
+        {job&&<Paper variant="outlined" sx={{p:2}}><Stack spacing={1}><Stack direction="row" spacing={1.5} alignItems="center">{active(job)&&<CircularProgress size={20} aria-hidden="true"/>}<Typography role="status">{jobText(job)}{active(job)&&" Checking automatically; the concepts appear here when they are ready."}</Typography></Stack><Stack direction="row" spacing={2}><Button disabled={busy} onClick={()=>refreshJob()}>Refresh status</Button>{active(job)&&<Button disabled={busy} onClick={()=>refreshJob(true)}>Cancel job</Button>}</Stack></Stack></Paper>}
         <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}><Typography component="h2" variant="h5">Saved private drafts</Typography>{!items.length&&<Typography>No saved concepts yet.</Typography>}{items.map(c=><Button key={c.id} disabled={busy} onClick={()=>openConcept(c.id)} variant={concept?.id===c.id?"outlined":"text"}>Open draft from {new Date(c.createdAt).toLocaleString()} (revision {c.revision})</Button>)}<Stack direction="row" spacing={2}><Button disabled={busy||offset===0} onClick={()=>page(Math.max(0,offset-20))}>Previous drafts</Button><Button disabled={busy||offset+items.length>=total} onClick={()=>page(offset+20)}>More drafts</Button></Stack></Stack></Paper>
         {concept&&<Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
           <Typography component="h2" variant="h5">Edit private draft</Typography>

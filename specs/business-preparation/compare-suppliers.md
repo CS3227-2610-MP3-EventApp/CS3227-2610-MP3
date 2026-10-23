@@ -4,7 +4,7 @@
 | --- | --- |
 | Stable capability ID | compare-suppliers |
 | Covered stories | F09-US02; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 5 / In review; r4 and r5 text approved by Isaac 2026-10-23 (r5 adds D07 per-offer rejection and deterministic repair; r4 amends r3 per D06) |
+| Specification revision / status | 6 / In review; r6 automatic job status requested by Isaac 2026-10-23; r4 and r5 text approved by Isaac 2026-10-23 (r5 adds D07 per-offer rejection and deterministic repair; r4 amends r3 per D06) |
 | Product roles / roadmap reference | Active business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved exact revisions 4 and 5 on 2026-10-23. Isaac approved exact revision 3 and shared AI-task revision 6 on 2026-10-22; independent preimplementation reviews approved the bounded test suite. |
 | Review / run record | [Phase 2 run](../../workflow/agents/runs/2026-10-22-f09-phase2.md); r4/r5 implementation, live/browser/restart evidence and independent (general-purpose fallback) reviews recorded in [the Phase 2 completion log](../../logs/isaac/2026-10-23-f09-phase2-completion-and-handoff.md); human teammate review and verification pending |
@@ -101,6 +101,17 @@ Evidence is local and small-sample; live success depends on the model and source
 | 1 / 2026-10-18 | Initial bounded Draft from F09-US02 and current RD/SEC rules | Product approval and verification pending |
 | 2 / 2026-10-22 | Preserved AC01-05; made grounding, SSRF, privacy, failure and lifecycle observable; added AC06 | Draft only; decisions pending |
 | 3 / 2026-10-22 | Recorded approved Tavily discovery, independent page fetch, SGD estimate/unknown rules, creator-private scope, freshness/refresh/retention and versioned logical DTOs | Human-approved product defaults recorded; independent executable baseline and implementation pending |
+
+## Revision 6 amendment - automatic job status - 2026-10-23
+
+Isaac requested this UI change in chat on 2026-10-23 while manually testing; exact-revision teammate review is pending. Server contracts, Tavily/SoCLaaS limits, retrieval safety, authority checks and AC01–AC06 are unchanged. It mirrors generate-preparation-drafts AC10.
+
+compare-suppliers-AC07: while the latest research job is `pending` or `running`, the page shows a decorative progress spinner beside the announced status text and rereads that job through `GET /api/v1/ai/jobs/{jobId}` about every 3 seconds; **Refresh status** and **Cancel job** stay available. A check is skipped while a user action is in progress, and its result is discarded if one started meanwhile. Checks never create, cancel or replay a job, and never trigger Tavily or retrieval. On `completed`, saved comparisons reload and a dismissible notification says the comparison is ready. On `failed`, a notification points to the safe failure message. Checks stop at any terminal state and when the page is left. Developer evidence: `frontend/tests/supplier-research-polling.test.tsx`; independent review pending.
+
+| Revision / date | Change | Approval / evidence impact |
+| --- | --- | --- |
+| 6 / 2026-10-23 | Added AC07 automatic job status checks, spinner and completion notification | Requested by Isaac in chat; developer regression test only; independent/human review pending |
+
 
 ## Partial-result save discoverability fix - 2026-10-23
 
