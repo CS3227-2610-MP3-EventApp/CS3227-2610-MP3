@@ -176,10 +176,11 @@ Leave the Organiser window open. Open a **private** window of the same browser (
 
 1. **Business** → **Create account**:
    - Display name `Priya Raman`
-   - Email `priya@kopi-and-clay.example.test`
    - Username `kopi-and-clay`
-   - Password `KopiClay-Smoke-2027`
+   - Email `priya@kopi-and-clay.example.test`
    - Business name `Kopi & Clay Studio`
+   - Password `KopiClay-Smoke-2027`
+
 
    **Expect:** the Business workspace showing "03 / AVAILABLE · 00 / PREVIEWS", no "Coming later" buttons, and the Promotional concepts and Supplier research panels.
 2. **Open applications** → **Singapore Makers Weekend 2027**. **Expect:** contact name `Priya Raman` and email prefilled and editable.
@@ -200,7 +201,11 @@ This step switches between the two windows; each item says which to use.
    - Booth label: `Hall B · Booth 12`
    - Setup instructions: `Load in from 8:00 to 9:30 via Gate 3. One 13A power socket and a 1.8m table are provided.`
 
-   Then **Save setup**. **Business window:** reload the application. **Expect:** the setup is *not* visible yet.
+   Then **Save setup**.
+
+   In the **Business window:** reload the application. 
+   
+   **Expect:** the setup details are *not* visible yet.
 3. **Organiser window:** **Publish setup** and confirm. **Business window:** reload. **Expect:** Hall B · Booth 12 and the instructions appear, with status Accepted.
 
 ## 8. Preparation & Budget (business window)
