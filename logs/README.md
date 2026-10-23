@@ -76,5 +76,6 @@ Each teammate must add summaries for their own earlier sessions and verify the h
 - [2026-10-22 Dylan manual issue fixes](dylan/2026-10-22-manual-issues.md): accessibility snapshot diagnosis, organiser activity selection persistence, AI JSON-fence parsing, and focused verification; human verification approved by the team on 2026-10-22.
 - [2026-10-22 Dylan master merge](dylan/2026-10-22-master-merge.md): resolved the latest master merge, regenerated API contracts, synchronized attendee-AI documentation, and verified the merged backend/frontend changes; human verification pending.
 - [2026-10-22 Dylan GitHub Pages deployment](dylan/2026-10-22-github-pages-deployment.md): created and published the static EventApp product website with GitHub Pages; human verification approved after the public URL and successful Actions run were checked.
+- [2026-10-23 Dylan README, reflection and hosted URL](dylan/2026-10-23-readme-hosted-url.md): added concise project entry points, synchronized deployment wording, and linked the hosted application from the product website; human verification pending.
 
 - [2026-10-22 Isaac Business refinements](isaac/2026-10-22-business-refinements.md): user-approved account/setup/budget/date/AI/UI refinements, test-first evidence, fixes, runtime checks and pending independent/human review.

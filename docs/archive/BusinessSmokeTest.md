@@ -203,8 +203,8 @@ This step switches between the two windows; each item says which to use.
 
    Then **Save setup**.
 
-   In the **Business window:** reload the application. 
-   
+   In the **Business window:** reload the application.
+
    **Expect:** the setup details are *not* visible yet.
 3. **Organiser window:** **Publish setup** and confirm. **Business window:** reload. **Expect:** Hall B · Booth 12 and the instructions appear, with status Accepted.
 

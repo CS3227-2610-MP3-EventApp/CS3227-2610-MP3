@@ -11,9 +11,11 @@ The logs were reviewed and approved by the team on 22 October 2026.
 The project used React, FastAPI, PostgreSQL, SoC LLM access through SoCLaaS, and a
 specialised-agent workflow. The most developed product areas were authentication, business
 applications, organiser programme management, organiser application analysis, attendee
-programme browsing/planning, and organiser disruption announcements. Some planned attendee
-and business AI capabilities and online deployment remained release work rather than being
-claimed as complete.
+programme browsing/planning, and organiser disruption announcements. The product website is
+deployed through GitHub Pages, and the application is now hosted at
+[eventapp-ws7v.onrender.com](https://eventapp-ws7v.onrender.com/). Some planned attendee and
+business AI capabilities, full production environment separation, and complete deployed
+cross-role verification remain release work rather than being claimed as complete.
 
 ## 2. AI security
 
@@ -82,8 +84,9 @@ mechanism. AI announcement drafting produces a private draft, while preview expi
 freshness, exact-text approval, and immutable publication are enforced by the server.
 
 The remaining limitation is that local synthetic-data and provider checks do not prove
-production readiness. Production real-data processing, deployed provider configuration,
-online isolation, and a full production deployment check still require team verification.
+production readiness. The application now has a hosted entry point, but production real-data
+processing, deployed provider configuration, online isolation, and a full production
+cross-role smoke test still require team verification.
 
 ## 3. Spec-Driven Development
 
@@ -263,9 +266,10 @@ files could conceal an incompatible contract if they were hand-edited.
 
 The project reduced these risks through file ownership, explicit source-of-truth rules,
 independent reviewers, protected tests, strict model validation, server-side authorisation,
-and human approval before external effects. The controls did not remove the need for a human:
-the logs still record unresolved deployment and integration gates rather than presenting
-local evidence as a production guarantee.
+and human approval before external effects. The controls did not remove the need for a human: the logs record the successful GitHub Pages
+deployment and hosted application URL, while still separating those facts from unresolved
+production integration and verification gates rather than presenting local evidence as a
+production guarantee.
 
 ## 5. Overall lessons and next steps
 
@@ -285,6 +289,10 @@ using the same shortcuts when the cause was unclear or the risk was higher.
 The most important process improvement would be proportionality. For a similar short project,
 I would agree the security boundaries and acceptance tests early, use a compact shared
 specification, delegate only tasks with genuinely separate context, and spend the saved time
-on browser testing, deployment, production separation, and reflection. The final project
-should be judged not only by how much process documentation it contains, but by whether the
-documentation helped the team deliver a secure, testable, and honestly described product.
+on browser testing, deployment, production separation, and reflection. In this project, the
+static product website was deployed first and the application later received a hosted entry
+point; that made deployment concrete, but it also showed that a hosted URL is not by itself
+evidence that every role, provider, migration and security boundary has been verified online.
+The final project should be judged not only by how much process documentation it contains, but
+by whether the documentation helped the team deliver a secure, testable, and honestly
+described product.
