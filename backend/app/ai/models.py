@@ -6,6 +6,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.auth.models import utcnow
 from app.database import Base
+# ai_jobs references programme_changes/announcement_drafts; register them for entry points that skip the API routes
+# (the worker otherwise fails to flush with NoReferencedTableError).
+from app.disruptions import models as _disruption_models  # noqa: F401
 
 
 class AnalysisRubricVersion(Base):

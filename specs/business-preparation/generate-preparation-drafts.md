@@ -1,11 +1,11 @@
 # Generate preparation drafts
 
-> Current revision 4: the **Approved current revision 4 amendment - 2026-10-22** section below governs changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
+> Current revision 5: the **Approved current revision 4 amendment - 2026-10-22** section and the **Revision 5 amendment - automatic job status - 2026-10-23** section below govern changed behavior and supersedes conflicting earlier clauses. Earlier runtime results remain tied to their original revisions; independent review of this refinement is pending.
 | Field | Value |
 | --- | --- |
 | Stable capability ID | generate-preparation-drafts |
 | Covered stories | [F06-US04](../../docs/UserStoriesAndFeatures.md) |
-| Specification revision / status | 4 / In review |
+| Specification revision / status | 5 / In review |
 | Product roles / roadmap | Active business owners; AI for every role |
 | Product and contract approval | Isaac approved provider/data/estimate/adoption defaults3/5 and related specification/implementation amendments6 on2026-10-21; limits approved with30 dispatches/min. This revision records that direction. |
 | Review / run record | [Actual phase run](../../workflow/agents/runs/2026-10-21-f06-implementation.md); [Phase 5 implementation and evidence](../../workflow/agents/runs/2026-10-22-preparation-drafts-implementation.md); independent implementation/human review pending |
@@ -109,3 +109,14 @@ Isaac explicitly approved these amendments and the refinement acceptance plan on
 F06-US04, not F09. AC07: remove invented-data-only checkbox/dependency. Disclose configured AI sharing of event/setup facts, needs and explicitly selected manual details; contacts/account names/IDs excluded. Generate is explicit acknowledgement dataSharingConfirmed:true, not a synthetic-data assertion. Legacy synthetic confirmation accepted only in operator synthetic mode. Dev real-data use additionally requires explicit AI_REAL_DATA_ENABLED=true, configured provider, AI_ENABLED and operator event allowlist; production stays disabled. App retention30days; provider retention unverified, local DB deletion does not remove provider copies. No anonymisation/deletion guarantee. AC08: setup source is published-only; draft saves do not stale AI, publication does. AC09: each source checkbox has its own row; disabled generation and failures explain missing needs/participation/active job/configuration. Optional cost-breakdown categories supported in saved drafts; adoption never changes spending limit.
 
 Revision 4 /2026-10-22: user-approved Business refinements; test-first failures and implementation/results belong in [the refinement run](../../workflow/agents/runs/2026-10-22-business-refinements-test-plan.md). Human implementation/accessibility review remains pending.
+
+## Revision 5 amendment - automatic job status - 2026-10-23
+
+Isaac requested this UI change in chat on 2026-10-23 while manually testing; exact-revision teammate review is pending. Server contracts, limits, authority checks and AC01–AC09 are unchanged.
+
+generate-preparation-drafts-AC10: while the latest owner job is `pending` or `running`, the page shows a decorative progress spinner beside the announced status text and rereads that job through the existing `GET /api/v1/ai/jobs/{jobId}` about every 3 seconds, without the user pressing **Refresh job status** (which stays available). Automatic reads never cancel, replay or create a job, and a user action started meanwhile takes precedence, so its stale result is discarded. When the job reaches `completed`, the validated draft is displayed and a dismissible notification says it is ready. On `failed`, a notification points to the safe failure message on the page. Checks stop at any terminal state and when the page is left. Access loss during a check follows the existing purge rules. Developer evidence: `frontend/tests/preparation-drafts-polling.test.tsx`; independent review pending.
+
+| Revision / date | Change | Approval / evidence impact |
+| --- | --- | --- |
+| 5 / 2026-10-23 | Added AC10 automatic job status checks, spinner and completion notification | Requested by Isaac in chat; developer regression test only; independent/human review pending |
+

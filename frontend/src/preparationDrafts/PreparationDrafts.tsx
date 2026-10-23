@@ -1,6 +1,6 @@
 import { displayDate } from "../displayDate";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Link, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Link, MenuItem, Paper, Snackbar, Stack, TextField, Typography } from "@mui/material";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Auth";
 import { api, ApiError, applicationApi } from "../api";
@@ -210,6 +210,29 @@ export function PreparationDrafts() {
     catch (failure) { if (version === generation.current && alive.current) { accessLoss(failure); setError(failure instanceof Error ? failure.message : "Request could not be completed."); } }
     finally { if (version === generation.current && alive.current) setBusy(false); }
   }
+  // Active jobs are checked automatically so users need not press Refresh. A poll never bumps the request
+  // generation: a user action started meanwhile wins, and the poll result is then discarded.
+  const [toast, setToast] = useState<{ message: string; severity: "success" | "error" } | null>(null);
+  const [pollTick, setPollTick] = useState(0);
+  const activeJobId = mem?.job && ["pending", "running"].includes(mem.job.state) ? mem.job.id : null;
+  useEffect(() => {
+    if (!activeJobId) return;
+    const timer = setTimeout(async () => {
+      const version = generation.current;
+      try {
+        const raw = await draftApi.job(activeJobId);
+        const latest = memRef.current;
+        if (version !== generation.current || !alive.current || latest?.job?.id !== activeJobId) return;
+        const job = parseJob(raw, participationId);
+        putMemory({ ...latest, job, draft: job.state === "completed" && job.draft ? parseDraft(job.draft, participationId) : latest.draft });
+        if (job.state === "completed") setToast({ message: "Your preparation draft is ready.", severity: "success" });
+        else if (job.state === "failed") setToast({ message: "Preparation draft generation failed. See the details on the page.", severity: "error" });
+      } catch (failure) { if (version === generation.current && alive.current) accessLoss(failure); }
+      finally { if (alive.current) setPollTick((tick) => tick + 1); }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [activeJobId, pollTick]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function cancelJob() {
     const current = memRef.current, currentActor = actor; if (!current?.job || !currentActor || busy) return;
     const version = ++generation.current; setBusy(true); setError("");
@@ -260,6 +283,9 @@ export function PreparationDrafts() {
 
   const taskSource = manual?.tasks ?? [], lineSource = manual?.budget.lines ?? [];
   return <ApplicationLayout title="AI Preparation Draft" role="business" dirty={dirty}>
+    <Snackbar open={!!toast} autoHideDuration={8000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
+      {toast ? <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>{toast.message}</Alert> : undefined}
+    </Snackbar>
     <Stack spacing={3}>
       <Typography>Private AI suggestions only. Review every item; nothing changes manual preparation until you explicitly adopt selected items.</Typography>
       <Alert role="note" severity="info">Generating a draft shares event and published setup details, your needs and selected preparation items with the AI provider. Review the selected information before continuing. Account contacts are excluded.</Alert>
@@ -297,7 +323,7 @@ export function PreparationDrafts() {
           {mem.job && <Button onClick={() => void refreshJob()} disabled={busy}>Refresh job status</Button>}
           {mem.job && ["pending", "running"].includes(mem.job.state) && <Button onClick={() => void cancelJob()} disabled={busy}>Cancel</Button>}
         </Stack>
-        {mem.job && <Alert role="status" severity={mem.job.state === "failed" ? "error" : "info"}>{jobMessage(mem.job) || `Latest job: ${mem.job.state}.`}</Alert>}
+        {mem.job && <Alert role="status" severity={mem.job.state === "failed" ? "error" : "info"} icon={["pending", "running"].includes(mem.job.state) ? <CircularProgress size={20} aria-hidden="true" /> : undefined}>{jobMessage(mem.job) || `Latest job: ${mem.job.state}.`}{["pending", "running"].includes(mem.job.state) && " Checking automatically; the draft appears here when it is ready."}</Alert>}
         {mem.draft && !["pending", "running"].includes(mem.job?.state ?? "") && <Paper component="section" aria-label="Private preparation draft" variant="outlined" sx={{ p: 2 }}>
           <Typography component="h2" variant="h2">Private preparation draft</Typography>
           <Typography>Draft revision {mem.draft.revision} · source event/setup/preparation {mem.draft.sourceRevisions.event}/{mem.draft.sourceRevisions.setup}/{mem.draft.sourceRevisions.preparation}. Suggestions are not authoritative facts.</Typography>
