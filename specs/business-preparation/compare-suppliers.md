@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | compare-suppliers |
 | Covered stories | F09-US02; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 5 / In progress; r4 and r5 text approved by Isaac 2026-10-23 (r5 adds D07 per-offer rejection and deterministic repair on 2026-10-23 at Isaac's request; r4 amends r3 per D06; Isaac chose the behaviour and authorised the revision on 2026-10-23; exact r4 text approval pending) |
+| Specification revision / status | 5 / In review; r4 and r5 text approved by Isaac 2026-10-23 (r5 adds D07 per-offer rejection and deterministic repair; r4 amends r3 per D06) |
 | Product roles / roadmap reference | Active business members. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved exact revisions 4 and 5 on 2026-10-23. Isaac approved exact revision 3 and shared AI-task revision 6 on 2026-10-22; independent preimplementation reviews approved the bounded test suite. |
-| Review / run record | [Phase 2 run](../../workflow/agents/runs/2026-10-22-f09-phase2.md); final behavior/security follow-up and live/browser evidence remain pending |
+| Review / run record | [Phase 2 run](../../workflow/agents/runs/2026-10-22-f09-phase2.md); r4/r5 implementation, live/browser/restart evidence and independent (general-purpose fallback) reviews recorded in [the Phase 2 completion log](../../logs/isaac/2026-10-23-f09-phase2-completion-and-handoff.md); human teammate review and verification pending |
 
 ## Product outcome, users and scope
 
@@ -73,16 +73,22 @@ Requires CurrentActor v1, BusinessContext v1 and current business ownership of a
 
 ## Verification and evidence
 
-The approved independent acceptance suite is protected at baseline `0cea5e267a39fc8bdd03ed655a3c7ea1bee7e5d0`. The latest focused backend run passed 120 tests (93 supplier acceptance and 27 developer-owned checks); the protected-path guard and `git diff --check` need rerunning after the latest slash-delimiter change. This is local evidence only. Actual provider calls have not produced a saved research snapshot, the latest observed failure was `invalid_output`, and the latest browser run stopped before shortlist or restart checks. Independent reviewers found delivery-attribution gaps involving a different product in the same quote, a product-name variant, reversed/post-label subjects, unrelated shipping verbs in comma clauses, and parenthetical/trailing product qualifiers. The latest fixes reject contradictory post-estimate qualifiers for explicit-product and generic-delivery evidence, including colon/slash-delimited qualifiers; the dash/parenthetical report was not reproduced against its exact fixture. Final behavior/security follow-up on the slash fix remains pending. AI role coverage and environment separation remain release gates where applicable.
+The approved independent acceptance suite is protected at baseline `0cea5e267a39fc8bdd03ed655a3c7ea1bee7e5d0`, with test-owner changes TCR-F09-R4 and TCR-F09-R5 for r4/r5. Evidence from the [Phase 2 completion session](../../logs/isaac/2026-10-23-f09-phase2-completion-and-handoff.md), 2026-10-23:
 
-| Criterion | Evidence | Revision / reviewer | Status |
+- Live HTTP smoke with real Tavily, fetched pages and SoCLaaS on an invented request: 9 of 12 runs saved a snapshot after r5. Passing runs covered shortlist save, API/worker restart persistence, deletion and no resurrection. Failed runs left no snapshot, as specified.
+- Isolated Chrome journey passed on the final code: research, shortlist save, reload, 320px layout, clear/delete, no private browser storage.
+- Independent behaviour and security reviews ran using general-purpose fallback agents with the role instructions (the custom role models were unavailable). Their findings were fixed or dispositioned in the spec.
+
+Evidence is local and small-sample; live success depends on the model and sources. These reviews do not replace teammate review. AI role coverage and environment separation remain release gates where applicable.
+
+| Criterion | Evidence | Status |
 | --- | --- | --- |
-| compare-suppliers-AC01 | Approved acceptance baseline and 108 local checks pass; actual provider attempts failed `invalid_output`, so no saved real result exists | r3 / independent behavior review in progress | Not verified |
-| compare-suppliers-AC02 | Validator checks pass, including unknown-price handling, exact delivery-subject matching, variants, reversed/post-label subjects, clause-scoped shipping attribution, contradictory parenthetical/prepositional/colon/slash trailing qualifiers and source casing; live extraction remains unsuccessful | r3 / final behavior/security follow-up pending | Partially verified offline |
-| compare-suppliers-AC03 | Local source-policy tests are included in the passing suite; no final security disposition or deployed connected-peer evidence yet | r3 / security follow-up pending | Not verified |
-| compare-suppliers-AC04 | Local acceptance suite passes; no final direct authorization review or completed browser journey in this continuation | r3 / independent behavior review in progress | Not verified |
-| compare-suppliers-AC05 | Real invalid extraction is surfaced without a saved snapshot; local suite passes; quota/outage and cancellation recovery remain unverified live | r3 | Partially verified |
-| compare-suppliers-AC06 | Local API/unit coverage passes, but browser shortlist save/reopen/delete and process-restart persistence were not reached | r3 / independent behavior review in progress | Not verified |
+| compare-suppliers-AC01 | Acceptance baseline; live runs saved real source-backed snapshots | Locally verified; human review pending |
+| compare-suppliers-AC02 | Validator and acceptance checks; r4 listing-only and r5 per-offer rejection evidence | Locally verified; human review pending |
+| compare-suppliers-AC03 | Source-policy acceptance and developer network checks; independent security review | Locally verified; deployed connected-peer evidence pending |
+| compare-suppliers-AC04 | Acceptance authorization checks; independent behaviour review; Chrome journey | Locally verified; human review pending |
+| compare-suppliers-AC05 | Live failed runs surface without a snapshot; acceptance quota/outage/cancellation cases | Partially verified; live quota/outage not exercised |
+| compare-suppliers-AC06 | Live shortlist, restart persistence, delete/no-resurrection; Chrome save/reload/delete | Locally verified; human review pending |
 
 ## Revision history
 
