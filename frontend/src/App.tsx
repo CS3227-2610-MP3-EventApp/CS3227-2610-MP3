@@ -26,10 +26,11 @@ import { Preparation } from "./preparation/Preparation";
 import { PreparationDrafts } from "./preparationDrafts/PreparationDrafts";
 import { PromotionalConcepts } from "./promotionalConcepts/PromotionalConcepts";
 import { SupplierResearch } from "./supplierResearch/SupplierResearch";
+import { ProcurementProposals } from "./procurement/ProcurementProposals";
 function ApplicationRoutes() {
   const location = useLocation();
   useEffect(() => {
-    document.title = `EventApp · ${location.pathname === "/login" ? "Log in" : location.pathname.startsWith("/register/") ? "Create account" : location.pathname === "/change-password" ? "Change password" : location.pathname === "/organiser/programme" ? "Programme Management" : location.pathname === "/business/applications" ? "Business applications" : location.pathname === "/organiser/applications" ? "Application reviews" : "Workspace"}`;
+    document.title = `EventApp · ${location.pathname === "/login" ? "Log in" : location.pathname.startsWith("/register/") ? "Create account" : location.pathname === "/change-password" ? "Change password" : location.pathname === "/organiser/programme" ? "Programme Management" : location.pathname === "/business/applications" ? "Business applications" : location.pathname === "/organiser/applications" ? "Application reviews" : location.pathname === "/business/procurement-proposals" ? "Procurement proposals" : "Workspace"}`;
     document.querySelector<HTMLElement>("[data-page-heading]")?.focus({ preventScroll: true });
   }, [location.pathname]);
   return <Routes>
@@ -46,6 +47,7 @@ function ApplicationRoutes() {
     <Route path="/business/preparation-drafts" element={<GuardedWorkspace role="business"><PreparationDrafts key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/business/promotional-concepts" element={<GuardedWorkspace role="business"><PromotionalConcepts key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/business/supplier-research" element={<GuardedWorkspace role="business"><SupplierResearch key={location.pathname + location.search} /></GuardedWorkspace>} />
+    <Route path="/business/procurement-proposals" element={<GuardedWorkspace role="business"><ProcurementProposals key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/business/preparation" element={<GuardedWorkspace role="business"><Preparation key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="/organiser/applications" element={<GuardedWorkspace role="organiser"><OrganiserApplications key={location.pathname + location.search} /></GuardedWorkspace>} />
     <Route path="*" element={<Navigate to="/login" replace />} />

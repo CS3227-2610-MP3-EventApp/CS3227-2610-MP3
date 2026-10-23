@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { renderPrototype, storedValues } from "../helpers/renderPrototype";
 import { actor, auth } from "../fixtures/auth";
+import { draft } from "../fixtures/applications";
 
 const P = "88888888-8888-4888-8888-888888888888", P2 = "99999999-9999-4999-8999-999999999999";
 const B1 = "33333333-3333-4333-8333-333333333333", E1 = "22222222-2222-4222-8222-222222222222", ACTOR = "11111111-1111-4111-8111-111111111111";
@@ -181,7 +182,11 @@ const readyProp = () => prop([rev([item(O1, "1250")], { approvals: [approval(1, 
 afterEach(() => { vi.restoreAllMocks(); });
 describe("AC01 route, context and shortlist resolution", () => {
   test("supplier research exposes an additive link to the proposals route carrying only the participation", async () => {
-    const w = new World(); w.install(); const user = userEvent.setup();
+    // Supplier research validates the participation through the existing application interfaces before showing the link.
+    const w = new World(); const user = userEvent.setup();
+    w.on((r) => r.method === "GET" && r.path === `${BASE}/application-events` ? json([{ eventId: E1, title: "Synthetic Autumn Fair", timezone: "Asia/Singapore", startsAt: "2027-01-01T01:00:00Z", endsAt: "2027-01-01T09:00:00Z", eventRevision: 1, applicationsOpen: true, settingsRevision: 1, applicationId: draft().id }]) : undefined);
+    w.on((r) => r.method === "GET" && r.path === `${BASE}/applications` ? json([draft({ participationId: P })]) : undefined);
+    w.install();
     await renderPrototype(`/business/supplier-research?businessId=${B1}&eventId=${E1}&participationId=${P}`);
     const link = await screen.findByRole("link", { name: /procurement proposals?/i });
     const href = new URL(link.getAttribute("href")!, location.origin);
@@ -305,11 +310,14 @@ describe("AC01/AC05 creating proposals", () => {
     const w = new World(); w.on((r) => r.method === "POST" && r.path === LIST ? Promise.reject(new TypeError("network")) : undefined); await open(w); const user = userEvent.setup();
     await choose(user, [/Flyer Pack A/]);
     const base = w.count("GET", /action-proposals$/);
+    const reload = hold(); w.on((r) => r.method === "GET" && r.path === LIST ? reload.promise : undefined);
     await user.click(submit());
     await waitFor(() => expect(w.count("GET", /action-proposals$/)).toBeGreaterThan(base));
-    const reload = hold(); w.on((r) => r.method === "GET" && r.path === LIST ? reload.promise : undefined);
     await settle();
     expect(buttons(/create/i).some((b) => live(b) && !/revision/i.test(b.textContent ?? ""))).toBe(false);
+    expect(w.count("POST", /action-proposals$/)).toBe(1);
+    w.handlers.shift(); reload.release(json({ items: [], total: 0, limit: 100, offset: 0 }));
+    await waitFor(() => expect(buttons(/create/i).some((b) => live(b) && !/revision/i.test(b.textContent ?? ""))).toBe(true));
     expect(w.count("POST", /action-proposals$/)).toBe(1);
   });
 });
@@ -346,14 +354,14 @@ describe("AC01 amounts and unknowns", () => {
     expect(text()).not.toMatch(/7,?777\.77|777777/);
   });
   test("source text and user text are inert; source URLs are never fetched", async () => {
-    const w = new World(); w.proposals = [prop([rev([item(O1, "1250", { name: "<img src=x onerror=alert(1)> Seller", desc: "<b>bold</b>" })], { actionType: "quotation_request", recipientEmail: "a@example.test", requestText: "<script>x</script>" })])];
+    const w = new World(); w.proposals = [prop([rev([item(O1, "1250", { name: "<img src=x onerror=alert(1)> Seller", desc: "<b>bold</b>" })], { actionType: "quotation_request", recipientEmail: "a@example.test", requestText: "<script>x</script>" })], { payload: (p) => { p.seller.supplierName = p.items[0].supplierName; } })];
     await open(w); await review(userEvent.setup(), /Seller/);
     expect(document.querySelector("img, script, b")).toBeNull(); expect(text()).toContain("<script>x</script>");
     expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
     expect(w.requests.some((r) => r.url.origin !== location.origin)).toBe(false);
   });
   test("revision history is ordered by numeric revision, not response order", async () => {
-    const w = new World(); const p = prop([10, 2, 1].map((n) => rev([item(O1, "1250")], { revision: n })));
+    const w = new World(); const p = prop([1, 2, 10].map((n) => rev([item(O1, "1250")], { revision: n })));
     p.history = (v) => { v.revisions = [10, 2, 1].map((n) => v.revisions.find((x: any) => x.proposalRevision === n)); };
     w.proposals = [p]; await open(w); await review(userEvent.setup());
     const nums = [...text().matchAll(/revision (\d+)/gi)].map((m) => Number(m[1])).filter((n, i, a) => a.indexOf(n) === i && [1, 2, 10].includes(n));
@@ -641,6 +649,7 @@ describe("AC03 authorization and error mapping", () => {
 
   test.each([null, "attendee", "organiser"] as const)("role %s never triggers private proposal requests", async (role) => {
     const w = new World(); w.install(); auth.current = role ? actor(role) : null; await renderPrototype(ROUTE); await settle();
+    expect(window.location.pathname).toBe("/login");
     expect(w.requests.filter((r) => /action-proposals|supplier-shortlist/.test(r.path))).toEqual([]); expect(text()).not.toMatch(/Invented Printer/);
   });
 });

@@ -4,10 +4,10 @@
 | --- | --- |
 | Stable capability ID | review-procurement-proposals |
 | Covered stories | F09-US03; [catalogue](../../docs/UserStoriesAndFeatures.md); criteria below |
-| Specification revision / status | 15 / Draft |
+| Specification revision / status | 15 / In review |
 | Product roles / roadmap reference | Active business owners; proposal access is creator-private and requires current active ownership. [5 - Further capabilities](../../docs/project.md#phase-priority-roadmap) |
 | Product and contract approval | Isaac approved exact revisions 12 and 15 on 2026-10-23. Later decisions on route, active-owner access, guard precedence, DTO, eligibility, list filtering, no-retry behavior, approval selection, cross-tab marker and one-snapshot selection are recorded in r15. Dependent sandbox contract is [approve-external-actions revision 2](../shared/approve-external-actions.md), approved 2026-10-23 |
-| Review / run record | Independent behavior/security reviews and targeted follow-ups of r15 identified and resolved specification gaps, including snapshot selection, DTO/source consistency, marker recovery and approval-versus-receipt wording. Test design/adequacy review, protected baseline and implementation run remain pending |
+| Review / run record | Independent behavior/security reviews and targeted follow-ups of r15 identified and resolved specification gaps, including snapshot selection, DTO/source consistency, marker recovery and approval-versus-receipt wording. Implemented on 2026-10-23 against the unfrozen [F09-US03 test plan](../../workflow/agents/test-plans/2026-10-23-f09-us03.md); see Verification and the [session log](../../logs/isaac/2026-10-23-f09-us03-implementation.md). Independent post-implementation review, a frozen protected baseline and human verification remain pending |
 
 ## Product outcome, users and scope
 
@@ -108,16 +108,24 @@ Depends on the approved [external-action sandbox service/API v2](../shared/appro
 
 ## Verification and evidence
 
-F09-US03-specific independent test design, adequacy review, protected baseline, implementation snapshot, API/UI integration and security checks are pending under the [agent workflow](../../workflow/agents/README.md). The shared Phase 3 service has separate revision-specific evidence; it does not verify this Phase 4 editor. No F09-US03 browser behavior or accessibility has been verified. Provider integration is intentionally N/A: no model or external provider is used in this simulation workflow. Project-wide online delivery and environment-separation gates remain separate.
+Implementation: `frontend/src/procurement/` (page, DTO/amount/pagination validation, no-retry markers), the `/business/procurement-proposals` route, the supplier-research entry link and logout/actor-change marker clearing in `Auth.tsx`. F10 and the supplier-owned interfaces are unchanged. Provider integration is intentionally N/A: no model or external provider is used in this simulation workflow. Project-wide online delivery and environment-separation gates remain separate.
+
+Evidence recorded on 2026-10-23 (developer session; no independent post-implementation review was run because the session owner asked for no subagents):
+
+- Acceptance: `frontend/tests/acceptance/procurement-proposals.test.tsx` 146/146 pass. This file was not a frozen baseline; five corrections were made by the developer with the session owner's general authorization and are listed in the [test plan](../../workflow/agents/test-plans/2026-10-23-f09-us03.md). A mutation that ignored the no-retry marker failed 10 cases.
+- Full frontend suite 503/503 (24 files), `tsc` and production build pass. Developer unit tests: `frontend/src/procurement/model.unit.test.ts`.
+- Backend F10 acceptance `backend/tests/test_external_actions.py` 69/69 pass against the isolated synthetic test database; existing protected paths match baseline `560cbf4`.
+- Real API contract: responses captured from the real F10/supplier endpoints over synthetic seeded data (shortlist, snapshot, two-revision simulated quotation, open cart, list page, approval, receipt) all pass the client validator.
+- Local browser journey (Vite + FastAPI on the isolated synthetic test database): supplier-research link, quotation creation with inert request text, approval with dialog, separate simulation with receipt and marker cleared, revision producing a server `quantity_mismatch` unknown with no numeric subtotal, cancellation disabling all controls, and no horizontal scrolling at 320 CSS pixels.
 
 | Criterion | Evidence | Status |
 | --- | --- | --- |
-| review-procurement-proposals-AC01 | Pending | Not verified |
-| review-procurement-proposals-AC02 | Pending | Not verified |
-| review-procurement-proposals-AC03 | Pending | Not verified |
-| review-procurement-proposals-AC04 | Pending | Not verified |
-| review-procurement-proposals-AC05 | Pending | Not verified |
-| review-procurement-proposals-AC06 | Pending | Not verified |
+| review-procurement-proposals-AC01 | Acceptance AC01 groups (context, shortlist resolution, one-snapshot selection, creation, amounts, DTO validation); real-response validation; browser create/revise | Implemented; independent and human verification pending |
+| review-procurement-proposals-AC02 | Acceptance approval/revision/state-matrix/latest-approval cases; backend F10 binding/expiry tests; browser approve then simulate | Implemented; independent and human verification pending |
+| review-procurement-proposals-AC03 | Acceptance list/approval error mapping, role redirects and clearing; backend F10 authorization matrix | Implemented; independent and human verification pending |
+| review-procurement-proposals-AC04 | Acceptance marker, indeterminate, non-committing, in-flight, cross-tab and timeout cases; backend F10 concurrency/idempotency | Implemented; real multi-tab and bfcache browser checks pending |
+| review-procurement-proposals-AC05 | Acceptance mixed-snapshot, create rejection, failed/uncertain receipts; backend F10 freshness/bounds tests; browser `quantity_mismatch` | Implemented; independent and human verification pending |
+| review-procurement-proposals-AC06 | Acceptance same-origin/PII/bfcache/401/accessibility cases; 320px browser reflow | Implemented; screen-reader and full keyboard walkthrough pending |
 
 ## Revision history
 
@@ -137,4 +145,5 @@ F09-US03-specific independent test design, adequacy review, protected baseline, 
 | 12 / 2026-10-23 | Pinned valid and unknown amount/currency/reason combinations to F10 r2; no new server behavior introduced | Isaac approved exact revision 12 on 2026-10-23. Status remains Draft pending required full independent review and pre-implementation test-design/baseline gates; no implementation or verification evidence |
 | 13 / 2026-10-23 | Recorded the separate proposal route, active-owner/creator-private access, implemented `revisions[]` history shape and freshness checks | Superseded by r14 before approval; independent behavior/security review found blocking specification gaps; no implementation or verification evidence |
 | 14 / 2026-10-23 | Incorporated the independent r13 review findings and Isaac's decisions on route, access/status precedence, service-authoritative eligibility, list scope, timeout retries and approval selection; specified payload/history validation, privacy, state controls and accessible behavior | Superseded by r15 before approval; independent reviews found remaining gaps; no implementation or verification evidence |
+| 15 / 2026-10-23 (implementation) | No contract change. Implemented the approved r15 workflow and recorded developer evidence; status moved to In review | Independent post-implementation review, frozen baseline and human verification pending |
 | 15 / 2026-10-23 | Incorporated r14 and r15 review findings; recorded Isaac's choices to keep F10 unchanged, fail closed on the creator-wide list, persist a minimal cross-tab/reload no-retry marker, and constrain each proposal to one snapshot without auto-splitting; completed shortlist-to-snapshot resolution, pagination, DTO validation, state/control, fixed error mapping, approval-vs-receipt and privacy requirements | Isaac approved exact r15 on 2026-10-23. Test design/adequacy review, protected baseline, implementation and verification remain pending |

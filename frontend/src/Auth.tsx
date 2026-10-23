@@ -7,6 +7,7 @@ import type { DraftMemory, OrganiserDraftMemory } from "./applications/model";
 import type { PreparationMemory } from "./preparation/api";
 import type { SetupDraftMemory } from "./setup/api";
 import type { DraftMemory as PreparationDraftMemory } from "./preparationDrafts/api";
+import { clearMarkers } from "./procurement/markers";
 interface AuthValue {
   draftMemory: Map<string, PreparationDraftMemory>;
   actor: CurrentActor | null; setActor: (actor: CurrentActor | null) => void;
@@ -39,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     epoch.current++;
     if (!value || identity(value) !== identity(actorRef.current)) {
       draftMemory.current.clear(); memory.current.clear(); organiserMemory.current.clear(); preparationMemory.current.clear(); setupMemory.current.clear(); destinations.current.clear();
+      // Procurement no-retry markers: logout clears all, an actor change clears other actors' markers.
+      if (!value || value.id !== actorRef.current?.id) clearMarkers(value?.id ?? null);
       if (identity(value) !== identity(actorRef.current)) setSessionNotice("");
     } else {
       const owns = (businessId: string) => value.businessMemberships.some((membership) => membership.businessId === businessId && membership.status === "active" && membership.role === "owner");
