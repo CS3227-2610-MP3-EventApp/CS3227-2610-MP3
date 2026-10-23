@@ -8,6 +8,7 @@ import { application, events as parseEvents, uuid, type Application, type Applic
 import { PreparationApiError, preparationApi, type PreparationDocument, type PreparationLine, type PreparationTask } from "../preparation/api";
 import { ApplicationLayout } from "../applications/shared";
 import { DraftApiError, draftApi, type AdoptWrite, type BusinessJob, type DraftDocument, type DraftLine, type DraftMemory, type DraftTask } from "./api";
+import { canonicalJson } from "../preparation/Preparation";
 
 const statusValues = ["not_started", "in_progress", "done"] as const;
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
@@ -231,7 +232,7 @@ export function PreparationDrafts() {
       else { accessLoss(failure); const fields = failure instanceof DraftApiError ? failure.fields : []; setFieldErrors(Object.fromEntries(fields.map(f => [f, "Check this field."]))); setError(failure instanceof Error ? failure.message : "Request could not be completed."); }
     } finally { if (version === generation.current && alive.current) setBusy(false); }
   }
-  function sameEditable(body: { tasks: DraftTask[]; budget: { lines: DraftLine[] } }, saved: DraftDocument) { return JSON.stringify(body.tasks) === JSON.stringify(saved.tasks) && JSON.stringify(body.budget.lines) === JSON.stringify(saved.budget.lines); }
+  function sameEditable(body: { tasks: DraftTask[]; budget: { lines: DraftLine[] } }, saved: DraftDocument) { return canonicalJson(body.tasks) === canonicalJson(saved.tasks) && canonicalJson(body.budget.lines) === canonicalJson(saved.budget.lines); }
   function beginAdoption() { const current = memRef.current; if (current?.dirty) return; if (!current?.draft || !manual || !setup || !event || (!selectedIndexes("task").length && !selectedIndexes("line").length)) return; approval.current = current.draft; setConfirming(true); }
   async function adopt() {
     const current = memRef.current, currentActor = actor; if (!current?.draft || approval.current !== current.draft || !currentActor || !manual || !setup || !event || busy) return;

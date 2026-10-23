@@ -70,6 +70,11 @@ function editableDocument(value: PreparationDocument): Draft {
     tasks: value.tasks.map((task) => ({ ...task })),
     lines: value.budget.lines.map((line) => ({ ...line, priceText: centsText(line.unitPriceMinorUnits) })) };
 }
+// Key-order-insensitive JSON: server views and rebuilt write bodies list the same fields in different orders.
+export function canonicalJson(value: unknown): string {
+  return JSON.stringify(value, (_key, item) => item && typeof item === "object" && !Array.isArray(item)
+    ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) : item);
+}
 function writeBody(draft: Draft): PreparationWrite {
   return { expectedRevision: draft.revision,
     tasks: draft.tasks.map(({ id, ...task }) => ({ ...(id ? { id } : {}), ...task })),
@@ -125,7 +130,7 @@ export function Preparation() {
   function clearPrivate() { purgeMemory(); docRef.current = null; setDraft(null); setConflict(false); setFieldErrors({}); setConcealed(false); }
   function isDirty(value: Draft) {
     const body = writeBody(value);
-    return (parseCents(value.limitText ?? "") ?? null) !== (value.saved.budget.overallLimitMinorUnits ?? null) || JSON.stringify(body.tasks) !== JSON.stringify(value.saved.tasks) || JSON.stringify(body.budget.lines) !== JSON.stringify(value.saved.budget.lines);
+    return (parseCents(value.limitText ?? "") ?? null) !== (value.saved.budget.overallLimitMinorUnits ?? null) || canonicalJson(body.tasks) !== canonicalJson(value.saved.tasks) || canonicalJson(body.budget.lines) !== canonicalJson(value.saved.budget.lines);
   }
   const load = useCallback(async (showProgress = true) => {
     const current = ++generation.current;
